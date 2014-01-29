@@ -11,25 +11,25 @@ import fileinput
 import socket
 import filecmp
 
-from Logging import getLogger
-log = getLogger()
+# trivial examples
+# ./cmsDataFlowMerger.py --paths_to_watch="/ramdisk/output/run100588" --path_eol="/ramdisk/" --outputMerge=/beast_storage/mergeBU --outputEndName=$HOSTNAME --typeMerging=mini  --doRemoveFiles --debug=10
+# ./cmsDataFlowMerger.py --paths_to_watch="/store/sata31a02v01/mergeBU/run100588"    --outputMerge=/store/sata31a02v01/mergeMacro --outputEndName=$HOSTNAME --typeMerging=macro --doRemoveFiles --debug=10
 
 # program to merge (cat) files given a list
 
 """
 Do actual merging
 """
-def mergeFiles(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, typeMerging, doRemoveFiles, debug):
-
-   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON))
+def mergeFiles(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON):
+   if(float(debug) >= 10): print "mergeFiles:", outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON
    
    outMergedFileFullPath = os.path.join(outputMergedFolder, outMergedFile)
    outMergedJSONFullPath = os.path.join(outputMergedFolder, outMergedJSON)
-   if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
+   if(float(debug) >= 10): print 'outMergedFileFullPath: ',outMergedFileFullPath
 
    initMergingTime = time.time()
    now = datetime.datetime.now()
-   if(float(debug) > 0): log.info("{0}: Start merge of {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
+   if(float(debug) > 0): print now.strftime("%H:%M:%S"), ": Start merge of ", outMergedJSONFullPath
 
    if os.path.exists(outMergedFileFullPath):
       os.remove(outMergedFileFullPath)
@@ -46,12 +46,9 @@ def mergeFiles(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder
             for line in fileinput.FileInput(filenames):
                fout.write(line)
       else:
-         log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
+         print "BIG PROBLEM, ini file not found!: ",iniNameFullPath
 
    filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-
-   if(float(debug) > 20): log.info("Will merge: {0}".format(filenames))
-
    with open(outMergedFileFullPath, 'a') as fout:
       for line in fileinput.FileInput(filenames):
          fout.write(line)
@@ -65,16 +62,14 @@ def mergeFiles(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder
    theMergedJSONfile.close()
    os.chmod(outMergedJSONFullPath, 0666)
 
-   #log.info("doRemoveFiles: {0}".format(doRemoveFiles))
-
    # remove already merged files, if wished
-   if(doRemoveFiles == "True"):
+   if(doRemoveFiles == True): 
       for nfile in range(0, len(files)):
-         if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
+         if(float(debug) >= 10): print "removing file: ",files[nfile]
    	 inputFileToRemove = os.path.join(inputDataFolder, files[nfile])
    	 os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
-         if(float(debug) >= 10): log.info("removing filesJSON: {0}".format(filesJSON[nfile]))
+         if(float(debug) >= 10): print "removing filesJSON: ",filesJSON[nfile]
    	 inputFileToRemove = os.path.join(inputDataFolder, filesJSON[nfile])
    	 os.remove(inputFileToRemove)
 
@@ -86,15 +81,14 @@ def mergeFiles(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
-   if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
+   if(float(debug) > 0): print now.strftime("%H:%M:%S"), ": Time for merging(%s): %f" % (outMergedJSONFullPath,endMergingTime-initMergingTime)
 
 """
 Do recovering JSON files
 """
-def doTheRecovering(paths_to_watch, debug):
+def doTheRecovering():
    inputDataFolders = glob.glob(paths_to_watch)
-   log.info("Recovering: inputDataFolders: {0}".format(inputDataFolders))
-   if(float(debug) >= 10): log.info("**************recovering JSON files***************")
+   if(float(debug) >= 10): print "**************recovering JSON files***************"
    for nf in range(0, len(inputDataFolders)):
       inputDataFolder = inputDataFolders[nf]	   
       # reading the list of files in the given folder
@@ -136,14 +130,14 @@ def is_completed(filepath):
 """
 Do loops
 """
-def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputEndName, doRemoveFiles):
+def doTheMerging():
    filesDict      = dict() 
    jsonsDict      = dict()    
    eventsIDict    = dict()
    eventsODict    = dict()
    eventsEoLSDict = dict()
    nFilesBUDict   = dict() 
-   if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
+   if(float(debug) >= 10): print "I will watch:", paths_to_watch
    # Maximum number with pool option
    nWithPollMax = 10
    # Maximum number of threads to be allowed with the pool option
@@ -154,8 +148,8 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
       thePool = ThreadPool(nThreadsMax)
       nLoops = nLoops + 1
       inputDataFolders = glob.glob(paths_to_watch)
-      if(float(debug) >= 20): log.info("***************NEW LOOP************** {0}".format(nLoops))
-      if(float(debug) >= 20): log.info("inputDataFolders: {0}".format(inputDataFolders))
+      if(float(debug) >= 10): print "***************NEW LOOP************** ",nLoops
+      if(float(debug) >= 10): print inputDataFolders
       for nf in range(0, len(inputDataFolders)):
           inputDataFolder = inputDataFolders[nf]
 	  # making output folders
@@ -169,59 +163,51 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              try:
                 os.makedirs(outputMergedFolder)
              except OSError, e:
-                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMergedFolder))
+                 print "Looks like the directory " + outputMergedFolder + " has just been created by someone else..."
 	  
 	  # reading the list of files in the given folder
           before = dict ([(f, None) for f in os.listdir (inputDataFolder)])
-          if(float(debug) >= 50): time.sleep (1)
-          if(float(debug) >= 20): log.info("Begin folder iteration")
+          if(float(debug) >= 10): time.sleep (1)
+          if(float(debug) >= 10): print "Begin folder iteration"
           after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
           afterString = [f for f in after]
           added = [f for f in after if not f in before]
-          if(float(debug) >= 50): log.info("afterString: {0}".format(afterString))
+          if(float(debug) >= 50): print afterString
           removed = [f for f in before if not f in after]
           if added: 
-             if(float(debug) >= 50): log.info("Added: {0}".format(added))
+             if(float(debug) >= 50): print "Added: ", ", ".join (added)
           if removed: 
-             if(float(debug) >= 50): log.info("Removed: {0}".format(removed))
+             if(float(debug) >= 50): print "Removed: ", ", ".join (removed)
 
 	  # loop over ini files, needs to be done first of all
           for i in range(0, len(afterString)):
 
 	     if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
                 inputName  = os.path.join(inputDataFolder,afterString[i])
-                if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
                 if is_completed(inputName) == True:
 		   # init name: runxxx_streamY_HOST.ini
 		   inputNameString = afterString[i].split('_')
-                   # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
-		   outputIniName          =  outputMergedFolder + "/../" + inputNameString[0] + "_" + inputNameString[1] + "_" + outputEndName + ".ini"
-                   outputIniNameToCompare =  outputMergedFolder + "/"    + inputNameString[0] + "_" + inputNameString[1] + "_" + outputEndName + ".ini"
+                   outputName =  outputMergedFolder + "/../" + inputNameString[0] + "_" + inputNameString[1] + "_" + outputEndName + ".ini"
 		   inputNameRename  = inputName.replace(".ini","_TEMP.ini")
                    shutil.move(inputName,inputNameRename)
-                   if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
+                   if(float(debug) >= 10): print "iniFile: ",afterString[i]
 	           # getting the ini file, just once per stream
-		   if not os.path.exists(outputIniNameToCompare):
+		   if not os.path.exists(outputName):
 		      try:
-		         shutil.copy(inputNameRename,outputIniName)
-		         shutil.copy(inputNameRename,outputIniNameToCompare)
+		         shutil.copy(inputNameRename,outputName)
 		      except OSError, e:
-		         log.warning("Looks like the outputIniName file {0} has just been created by someone else...".format(outputIniName))
-		         log.warning("Looks like the outputIniNameToCompare file {0} has just been created by someone else...".format(outputIniNameToCompare))
+		         print "Looks like the file " + outputName + " has just been created by someone else..."
 	           # otherwise, checking if they are identical
 	           else:
-                      try:
-		         if filecmp.cmp(outputIniNameToCompare,inputNameRename) == False:
-		            msg = "ini files: %s and %s are different!!!" % (outputIniNameToCompare,inputNameRename)
-		            raise RuntimeError, msg
-                      except IOError, e:
-                            log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
+		      if filecmp.cmp(outputName,inputNameRename) == False:
+		         msg = "ini files: %s and %s are different!!!" % (outputName,inputNameRename)
+		         raise RuntimeError, msg
 
-                   if(doRemoveFiles == "True"): 
+                   if(doRemoveFiles == True): 
                       os.remove(inputNameRename)
 
 		else:
-		   log.info("Looks like the file {0} is being copied by someone else...".format(inputName))
+		   print "Looks like the file " + inputName + " is being copied by someone else..."
 
 	  # loop over JSON files, which will give the list of files to be merged
 	  for i in range(0, len(afterString)):
@@ -230,9 +216,9 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     if "EoLS" in afterString[i]: continue
 	     if "EoR" in afterString[i]: continue
 	     if "TEMP" in afterString[i]: continue
-	     if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
+	     if(float(debug) >= 50): print "FILE:", afterString[i]
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
-	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
+	     if(float(debug) >= 50): print "inputJsonFile:",inputJsonFile
 
              # moving the file to avoid issues
 	     inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
@@ -240,16 +226,16 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
 	     try:
                 settings_textI = open(inputJsonRenameFile, "r").read()
-                if(float(debug) >= 50): log.info("trying to load: {0}".format(inputJsonRenameFile))
+                if(float(debug) >= 50): print "trying to load: ",inputJsonRenameFile
 	        settings = json.loads(settings_textI)
              except ValueError, e:
-                log.warning("Looks like the file {0} is not available, I'll try again...".format(inputJsonRenameFile))
+                print "Looks like the file " + inputJsonRenameFile + " is not available..."
 	        try:
 	           time.sleep (0.1)
                    settings_textI = open(inputJsonRenameFile, "r").read()
 		   settings = json.loads(settings_textI)
                 except ValueError, e:
-                   log.warning("Looks like the file {0} is not available (2nd try)...".format(inputJsonRenameFile))
+                   print "Looks like the file " + inputJsonRenameFile + " is not available (2nd try)..."
 	           time.sleep (1.0)
                    settings_textI = open(inputJsonRenameFile, "r").read()
 		   settings = json.loads(settings_textI)
@@ -259,7 +245,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              eventsInput  = int(settings['data'][0])
              eventsOutput = int(settings['data'][1])
              file         = str(settings['data'][2])
-	     if(float(debug) >= 50): log.info("Info from json file(eventsInput, eventsOutput, file): {0}, {1}, {2}".format(eventsInput, eventsOutput, file))
+	     if(float(debug) >= 50): print 'Info from json file(eventsInput, eventsOutput, file): ',eventsInput,eventsOutput,file
              nFilesBU         = 0
              eventsTotalInput = 0
 	     if typeMerging == "macro": 
@@ -286,7 +272,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     	nFilesBUDict.update({key:[nFilesBU]})
 
 	     else:
-                if(float(debug) >= 50): log.info("Adding {0} to filesDict".format(key))
+                if(float(debug) >= 50): print "Adding", key, "to filesDict"
 	     	filesDict.update({key:[file]})
 	     	jsonsDict.update({key:[inputJsonRenameFile]})
 
@@ -296,17 +282,17 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
 	     	nFilesBUDict.update({key:[nFilesBU]})
 
-             if(float(debug) >= 50): log.info("filesDict: {0}\njsonsDict: {1}\n, eventsIDict: {2}, eventsODict: {3}, nFilesBUDict: {4}".format(filesDict, jsonsDict, eventsIDict, eventsODict, nFilesBUDict))
-             #if(float(debug) >= 50): print "jsonsDict:    ", jsonsDict
-             #if(float(debug) >= 50): print "eventsIDict:  ", eventsIDict
-             #if(float(debug) >= 50): print "eventsODict:  ", eventsODict
-             #if(float(debug) >= 50): print "nFilesBUDict: ", nFilesBUDict
+             if(float(debug) >= 50): print "filesDict:    ", filesDict
+             if(float(debug) >= 50): print "jsonsDict:    ", jsonsDict
+             if(float(debug) >= 50): print "eventsIDict:  ", eventsIDict
+             if(float(debug) >= 50): print "eventsODict:  ", eventsODict
+             if(float(debug) >= 50): print "nFilesBUDict: ", nFilesBUDict
 
              if typeMerging == "mini": 
         	keyEoLS = (fileNameString[0],fileNameString[1])
 		if keyEoLS not in eventsEoLSDict.keys():
 	           EoLSName = path_eol + "/" + fileNameString[0] + "/EoLS_" + fileNameString[1].split('ls')[1] + ".jsn"
-                   if(float(debug) >= 10): log.info("EoLSName: {0}".format(EoLSName))
+                   if(float(debug) >= 10): print "EoLSName: ",EoLSName
                    if os.path.exists(EoLSName):
                       inputEoLSName = open(EoLSName, "r").read()
                       settingsEoLS  = json.loads(inputEoLSName)
@@ -317,29 +303,29 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
         	if keyEoLS in eventsEoLSDict.keys(): # and key in filesDict.keys():
         	#try:
-		   if(float(debug) >= 20): log.info("mini-EventsEoLS/EventsInput-LS/Stream: {0}, {1}, {2}, {3}".format(eventsEoLS, eventsIDict[key][0], fileNameString[1], fileNameString[2]))
+		   if(float(debug) >= 5): print "mini-EventsEoLS/EventsInput-LS/Stream: ",eventsEoLS,eventsIDict[key][0],fileNameString[1],fileNameString[2]
                    if(eventsEoLSDict[keyEoLS][0] == eventsIDict[key][0]):
 	              # merged files
 	              outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + outputEndName + ".dat";
 	              outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + outputEndName + ".jsn";
 
                       if nLoops <= nWithPollMax:
-                         process = thePool.apply_async(         mergeFiles,       [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], typeMerging, doRemoveFiles, debug])
+                         process = thePool.apply_async(         mergeFiles,       [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key]])
 		      else:
-		         process = threading.Thread   (target = mergeFiles,args = (outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], typeMerging, doRemoveFiles, debug))
+		         process = threading.Thread   (target = mergeFiles,args = (outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key]))
                          process.start()
 		         #process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key]])
                          #process.start()
                    else:
-                      if (float(debug) >= 20):
-                	  log.info("Events number does not match: EoL says {0} we have in the files: {1}".format(eventsEoLSDict[keyEoLS][0], eventsIDict[key][0]))
+                      if (float(debug) >= 5):
+                	  print "Events number does not match: EoL says", eventsEoLSDict[keyEoLS][0], "we have in the files:", eventsIDict[key][0]
         	else:
         	#except Exception:
-                      if (float(debug) >= 20):
-                	  log.warning("Looks like {0} is not in filesDict".format(key))
+                      if (float(debug) >= 50):
+                	  print "Looks like", key, "is not in filesDict"
 
              else:
-		if(float(debug) >= 20): log.info("macro-EventsTotalInput/EventsInput-LS/Stream: {0}, {1}, {2}, {3}".format(eventsTotalInput,eventsIDict[key][0],fileNameString[1],fileNameString[2]))
+		if(float(debug) >= 5): print "macro-EventsTotalInput/EventsInput-LS/Stream: ",eventsTotalInput,eventsIDict[key][0],fileNameString[1],fileNameString[2]
                 if(eventsTotalInput > 0 and eventsTotalInput == eventsIDict[key][0]):
 	           # merged files
 	           outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + outputEndName + ".dat";
@@ -352,44 +338,88 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		   eventsEoLSDict.update({keyEoLS:[eventsEoLS,filesEoLS,eventsAllEoLS]})
 
                    if nLoops <= nWithPollMax:
-                      process = thePool.apply_async(         mergeFiles,       [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], typeMerging, doRemoveFiles, debug])
+                      process = thePool.apply_async(         mergeFiles,       [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key]])
                    else:
-                      process = threading.Thread   (target = mergeFiles,args = (outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], typeMerging, doRemoveFiles, debug))
+                      process = threading.Thread   (target = mergeFiles,args = (outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key]))
                       process.start()
                       #process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key]])
                       #process.start()
                 else:
-                   if (float(debug) >= 20):
-                       log.info("Events number does not match: EoL says {0}, we have in the files: {1}".format(eventsOutput, eventsIDict[key][0]))
+                   if (float(debug) >= 5):
+                       print "Events number does not match: EoL says", eventsOutput, "we have in the files:", eventsIDict[key][0]
 
           before = after
       if nLoops <= nWithPollMax:
          thePool.close()
          thePool.join()
+"""
+Main
+"""
+valid = ['paths_to_watch=', 'path_eol=', 'typeMerging=', 'outputMerge=', 'outputEndName=', 'doRemoveFiles', 'debug=', 'help']
 
+usage =  "Usage: listdir.py --paths_to_watch=<paths_to_watch>\n"
+usage += "                  --path_eol=<eoldir>\n"
+usage += "                  --outputMerge=<merged>\n"
+usage += "                  --outputEndName=<HOST>\n"
+usage += "                  --typeMerging=<mini/macro/auto>\n"
+usage += "                  --doRemoveFiles (true if added)\n"
+usage += "                  --debug=<0(0/1/5/10/50>\n"
 
-def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputEndName, doRemoveFiles, debug):
-    if not os.path.exists(outputMerge):
-       try:
-          os.makedirs(outputMerge)
-       except OSError, e:
-          log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMerge))
-    
-    if typeMerging != "mini" and typeMerging != "macro" and typeMerging != "auto":
-       msg = "Wrong type of merging: %s" % typeMerging
-       raise RuntimeError, msg
-    
-    if typeMerging == "auto":
-       theHost = socket.gethostname()
-       if "bu" in theHost.lower():
-          typeMerging = "mini"
-       else:
-          typeMerging = "macro"
-    
-    if typeMerging == "mini":
-       if not os.path.exists(path_eol):
-          msg = "End of Lumi folder Not Found: %s" % path_eol
-          raise RuntimeError, msg
-    
-    doTheRecovering(paths_to_watch, debug)
-    doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputEndName, doRemoveFiles)
+try:
+   opts, args = getopt.getopt(sys.argv[1:], "", valid)
+except getopt.GetoptError, ex:
+   print usage
+   print str(ex)
+   sys.exit(1)
+
+paths_to_watch = "unmerged"
+path_eol       = "eoldir"
+outputMerge    = "merged"
+outputEndName  = "HOST"
+typeMerging    = "mini"
+debug          = 0
+doRemoveFiles  = False
+
+for opt, arg in opts:
+   if opt == "--help":
+      print usage
+      sys.exit(1)
+   if opt == "--paths_to_watch":
+      paths_to_watch = arg
+   if opt == "--path_eol":
+      path_eol = arg
+   if opt == "--outputMerge":
+      outputMerge = arg
+   if opt == "--outputEndName":
+      outputEndName = arg
+   if opt == "--typeMerging":
+      typeMerging = arg
+   if opt == "--debug":
+      debug = arg
+   if opt == "--doRemoveFiles":
+      doRemoveFiles = bool(True)
+
+if not os.path.exists(outputMerge):
+   try:
+      os.makedirs(outputMerge)
+   except OSError, e:
+      print "Looks like the directory " + outputMerge + " has just been created by someone else..."
+
+if typeMerging != "mini" and typeMerging != "macro" and typeMerging != "auto": 
+   msg = "Wrong type of merging: %s" % typeMerging
+   raise RuntimeError, msg
+
+if typeMerging == "auto":
+   theHost = socket.gethostname()
+   if "bu" in theHost.lower():
+      typeMerging = "mini"
+   else:
+      typeMerging = "macro"
+
+if typeMerging == "mini":
+   if not os.path.exists(path_eol):
+      msg = "End of Lumi folder Not Found: %s" % path_eol
+      raise RuntimeError, msg
+
+doTheRecovering()
+doTheMerging()

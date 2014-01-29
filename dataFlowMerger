@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+configfile = "/opt/merger/dataFlowMerger.conf"
+pidFile ="/var/run/dfMerger.pid"
+
+import sys, os, socket, signal
+from Daemon import Daemon
+
+from configobj import ConfigObj
+from Logging import getLogger
+import cmsDataFlowMerger
+
+log = getLogger()
+
+def getMergeParams(mergeConfigFileName):
+    try:
+        if os.path.isfile(mergeConfigFileName):
+            config = ConfigObj(mergeConfigFileName)
+        else:
+            log.error("Configuration file not found: {0}!".format(mergeConfigFileName))
+            sys.exit(1)
+    except IOError, e:
+        log.error("Unable to open configuration file: {0}!".format(mergeConfigFileName))
+        sys.exit(1)
+
+    return config
+
+def get_params():
+    params = getMergeParams(configfile)
+
+    try:
+        in_path = params['Input']['dataPath']
+        out_path = params['Output']['dataPath']
+        eol_path = params['Input']['eolPath']
+        merge_type = params['Misc']['mergeType']
+    except KeyError, e:
+        log.error("At least one non-optional parameter missing from the config file {0}:".format(configFile))
+        log.error("{0}".format(e))
+        exit(1)
+
+    try:
+        additional_label = params['Output']['outputEndName']
+    except KeyError, e:
+        additional_label = socket.gethostname()
+
+    try:
+        delete_files = params['Misc']['deleteFiles']
+    except KeyError, e:
+        delete_files = True
+
+    try:
+        debug_level = params['Misc']['debugLevel']
+    except KeyError, e:
+        debug_level = 10
+
+    return in_path, eol_path, out_path, additional_label, merge_type, delete_files, debug_level
+
+
+
+class DataFlowMerger(Daemon):
+    running = True
+
+    def cleanUp(self, sigNum = None, frame = None):
+        log.debug('Cleaning up...')
+        if os.path.isfile(self.pidfile):
+            os.remove(self.pidfile)
+        self.running = False
+
+    def run(self):
+
+        [inPath, eolPath, outPath, adLabel, mType, delOrigFiles, debugLevel] = get_params()
+
+        log.info("delFiles: {0}".format(delOrigFiles))
+
+        cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, adLabel, delOrigFiles, debugLevel)
+
+if __name__ == "__main__":
+
+    daemon = DataFlowMerger(pidFile)
+
+    if len(sys.argv) == 2:
+        if 'start' == sys.argv[1]:
+            daemon.start()
+        elif 'stop' == sys.argv[1]:
+            daemon.stop()
+        elif 'restart' == sys.argv[1]:
+            daemon.restart()
+        elif 'status' == sys.argv[1]:
+            daemon.status()
+        else:
+            print "Unknown command"
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print "Usage: %s start|stop|restart|status" % sys.argv[0]
+        sys.exit(2)
+
