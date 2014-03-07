@@ -165,6 +165,8 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	    outputMergedFolder = os.path.join(outputMerge, inputDataFolderString[len(inputDataFolderString)-2], "open")
           else:
 	    outputMergedFolder = os.path.join(outputMerge, inputDataFolderString[len(inputDataFolderString)-1], "open")
+          # remove the folder to start on a clean area
+	  shutil.rmtree(outputMergedFolder, ignore_errors=True)
 	  if not os.path.exists(outputMergedFolder):
              try:
                 os.makedirs(outputMergedFolder)
