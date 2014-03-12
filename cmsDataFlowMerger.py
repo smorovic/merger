@@ -165,8 +165,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	    outputMergedFolder = os.path.join(outputMerge, inputDataFolderString[len(inputDataFolderString)-2], "open")
           else:
 	    outputMergedFolder = os.path.join(outputMerge, inputDataFolderString[len(inputDataFolderString)-1], "open")
-          # remove the folder to start on a clean area
-	  shutil.rmtree(outputMergedFolder, ignore_errors=True)
+
 	  if not os.path.exists(outputMergedFolder):
              try:
                 os.makedirs(outputMergedFolder)
@@ -206,10 +205,14 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		   if not os.path.exists(outputIniNameToCompare):
 		      try:
 		         shutil.copy(inputNameRename,outputIniName)
-		         shutil.copy(inputNameRename,outputIniNameToCompare)
 		      except OSError, e:
 		         log.warning("Looks like the outputIniName file {0} has just been created by someone else...".format(outputIniName))
+
+		      try:
+		         shutil.copy(inputNameRename,outputIniNameToCompare)
+		      except OSError, e:
 		         log.warning("Looks like the outputIniNameToCompare file {0} has just been created by someone else...".format(outputIniNameToCompare))
+
 	           # otherwise, checking if they are identical
 	           else:
                       try:
