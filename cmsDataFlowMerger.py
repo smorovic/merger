@@ -203,7 +203,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                    shutil.move(inputName,inputNameRename)
                    if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
 	           # getting the ini file, just once per stream
-		   if not os.path.exists(outputIniNameToCompare):
+		   if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
 		      try:
 		         shutil.copy(inputNameRename,outputIniName)
 		      except OSError, e:
@@ -264,7 +264,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     # eventsOutput is actually the total number of events to merge in the macromerged stage
              eventsInput       = int(settings['data'][0])
              eventsOutput      = int(settings['data'][1])
-             errorCode         = ""
+             errorCode         = 0
 	     file              = ""
              nFilesBU         = 0
              eventsTotalInput = 0
@@ -276,7 +276,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	        # processed events == input + error events
 		eventsInput = eventsInput + eventsOutputError
 	     else: 
-		errorCode	 = str(settings['data'][2])
+		errorCode	 = int(settings['data'][2])
 		file             = str(settings['data'][3])
                 nFilesBU         = int(settings['data'][4])
                 eventsTotalInput = int(settings['data'][5])
