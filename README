@@ -1,0 +1,18 @@
+- cmsDataFlowMergerA.py --> merging unmerged files to different files for 
+                            different BUs
+
+- cmsDataFlowMergerB.py --> merging unmerged files to same file for 
+                            different BUs locking the merged file
+
+- cmsDataFlowMergerC.py --> merging unmerged files to same file for 
+                            different BUs without locking the merged file
+
+- dataFlowMergerInLine --> script to run interactively the merging code
+
+- dataFlowMerger --> script to run the merging code as a service
+
+- Auxiliar files: Daemon.py, Logging.py, configobj.py, logFormat.conf
+
+- dataFlowMergerMini.conf --> example config file for mini merger
+
+- dataFlowMergerMacro.conf --> example config file for macro merger
