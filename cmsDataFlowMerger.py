@@ -5,7 +5,7 @@ import json
 import glob
 import multiprocessing
 from multiprocessing.pool import ThreadPool
-import threading
+import thread
 import datetime
 import fileinput
 import socket
@@ -45,6 +45,7 @@ def mergeFiles(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder
          with open(outMergedFileFullPath, 'w') as fout:
             for line in fileinput.FileInput(filenames):
                fout.write(line)
+	 fout.close()
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
 
@@ -145,7 +146,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
    eventsEoLSDict = dict()
    nFilesBUDict   = dict() 
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
-   # Maximum number with pool option
+   # Maximum number with pool option (< 0 == always)
    nWithPollMax = 10
    # Maximum number of threads to be allowed with the pool option
    nThreadsMax  = 30
@@ -339,11 +340,12 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	              outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + outputEndName + ".dat";
 	              outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + outputEndName + ".jsn";
 
-                      if nLoops <= nWithPollMax:
+                      if nLoops <= nWithPollMax or nWithPollMax < 0:
                          process = thePool.apply_async(         mergeFiles,       [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug])
 		      else:
-		         process = threading.Thread   (target = mergeFiles,args = (outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug))
-                         process.start()
+                         thread.start_new_thread( mergeFiles, (outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug) )
+		         #process = threading.Thread   (target = mergeFiles,args = (outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug))
+                         #process.start()
 		         #process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key]])
                          #process.start()
                    else:
@@ -367,24 +369,22 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                    eventsAllEoLS = eventsTotalInput
 		   eventsEoLSDict.update({keyEoLS:[eventsEoLS,filesEoLS,eventsAllEoLS]})
 
-                   if nLoops <= nWithPollMax:
+                   if nLoops <= nWithPollMax or nWithPollMax < 0:
                       process = thePool.apply_async(         mergeFiles,       [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug])
                    else:
                       process = threading.Thread   (target = mergeFiles,args = (outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug))
                       process.start()
-                      #process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key]])
-                      #process.start()
                 else:
                    if (float(debug) >= 20):
                        log.info("Events number does not match: EoL says {0}, we have in the files: {1}".format(eventsOutput, eventsIDict[key][0]))
 
           before = after
-      if nLoops <= nWithPollMax:
+      if nLoops <= nWithPollMax and nWithPollMax > 0:
          thePool.close()
          thePool.join()
 
 
-def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputEndName, doRemoveFiles, debug):
+def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, dummyDir, outputEndName, doRemoveFiles, debug):
     if not os.path.exists(outputMerge):
        try:
           os.makedirs(outputMerge)

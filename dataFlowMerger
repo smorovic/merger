@@ -32,6 +32,7 @@ def get_params():
         out_path = params['Output']['dataPath']
         eol_path = params['Input']['eolPath']
         merge_type = params['Misc']['mergeType']
+	sm_path = params['Output']['smPath']
     except KeyError, e:
         log.error("At least one non-optional parameter missing from the config file {0}:".format(configFile))
         log.error("{0}".format(e))
@@ -52,7 +53,7 @@ def get_params():
     except KeyError, e:
         debug_level = 10
 
-    return in_path, eol_path, out_path, additional_label, merge_type, delete_files, debug_level
+    return in_path, eol_path, out_path, sm_path, additional_label, merge_type, delete_files, debug_level
 
 
 
@@ -67,11 +68,11 @@ class DataFlowMerger(Daemon):
 
     def run(self):
 
-        [inPath, eolPath, outPath, adLabel, mType, delOrigFiles, debugLevel] = get_params()
+        [inPath, eolPath, outPath, smPath, adLabel, mType, delOrigFiles, debugLevel] = get_params()
 
         log.info("delFiles: {0}".format(delOrigFiles))
 
-        cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, adLabel, delOrigFiles, debugLevel)
+        cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, smPath, adLabel, delOrigFiles, debugLevel)
 
 if __name__ == "__main__":
 
@@ -93,4 +94,3 @@ if __name__ == "__main__":
     else:
         print "Usage: %s start|stop|restart|status" % sys.argv[0]
         sys.exit(2)
-
