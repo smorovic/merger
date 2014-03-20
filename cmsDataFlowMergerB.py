@@ -247,8 +247,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	              else:
                 	 try:
 		            if filecmp.cmp(outputIniNameToCompare,inputNameRename) == False:
-		               msg = "ini files: %s and %s are different!!!" % (outputIniNameToCompare,inputNameRename)
-		               raise RuntimeError, msg
+			       log.warning("ini files: {0} and {1} are different!!!".format(outputIniNameToCompare,inputNameRename))
                 	 except IOError, e:
                                log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
 
@@ -371,7 +370,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                       if nLoops <= nWithPollMax or nWithPollMax < 0:
                          process = thePool.apply_async(         mergeFiles,       [outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug])
 		      else:
-                         thread.start_new_thread( mergeFiles, (outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug) )
+                         thread.start_new_thread( mergeFiles,                     (outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug) )
                    else:
                       if (float(debug) >= 20):
                 	  log.info("Events number does not match: EoL says {0} we have in the files: {1}".format(eventsEoLSDict[keyEoLS][0], eventsIDict[key][0]))
@@ -396,8 +395,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                    if nLoops <= nWithPollMax or nWithPollMax < 0:
                       process = thePool.apply_async(         mergeFiles,       [outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug])
                    else:
-                      process = threading.Thread   (target = mergeFiles,args = (outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug))
-                      process.start()
+                         thread.start_new_thread( mergeFiles,                  (outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, debug) )
                 else:
                    if (float(debug) >= 20):
                        log.info("Events number does not match: EoL says {0}, we have in the files: {1}".format(eventsOutput, eventsIDict[key][0]))
