@@ -45,6 +45,7 @@ def mergeFiles(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder
          with open(outMergedFileFullPath, 'w') as fout:
             for line in fileinput.FileInput(filenames):
                fout.write(line)
+               fout.flush()
 	 fout.close()
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
@@ -56,6 +57,7 @@ def mergeFiles(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder
    with open(outMergedFileFullPath, 'a') as fout:
       for line in fileinput.FileInput(filenames):
          fout.write(line)
+         fout.flush()
    fout.close()
    os.chmod(outMergedFileFullPath, 0666)
 
