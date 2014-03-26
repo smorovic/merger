@@ -7,7 +7,9 @@
    option B --> merging unmerged files to same file for different BUs locking the merged file
    option C --> merging unmerged files to same file for different BUs without locking the merged file
 
-- dataFlowMergerInLine --> script to run interactively the merging code
+- dataFlowMiniMergerInLine --> script to run interactively the merging code for mini merger
+
+- dataFlowMacroMergerInLine --> script to run interactively the merging code for macro merger
 
 - dataFlowMerger --> script to run the merging code as a service
 
