@@ -1,11 +1,11 @@
-- cmsDataFlowMergerA.py --> merging unmerged files to different files for 
-                            different BUs
 
-- cmsDataFlowMergerB.py --> merging unmerged files to same file for 
-                            different BUs locking the merged file
+- cmsDataFlowMerger.py --> main script to run the merging code
 
-- cmsDataFlowMergerC.py --> merging unmerged files to same file for 
-                            different BUs without locking the merged file
+- cmsActuallMergingFiles --> the real merging functions are here, three options:
+
+   option A --> merging unmerged files to different files for different BUs
+   option B --> merging unmerged files to same file for different BUs locking the merged file
+   option C --> merging unmerged files to same file for different BUs without locking the merged file
 
 - dataFlowMergerInLine --> script to run interactively the merging code
 
