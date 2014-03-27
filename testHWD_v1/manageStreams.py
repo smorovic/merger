@@ -48,7 +48,9 @@ if __name__ == '__main__':
     if (options.configFile == None):
         parser.error('Please specify the configuration file using the -c/--config option')
 
-    theBUNumber = options.BUNumber
+    theBUNumber = 10
+    if (options.BUNumber != None):
+       theBUNumber = options.BUNumber
 
     params = configureStreams(options.configFile)
     filesNb = params['Streams']['number']
