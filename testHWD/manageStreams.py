@@ -24,8 +24,8 @@ def configureStreams(fileName):
     
     return config
 
-def startCreateFiles (streamName, size, lumiSections, result_queue):
-    res = createFiles(streamName, size, lumiSections)
+def startCreateFiles (streamName, size, lumiSections, runNumber, result_queue):
+    res = createFiles(streamName, size, lumiSections, RUNNumber = runNumber)
     result_queue.put(res)
 
 if __name__ == '__main__':
@@ -49,6 +49,7 @@ if __name__ == '__main__':
     params = configureStreams(options.configFile)
     filesNb = params['Streams']['number']
     lumiSections = int(params['Streams']['ls'])
+    runNumber = int(params['Streams']['runnumber'])
     
     for ls in range(lumiSections): 
         processs = []
@@ -57,7 +58,7 @@ if __name__ == '__main__':
         for i in range(int(filesNb)):
             streamName =  params['Streams']['name' + str(i)]
             size = int(params['Streams']['size' + str(i)])
-            process = multiprocessing.Process(target = startCreateFiles, args = [streamName, size, ls, result_queue])
+            process = multiprocessing.Process(target = startCreateFiles, args = [streamName, size, ls, runNumber, result_queue])
             process.start()
             processs.append(process)
 

@@ -94,7 +94,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
    nFilesBUDict   = dict() 
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
    # Maximum number with pool option (< 0 == always)
-   nWithPollMax = -1
+   nWithPollMax = 0
    # Maximum number of threads to be allowed with the pool option
    nThreadsMax  = 50
    # Number of loops
@@ -154,24 +154,33 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
                    inputName  = os.path.join(inputDataFolder,afterString[i])
                    if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
-                   if is_completed(inputName) == True:
+                   if is_completed(inputName) == True and os.path.getsize(inputName) > 0:
 		      # init name: runxxx_ls0000_streamY_HOST.ini
 		      inputNameString = afterString[i].split('_')
                       # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
 		      outputIniName          = theIniOutputFolder + "/../" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
-                      outputIniNameToCompare = theIniOutputFolder + "/"	 + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
+                      outputIniNameToCompare = theIniOutputFolder +   "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
 		      inputNameRename  = inputName.replace(".ini","_TEMP.ini")
                       shutil.move(inputName,inputNameRename)
                       if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
 	              # getting the ini file, just once per stream
-		      if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
+		      if not os.path.exists(outputIniName) or os.path.getsize(outputIniName) == 0:
 			 try:
-		            shutil.copy(inputNameRename,outputIniName)
+                            with open(outputIniName, 'a', 1) as file_object:
+                               fcntl.flock(file_object, fcntl.LOCK_EX)
+		               shutil.copy(inputNameRename,outputIniName)
+                               fcntl.flock(file_object, fcntl.LOCK_UN)
+			    file_object.close()
 			 except OSError, e:
 		            log.warning("Looks like the outputIniName file {0} has just been created by someone else...".format(outputIniName))
 
+		      if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
 			 try:
-		            shutil.copy(inputNameRename,outputIniNameToCompare)
+                            with open(outputIniNameToCompare, 'a', 1) as file_object:
+                               fcntl.flock(file_object, fcntl.LOCK_EX)
+		               shutil.copy(inputNameRename,outputIniNameToCompare)
+                               fcntl.flock(file_object, fcntl.LOCK_UN)
+			    file_object.close()
 			 except OSError, e:
 		            log.warning("Looks like the outputIniNameToCompare file {0} has just been created by someone else...".format(outputIniNameToCompare))
 

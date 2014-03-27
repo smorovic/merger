@@ -40,15 +40,9 @@ def mergeFiles(outMergedFile, inputDataFolder, files, inputJsonFile):
       for line in fileinput.input(filenames):
         fout.write(line)
 
-   #for nfile in range(0, len(files)):
-   #   inputFile = os.path.join(inputDataFolder, files[nfile])
-   #   msg  = "cat %s >> %s;" % (inputFile,outMergedFile)
-   #   if(float(debug) > 0): print msg
-   #   os.system(msg)
-   #   try:
-   #       os.remove(inputFile)
-   #   except OSError:
-   #       print "I tried to remove", inputFile, ", but somebody else did it before I got a chance to"
+   for nfile in range(0, len(files)):
+      inputFile = os.path.join(inputDataFolder, files[nfile])
+      os.remove(inputFile)
 
    endMergingTime = time.time() 
    inputJsonRenameFile = inputJsonFile.replace("_TEMP.json","_MERGED.json")
