@@ -31,10 +31,10 @@ rm -rf unmergedDATA unmergedAUX unmergedMON merged mergeOut.txt *.pyc
 #     doMergingFromList_ForTests.py
 
 #(A) For testing, a lot of output
-./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 >& mergeOut.txt &
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 --option=0 >& mergeOut.txt &
 
 #(B) For real
-./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 >& mergeOut.txt &
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 --option=0 >& mergeOut.txt &
 
 # paths_to_watch can use a full path
 # this job needs to be killed at some point since it runs forever
