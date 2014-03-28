@@ -223,14 +223,14 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
                   fout.flush()
 	          #os.fdatasync(fout)
 
-   	       with open(lockNameFullPath, 'w') as flock:
-   	          fcntl.flock(flock, fcntl.LOCK_EX)
-   	          flock.write("%d,%d" %(0,os.path.getsize(iniNameFullPath)))
-   	          flock.flush()
-   	          #os.fdatasync(flock)
+   	       with open(lockNameFullPath, 'w') as filelock:
+   	          fcntl.flock(filelock, fcntl.LOCK_EX)
+   	          filelock.write("%d" %(os.path.getsize(iniNameFullPath)))
+   	          filelock.flush()
+   	          #os.fdatasync(filelock)
 		  os.chmod(lockNameFullPath, 0666)
-   	          fcntl.flock(flock, fcntl.LOCK_UN)
-   	       flock.close()
+   	          fcntl.flock(filelock, fcntl.LOCK_UN)
+   	       filelock.close()
 
                fcntl.flock(fout, fcntl.LOCK_UN)
             fout.close()
@@ -258,15 +258,15 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          if(float(debug) >= 0): log.info("Waiting for the file to exists: {0}".format(lockNameFullPath))
          time.sleep(1)
 
-      with open(lockNameFullPath, 'r+w') as flock:
-         fcntl.flock(flock, fcntl.LOCK_EX)
-         lockFullString = flock.readline().split(',')
+      with open(lockNameFullPath, 'r+w') as filelock:
+         fcntl.flock(filelock, fcntl.LOCK_EX)
+         lockFullString = filelock.readline().split(',')
          ini = int(lockFullString[len(lockFullString)-1])
-         flock.write(",%d" % (ini+sum))
-         flock.flush()
-         #os.fdatasync(flock)
-         fcntl.flock(flock, fcntl.LOCK_UN)
-      flock.close()
+         filelock.write(",%d" % (ini+sum))
+         filelock.flush()
+         #os.fdatasync(filelock)
+         fcntl.flock(filelock, fcntl.LOCK_UN)
+      filelock.close()
 
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.seek(ini)
@@ -304,10 +304,10 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          msg = "lock file %s does not exist!\n" % (lockNameFullPath)
 	 raise RuntimeError,msg
 
-      with open(lockNameFullPath, 'r+w') as flock:
-         lockFullString = flock.readline().split(',')
+      with open(lockNameFullPath, 'r+w') as filelock:
+         lockFullString = filelock.readline().split(',')
          totalSize = int(lockFullString[len(lockFullString)-1])
-      flock.close()
+      filelock.close()
       if(doRemoveFiles == "True"):
          os.remove(lockNameFullPath)
 

@@ -94,7 +94,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
    nFilesBUDict   = dict() 
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
    # Maximum number with pool option (< 0 == always)
-   nWithPollMax = 0
+   nWithPollMax = -1
    # Maximum number of threads to be allowed with the pool option
    nThreadsMax  = 50
    # Number of loops

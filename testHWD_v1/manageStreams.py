@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-
 from configobj import ConfigObj
 from makeFiles import createFiles
 
 import os, sys
 from optparse import OptionParser
 import multiprocessing
-import datetime
+import time,datetime
 
 def configureStreams(fileName):
     streamsConfigFile = fileName 
@@ -24,13 +23,13 @@ def configureStreams(fileName):
     
     return config
 
-def startCreateFiles (streamName, size, lumiSections, runNumber, theBUNumber, result_queue):
-    res = createFiles(streamName, size, lumiSections, theBUNumber, RUNNumber = runNumber)
+def startCreateFiles (streamName, size, lumiSections, runNumber, theBUNumber, theOption, thePath, result_queue):
+    res = createFiles(streamName, size, lumiSections, runNumber, theBUNumber, theOption, thePath)
     result_queue.put(res)
 
 if __name__ == '__main__':
 
-    parser = OptionParser(usage="usage: %prog [-h|--help] -c|--config config -b|--bu BUNumber")
+    parser = OptionParser(usage="usage: %prog [-h|--help] -c|--config config -b|--bu BUNumber | -o|--option Option | -p|--path Path")
 
     parser.add_option("-c", "--config",
                       action="store", dest="configFile",
@@ -39,6 +38,14 @@ if __name__ == '__main__':
     parser.add_option("-b", "--bu",
                       action="store", dest="BUNumber",
                       help="BU number")
+
+    parser.add_option("-o", "--option",
+                      action="store", dest="Option",
+                      help="Option to run")
+
+    parser.add_option("-p", "--path",
+                      action="store", dest="Path",
+                      help="Path to make")
 
     options, args = parser.parse_args()
 
@@ -52,6 +59,14 @@ if __name__ == '__main__':
     if (options.BUNumber != None):
        theBUNumber = options.BUNumber
 
+    theOption = 0
+    if (options.Option != None):
+       theOption = options.Option
+
+    thePath = ""
+    if (options.Path != None):
+       thePath = options.Path
+
     params = configureStreams(options.configFile)
     filesNb = params['Streams']['number']
     lumiSections = int(params['Streams']['ls'])
@@ -64,10 +79,11 @@ if __name__ == '__main__':
         for i in range(int(filesNb)):
             streamName =  params['Streams']['name' + str(i)]
             size = int(params['Streams']['size' + str(i)])
-            process = multiprocessing.Process(target = startCreateFiles, args = [streamName, size, ls, runNumber, theBUNumber, result_queue])
+            process = multiprocessing.Process(target = startCreateFiles, args = [streamName, size, ls, runNumber, theBUNumber, theOption, thePath, result_queue])
             process.start()
             processs.append(process)
 
+        initWritingTime = time.time()
         now = datetime.datetime.now()
         print now.strftime("%H:%M:%S"), ": Started all the file producers for ", ls, ", waiting for them to finish...."
 
@@ -78,8 +94,11 @@ if __name__ == '__main__':
         while len(results) < int(filesNb):
             result = result_queue.get()
             results.append(result)
+
+        endWritingTime = time.time()
         now = datetime.datetime.now()
         print now.strftime("%H:%M:%S"), ": All file producers finished lumi section ", ls, " with results: ", results
+        print now.strftime("%H:%M:%S"), ": Time for writing(%d): %f" % (ls,endWritingTime-initWritingTime)
 
         for process in processs: # then kill them all off in case... 
             process.terminate()

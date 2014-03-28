@@ -20,26 +20,48 @@ def mergeFiles(outMergedFile, inputDataFolder, files, inputJsonFile):
    print now.strftime("%H:%M:%S"), ": Start merge of ", inputJsonFile
    if os.path.exists(outMergedFile):
       os.remove(outMergedFile)
-   msg  = "touch %s;" % outMergedFile
-   if(float(debug) > 0): print msg
-   os.system(msg)
 
    if(debug >= 5): print "List of files to be merged: ",files
 
    outMergedFileFullPath = outMergedFile
-   filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-   with open(outMergedFileFullPath, 'w') as fout:
-      for line in fileinput.input(filenames):
-        fout.write(line)
+
+   if option == 0:
+      filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
+      with open(outMergedFileFullPath, 'w') as fout:
+         for line in fileinput.input(filenames):
+            fout.write(line)
+      fout.close()
+
+   if option == 2:
+      lockNameString0 = inputJsonFile.replace("MON","DATA")
+      lockNameString1 = lockNameString0.split('.')   
+      lockName = lockNameString1[0] + "." + lockNameString1[1] + "." + lockNameString1[2] + "." + lockNameString1[3] + ".lock"
+      if(debug >= 5): print "lock file name: ",lockName
+
+      outMergedFileFullPath = lockNameString1[0] + "." + lockNameString1[1] + "." + lockNameString1[2] + "." + lockNameString1[3] + ".raw"
+
+      if not os.path.exists(lockName):
+         msg = "lock file %s does not exist!\n" % (lockName)
+	 raise RuntimeError,msg
+
+      with open(lockName, 'r+w') as filelock:
+         lockFullString = filelock.readline().split(',')
+         totalSize = int(lockFullString[len(lockFullString)-1])
+      filelock.close()
+      if(doRemoveFiles == "True"):
+         os.remove(lockName)
+
+      with open(outMergedFileFullPath, 'r+w') as fout:
+         fout.truncate(totalSize)
+      fout.close()
 
    # files being deleted
-   if doRemoveFiles == "True":
+   if doRemoveFiles == "True" and int(option) == 0:
       for nfile in range(0, len(files)):
          inputFile = os.path.join(inputDataFolder, files[nfile])
-         #os.remove(inputFile)
+         os.remove(inputFile)
 
    endMergingTime = time.time()
-
    now = datetime.datetime.now()
    if(debug >= 0): print now.strftime("%H:%M:%S"), ": Time for merging(%s): %f" % (inputJsonFile,endMergingTime-initMergingTime)
 
@@ -99,7 +121,7 @@ def doTheMerging():
 	     	filesDict.update({key:[settings['filelist']]})
 	     	BUsDict.update({key:[1]})
 
-             # remove the file to avoid issues
+	     # remove the file to avoid issues
 	     if doRemoveFiles == "True":
 	        os.remove(inputJsonFile)
              else:
@@ -108,7 +130,7 @@ def doTheMerging():
 
 	     # merged files if number of read BUs >= number of expected BUs
 	     if int(BUsDict[key][0]) >= int(expectedBUs):
-	        outMergedFile = settings['outputName'][0]
+	        outMergedFile = str(settings['outputName'][0])
                 if(float(debug) > 0): print "outMergedFile:", outMergedFile
                 process = multiprocessing.Process(target = mergeFiles, args = [outMergedFile, inputDataFolder, filesDict[key][0], inputJsonFile])
                 process.start()
@@ -139,11 +161,12 @@ def doTheRecovering(paths_to_watch):
 """
 Main
 """
-valid = ['paths_to_watch=', 'debug=', 'help', 'expectedBUs=', 'doRemoveFiles=']
+valid = ['paths_to_watch=', 'debug=', 'help', 'expectedBUs=', 'option=', 'doRemoveFiles=']
 
 usage =  "Usage: listdir.py --paths_to_watch=<paths_to_watch>\n"
 usage += "                  --expectedBUs=<1>\n"
 usage += "                  --doRemoveFiles=<True>\n"
+usage += "                  --option=<0>\n"
 usage += "                  --debug=<0>\n"
 
 try:
@@ -157,19 +180,22 @@ paths_to_watch = "unmerged"
 debug          = 0
 expectedBUs    = 1
 doRemoveFiles  = "True"
+option         = 0
 
 for opt, arg in opts:
    if opt == "--help":
       print usage
       sys.exit(1)
    if opt == "--paths_to_watch":
-      paths_to_watch = arg
+      paths_to_watch = str(arg)
    if opt == "--debug":
-      debug = arg
+      debug = int(arg)
    if opt == "--expectedBUs":
-      expectedBUs = arg
+      expectedBUs = int(arg)
    if opt == "--doRemoveFiles":
-      doRemoveFiles = arg
+      doRemoveFiles = str(arg)
+   if opt == "--option":
+      option = int(arg)
 
 doTheRecovering(paths_to_watch)
 doTheMerging()
