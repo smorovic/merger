@@ -23,13 +23,12 @@ def configureStreams(fileName):
     
     return config
 
-def startCreateFiles (streamName, size, lumiSections, runNumber, theBUNumber, theOption, thePath, result_queue):
-    res = createFiles(streamName, size, lumiSections, runNumber, theBUNumber, theOption, thePath)
-    result_queue.put(res)
+def startCreateFiles (streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath):
+          createFiles(streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath)
 
 if __name__ == '__main__':
 
-    parser = OptionParser(usage="usage: %prog [-h|--help] -c|--config config -b|--bu BUNumber | -o|--option Option | -p|--path Path")
+    parser = OptionParser(usage="usage: %prog [-h|--help] -c|--config config -b|--bu BUNumber | -p|--path Path | -i|--inputPath inputPath")
 
     parser.add_option("-c", "--config",
                       action="store", dest="configFile",
@@ -39,13 +38,13 @@ if __name__ == '__main__':
                       action="store", dest="BUNumber",
                       help="BU number")
 
-    parser.add_option("-o", "--option",
-                      action="store", dest="Option",
-                      help="Option to run")
-
     parser.add_option("-p", "--path",
                       action="store", dest="Path",
                       help="Path to make")
+
+    parser.add_option("-i", "--inputPath",
+                      action="store", dest="inputPath",
+                      help="Input path")
 
     options, args = parser.parse_args()
 
@@ -59,48 +58,52 @@ if __name__ == '__main__':
     if (options.BUNumber != None):
        theBUNumber = options.BUNumber
 
-    theOption = 0
-    if (options.Option != None):
-       theOption = options.Option
-
     thePath = ""
     if (options.Path != None):
        thePath = options.Path
+
+    theInputPath = "dummy"
+    if (options.inputPath != None):
+       theInputPath = options.inputPath
+
+    if not os.path.exists(theInputPath):
+       msg = "BIG PROBLEM, file does not exists!: %s" % str(theInputPath)
+       raise RuntimeError, msg
 
     params = configureStreams(options.configFile)
     filesNb = params['Streams']['number']
     lumiSections = int(params['Streams']['ls'])
     runNumber = int(params['Streams']['runnumber'])
-    
+
+    contentInputFile = []
+    for i in range(int(filesNb)):
+        sizePerFile = int(params['Streams']['size' + str(i)])
+        fileName = "inputFile_" + str(int(sizePerFile)) + "MB.dat"
+        fullFileName = os.path.join(theInputPath, fileName)
+        if not os.path.exists(fullFileName):
+           msg = "BIG PROBLEM, file does not exists!: %s" % str(fullFileName)
+           raise RuntimeError, msg
+
+        with open(fullFileName, 'r') as theInputfile:
+           contentInputFile.append(theInputfile.read())
+        theInputfile.close()
+
     for ls in range(lumiSections): 
-        processs = []
-        result_queue = multiprocessing.Queue()
+       processs = []
 
-        for i in range(int(filesNb)):
-            streamName =  params['Streams']['name' + str(i)]
-            size = int(params['Streams']['size' + str(i)])
-            process = multiprocessing.Process(target = startCreateFiles, args = [streamName, size, ls, runNumber, theBUNumber, theOption, thePath, result_queue])
-            process.start()
-            processs.append(process)
+       now = datetime.datetime.now()
+    
+       while not now.second in (0, 20, 40):
+          time.sleep(1)
+          now = datetime.datetime.now()
+   
+       print now.strftime("%H:%M:%S"), ": writing ls(%d)" % (ls)
+       for i in range(int(filesNb)):
+          streamName =  params['Streams']['name' + str(i)]
+          process = multiprocessing.Process(target = startCreateFiles, args = [streamName, contentInputFile[i], ls, runNumber, theBUNumber, thePath])
+          process.start()
 
-        initWritingTime = time.time()
-        now = datetime.datetime.now()
-        print now.strftime("%H:%M:%S"), ": Started all the file producers for ", ls, ", waiting for them to finish...."
-
-        for process in processs:
-            process.join()
-
-        results = []
-        while len(results) < int(filesNb):
-            result = result_queue.get()
-            results.append(result)
-
-        endWritingTime = time.time()
-        now = datetime.datetime.now()
-        print now.strftime("%H:%M:%S"), ": All file producers finished lumi section ", ls, " with results: ", results
-        print now.strftime("%H:%M:%S"), ": Time for writing(%d): %f" % (ls,endWritingTime-initWritingTime)
-
-        for process in processs: # then kill them all off in case... 
-            process.terminate()
-
-    print "Finished, exiting..."
+       print now.strftime("%H:%M:%S"), ": finished LS", ls, ", exiting..."
+       time.sleep(1)
+    now = datetime.datetime.now()
+    print now.strftime("%H:%M:%S"), ": finished, exiting..."

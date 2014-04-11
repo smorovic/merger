@@ -16,32 +16,39 @@ rm -rf unmergedDATA unmergedAUX unmergedMON merged mergeOut.txt *.pyc
 #(A) --> test
 #(B) --> real study
 
+# make input files
+./makeInputFiles.py -p frozen_storage
+
 ################################################################################
 # needed files for the creation of the data: 
-#     manageStreams.py, mergeConfig, makeFiles.py, configobj.py
+# manageStreams.py, mergeConfig, makeFiles.py, configobj.py
 
 #(A) only a few lumis and one stream
-./manageStreams.py --config mergeConfigTest --bu 30 --option 0
+./manageStreams.py --config mergeConfigTest    --bu 30 -i frozen_storage
 
 #(B) 50 lumi ssections, 10 streams with different sizes
-./manageStreams.py --config mergeConfigForReal --bu 30 --option 0
+./manageStreams.py --config mergeConfigForReal --bu 30 -i frozen_storage
 
 ################################################################################
 # needed files for merging:
 #     doMergingFromList_ForTests.py
 
 #(A) For testing, a lot of output
-./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 --option=0 >& mergeOut.txt &
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 --option=0
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 --option=1 --bu=30
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 --option=2 --bu=30
 
 #(B) For real
-./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 --option=0 >& mergeOut.txt &
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 --option=0
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 --option=1 --bu=30
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 --option=2 --bu=30
 
 # paths_to_watch can use a full path
 # this job needs to be killed at some point since it runs forever
 
 ###################################################################################
 # needed files for analysis: 
-#     measurePerf.py
+# measurePerf.py
 
 #(A) for testing
 ./measurePerf.py --config mergeConfigTest --file mergeOut.txt
