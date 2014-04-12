@@ -118,8 +118,8 @@ EOF
 echo "Deleting /lustre/testHW/{merged,unmerged*} ..."
 rm -rf /lustre/testHW/{merged,unmerged*}
 echo "    ... done."
-# launch_mergers_1
-# echo
+launch_mergers_1
+echo
 launch_merger_0
 echo
 launch_mergerA_0

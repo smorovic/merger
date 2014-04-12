@@ -33,7 +33,7 @@ def mergeFiles(outMergedFile, inputDataFolder, files, inputJsonFile):
       with open(outMergedFileFullPath, 'w') as fdestination:
          for filename in filenames:
             with open(filename) as fsource:
-                shutil.copyfileobj(fsource, fdestination)
+                shutil.copyfileobj(fsource, fdestination, 1024)
    
    elif option == 1:
       filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
