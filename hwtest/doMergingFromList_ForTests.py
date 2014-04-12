@@ -32,6 +32,7 @@ def mergeFiles(outMergedFile, inputDataFolder, files, inputJsonFile):
       filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
       with open(outMergedFileFullPath, 'w') as fout:
          for line in fileinput.input(filenames):
+            print "Writing line of length %d to %s ..." % (len(line), outMergedFileFullPath)
    	    fout.write(line)
             fout.flush()
       fout.close()

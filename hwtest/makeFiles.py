@@ -11,7 +11,7 @@ Do actual files
 """
 def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls = 5, theBUNumber = 1):
 
-   NumberOfFilesPerLS = 50
+   NumberOfFilesPerLS = 5
 
    random.seed(int(seeds))
    theNLoop = 1
