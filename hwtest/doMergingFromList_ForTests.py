@@ -30,11 +30,10 @@ def mergeFiles(outMergedFile, inputDataFolder, files, inputJsonFile):
       if os.path.exists(outMergedFile):
          os.remove(outMergedFile)
       filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-      with open(outMergedFileFullPath, 'w') as fout:
-         for line in fileinput.input(filenames):
-   	    fout.write(line)
-            fout.flush()
-      fout.close()
+      with open(outMergedFileFullPath, 'w') as fdestination:
+         for filename in filenames:
+            with open(filename) as fsource:
+                shutil.copyfileobj(fsource, fdestination)
    
    elif option == 1:
       filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
