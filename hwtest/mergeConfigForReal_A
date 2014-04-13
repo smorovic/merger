@@ -1,9 +1,9 @@
 [Streams]
 number = "1"
-ls = "50"
+ls = "5"
 runnumber = "500"
 name0 = "StreamA"
-size0 = "300"
+size0 = "200"
 name1 = "StreamB"
 size1 = "20"
 name2 = "StreamC"
