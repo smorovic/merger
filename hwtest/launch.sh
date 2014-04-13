@@ -3,9 +3,11 @@
 ## Endexes of all the nodes to be used
 #NODE_INDEXES="$( echo {1..10} {12..14} 16)"
 NODE_INDEXES="$(echo {1..9} 12 16)"
+MERGER1_INDEXES="$(echo {12..14})"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
-PRODUCER_INDEXES="$(echo {1..9} 12)"
+#PRODUCER_INDEXES="$(echo {1..9} 12)"
+PRODUCER_INDEXES="$(echo {1..3})"
 TEST_BASE=/root/merger/hwtest
 
 #-------------------------------------------------------------------------------
@@ -52,7 +54,7 @@ EOF
 
 #-------------------------------------------------------------------------------
 function launch_mergers_1 {
-    for i in $NODE_INDEXES; do
+    for i in $MERGER1_INDEXES; do
         NODE=wbua-TME-ComputeNode$i
         rsync -aW $TEST_BASE/ $NODE:/root/testHW/
         COMMAND="$(cat << EOF
@@ -118,12 +120,13 @@ EOF
 echo "Deleting /lustre/testHW/{merged,unmerged*} ..."
 rm -rf /lustre/testHW/{merged,unmerged*}
 echo "    ... done."
-# launch_mergers_1
+echo
+launch_mergers_1
+echo
+# launch_merger_0
 # echo
-launch_merger_0
-echo
-launch_mergerA_0
-echo
+# launch_mergerA_0
+# echo
 launch_producers
 echo
 launch_producers_A
