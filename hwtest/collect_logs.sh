@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=logs_v7.12
+NAME=logs_v8.1
 NODE_INDEXES="$(echo {1..9} {12..14})"
 #NODE_INDEXES="$(echo {1..2})"
 
