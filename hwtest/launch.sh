@@ -3,11 +3,11 @@
 ## Endexes of all the nodes to be used
 #NODE_INDEXES="$( echo {1..10} {12..14} 16)"
 NODE_INDEXES="$(echo {1..9} 12 16)"
-MERGER1_INDEXES="$(echo {12..14})"
+MERGER1_INDEXES="$(echo {1..2})"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 #PRODUCER_INDEXES="$(echo {1..9} 12)"
-PRODUCER_INDEXES="$(echo {1..3})"
+PRODUCER_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
 
 #-------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ EOF
         )"
         echo $NODE
         echo "    $COMMAND"
-        nohup ssh $NODE $COMMAND >& ssh_${i}.log &
+        ssh $NODE "$COMMAND"
     done
 } # launch_mergers_1
 
@@ -121,14 +121,14 @@ echo "Deleting /lustre/testHW/{merged,unmerged*} ..."
 rm -rf /lustre/testHW/{merged,unmerged*}
 echo "    ... done."
 echo
-launch_mergers_1
-echo
+# launch_mergers_1
+# echo
 # launch_merger_0
 # echo
-# launch_mergerA_0
-# echo
-launch_producers
+launch_mergerA_0
 echo
-launch_producers_A
+# launch_producers
 # echo
+launch_producers_A
+echo
 
