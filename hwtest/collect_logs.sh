@@ -1,8 +1,9 @@
 #!/bin/bash
-NAME=logs_v8.4
+NAME=logs_v8.6
 NODE_INDEXES="$(echo {1..9} {12..14})"
 #NODE_INDEXES="$(echo {1..2})"
-MERGER_INDEXES="13 14"
+#MERGER_INDEXES="13 14"
+MERGER_INDEXES=""
 
 #______________________________________________________________________________
 function node_name {

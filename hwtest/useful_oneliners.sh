@@ -13,3 +13,9 @@ watch "echo $HOSTNAME; ps awwx | grep manageStreams | grep -v grep"
 
 ## Check that ther are no input files left (on node 10)
 ls /lustre/testHW/unmerged*/*
+
+## Define a list of nodes
+NODES=$(echo wbua-TME-ComputeNode{1..9} wbua-TME-ComputeNode{12..14} wbua-TME-ComputeNode16)
+
+## Add a missing frozen input
+MB=400; for n in $NODES; do echo $n; ssh $n "OF=/root/testHW/frozen/inputFile_${MB}MB.dat; dd if=/dev/zero of=$OF bs=1M count=$MB; echo >> $OF"; done
