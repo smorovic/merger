@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=logs_v8.7
+NAME=logs_v9.1
 NODE_INDEXES="$(echo {1..9} {12..14})"
 #NODE_INDEXES="$(echo {1..2})"
 #MERGER_INDEXES="13 14"
@@ -60,5 +60,6 @@ done
 popd
 jobs
 
+git tag netapp$(echo $NAME | sed 's/logs//')
 git log | head -n 6 > /lustre/$NAME/README
 vim /lustre/$NAME/README

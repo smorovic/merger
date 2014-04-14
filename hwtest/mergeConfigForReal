@@ -1,6 +1,6 @@
 [Streams]
-number = "9"
-ls = "2"
+number = "4"
+ls = "100"
 runnumber = "300"
 name0 = "StreamA"
 size0 = "10"

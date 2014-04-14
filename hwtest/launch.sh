@@ -1,9 +1,9 @@
 ## Source this script to launch the merging test
 
-## Endexes of all the nodes to be used
+## Indexes of all the nodes to be used
 #NODE_INDEXES="$( echo {1..10} {12..14} 16)"
 NODE_INDEXES="$(echo {1..9} 12 16)"
-MERGER1_INDEXES="$(echo {1..9})"
+MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 PRODUCER_INDEXES="$(echo {1..9} 12)"
@@ -75,6 +75,27 @@ EOF
 
 
 #-------------------------------------------------------------------------------
+function launch_mergers_2 {
+    for i in $PRODUCER_INDEXES; do
+        NODE=wbua-TME-ComputeNode$i
+        rsync -aW $TEST_BASE/ $NODE:/root/testHW/
+        COMMAND="$(cat << EOF
+        (   cd /lustre/testHW && \
+            nohup /root/testHW/doMergingFromList_ForTests.py \
+                --expectedBUs=1 \
+                --option=2 \
+                --paths_to_watch="/lustre/testHW/unmergedMON/Run*" \
+                --bu=$i \
+        )   >& /root/testHW/merger_opt1_${i}.log &
+EOF
+        )"
+        echo $NODE
+        echo "    $COMMAND"
+        ssh $NODE "$COMMAND"
+    done
+} # launch_mergers_2
+
+#-------------------------------------------------------------------------------
 function launch_producers {
     for i in $PRODUCER_INDEXES; do
         NODE=wbua-TME-ComputeNode$i
@@ -121,14 +142,19 @@ echo "Deleting /lustre/testHW/{merged,unmerged*} ..."
 rm -rf /lustre/testHW/{merged,unmerged*}
 echo "    ... done."
 echo
-# launch_mergers_1
-# echo
-# launch_merger_0
-# echo
+#launch_mergers_1
+#echo
+launch_merger_0
+echo
 launch_mergerA_0
 echo
-# launch_producers
-# echo
+launch_producers
+echo
 launch_producers_A
 echo
 
+#merge option 2
+#launch_mergers_2
+#echo
+#launch_producers
+#echo
