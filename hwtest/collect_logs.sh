@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=logs_v8.6
+NAME=logs_v8.7
 NODE_INDEXES="$(echo {1..9} {12..14})"
 #NODE_INDEXES="$(echo {1..2})"
 #MERGER_INDEXES="13 14"
