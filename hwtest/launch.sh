@@ -7,7 +7,8 @@ MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 PRODUCER_INDEXES="$(echo {1..9} 12)"
-SIMPLE_CAT_A_INDEXES="$(echo {1..10} {12..14} 16)"
+#SIMPLE_CAT_A_INDEXES="$(echo {1..10} {12..14} 16)"
+SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
 # PRODUCER_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
 
@@ -153,15 +154,17 @@ EOF
 function launch_simple_cat_A {
     ## The number of process per node is passed as the first arg, default=1
     PROCESSES_PER_NODE=${1:-1}
-    BASE=/lustre/testHW/unmergedDATA/Run500
+    RUN=300
+    STREAM=A
+    BASE=/lustre/testHW/unmergedDATA/Run${RUN}
     PERIOD=$(count_args $SIMPLE_CAT_A_INDEXES)
     for i in $SIMPLE_CAT_A_INDEXES; do
         NODE=$(node_name $i)
         COMMAND="$(cat << EOF
         for j in {1..$PROCESSES_PER_NODE}; do\
             ((LS=i+(j-1)*PERIOD));\
-            SOURCES="$BASE/Data.500.LS\${LS}.StreamA.*.raw";\
-            DESTINATION=$BASE/Data.500.LS\${LS}.StreamA.raw;\
+            SOURCES="$BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.*.raw";\
+            DESTINATION=$BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.raw;\
             LOG=/lustre/testHW/cat_\${LS}.log;\
             (time cat \$SOURCES > \$DESTINATION) >& \$LOG &\
         done
@@ -169,7 +172,7 @@ EOF
         )"
         echo $NODE
         echo "    $COMMAND"
-        ssh $NODE "$COMMAND"
+        ssh $NODE "$COMMAND" &
     done
     echo
 } # launch_simple_cat_A
