@@ -7,8 +7,8 @@ MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 PRODUCER_INDEXES="$(echo {1..9} 12)"
-#SIMPLE_CAT_A_INDEXES="$(echo {1..10} {12..14} 16)"
-SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
+SIMPLE_CAT_A_INDEXES="$(echo {1..10} {12..14} 16)"
+#SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
 # PRODUCER_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
 
@@ -154,16 +154,16 @@ EOF
 function launch_simple_cat_A {
     ## The number of process per node is passed as the first arg, default=1
     PROCESSES_PER_NODE=${1:-1}
-    RUN=300
+    RUN=500
     STREAM=A
     BASE=/lustre/testHW/unmergedDATA/Run${RUN}
     PERIOD=$(count_args $SIMPLE_CAT_A_INDEXES)
+    PERIOD=$PROCESSES_PER_NODE
     for i in $SIMPLE_CAT_A_INDEXES; do
         NODE=$(node_name $i)
         COMMAND="$(cat << EOF
         for j in {1..$PROCESSES_PER_NODE}; do\
-            ((j--));\
-            ((LS=$PERIOD*($i-1)+j));\
+            ((LS=$PERIOD*($i-1)+j-1));\
             SOURCES="$BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.*.raw";\
             DESTINATION=$BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.raw;\
             LOG=/lustre/testHW/cat_\${LS}.log;\
@@ -192,7 +192,7 @@ function delete_previous_runs {
 # launch_mergerA_0
 # launch_producers
 # launch_producers_A
-launch_simple_cat_A 2
+launch_simple_cat_A 1
 
 #merge option 2
 #launch_mergers_2
