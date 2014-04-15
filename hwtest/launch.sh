@@ -157,7 +157,6 @@ function launch_simple_cat_A {
     RUN=500
     STREAM=A
     BASE=/lustre/testHW/unmergedDATA/Run${RUN}
-    PERIOD=$(count_args $SIMPLE_CAT_A_INDEXES)
     PERIOD=$PROCESSES_PER_NODE
     for i in $SIMPLE_CAT_A_INDEXES; do
         NODE=$(node_name $i)
@@ -192,7 +191,7 @@ function delete_previous_runs {
 # launch_mergerA_0
 # launch_producers
 # launch_producers_A
-launch_simple_cat_A 1
+launch_simple_cat_A 2
 
 #merge option 2
 #launch_mergers_2
