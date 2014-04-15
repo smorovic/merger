@@ -150,10 +150,10 @@ function launch_simple_cat_A {
     for i in $SIMPLE_CAT_A_INDEXES; do
         NODE=$(node_name $i)
         COMMAND="$(cat << EOF
-        SOURCES="/lustre/testHW/unmergedDATA/Run500/Data.500.LS${i}.StreamA.*.raw";
-        DESTINATION=/lustre/testHW/merged/Run500/Data.500.LS${i}.StreamA.raw;
-        LOG=/lustre/testHW/cat_${i}.log
-        (time cat $SOURCES > $DESTINATION) >& $LOG &
+        SOURCES="/lustre/testHW/unmergedDATA/Run500/Data.500.LS${i}.StreamA.*.raw";\
+        DESTINATION=/lustre/testHW/merged/Run500/Data.500.LS${i}.StreamA.raw;\
+        LOG=/lustre/testHW/cat_${i}.log;\
+        (time cat \$SOURCES > \$DESTINATION) >& \$LOG &
 EOF
         )"
         echo $NODE
@@ -171,14 +171,14 @@ echo
 # echo
 # launch_merger_0
 # echo
-# launch_mergerA_0
-# echo
+launch_mergerA_0
+echo
 # launch_producers
 # echo
 # launch_producers_A
 # echo
-launch_simple_cat_A
-echo
+# launch_simple_cat_A
+# echo
 
 #merge option 2
 #launch_mergers_2
