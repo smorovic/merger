@@ -156,15 +156,16 @@ function launch_simple_cat_A {
     PROCESSES_PER_NODE=${1:-1}
     RUN=500
     STREAM=A
-    BASE=/lustre/testHW/unmergedDATA/Run${RUN}
+    SOURCE_BASE=/lustre/testHW/unmergedDATA/Run${RUN}
+    DESTINATION_BASE=/lustre/testHW/merged/Run${RUN}
     PERIOD=$PROCESSES_PER_NODE
     for i in $SIMPLE_CAT_A_INDEXES; do
         NODE=$(node_name $i)
         COMMAND="$(cat << EOF
         for j in {1..$PROCESSES_PER_NODE}; do\
             ((LS=$PERIOD*($i-1)+j-1));\
-            SOURCES="$BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.*.raw";\
-            DESTINATION=$BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.raw;\
+            SOURCES="$SOURCE_BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.*.raw";\
+            DESTINATION=$DESTINATION_BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.raw;\
             LOG=/lustre/testHW/cat_\${LS}.log;\
             (time cat \$SOURCES > \$DESTINATION) >& \$LOG &\
         done
@@ -191,7 +192,7 @@ function delete_previous_runs {
 # launch_mergerA_0
 # launch_producers
 # launch_producers_A
-launch_simple_cat_A 2
+launch_simple_cat_A 3
 
 #merge option 2
 #launch_mergers_2
