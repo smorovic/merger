@@ -7,14 +7,17 @@ MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 PRODUCER_INDEXES="$(echo {1..9} 12)"
-SIMPLE_CAT_INDEXES="$(echo {1..9} {12..14} 16)"
+SIMPLE_CAT_A_INDEXES="$PRODUCER_INDEXES"
 # PRODUCER_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
+
+## defines node_name
+source $TEST_BASE/tools.sh
 
 #-------------------------------------------------------------------------------
 function launch_merger_0 {
     for i in $MERGER_INDEX; do
-        NODE=wbua-TME-ComputeNode$i
+        NODE=$(node_name $i)
         rsync -aW $TEST_BASE/ $NODE:/root/testHW/
         COMMAND="$(cat << EOF
         (   cd /lustre/testHW ; \
@@ -35,7 +38,7 @@ EOF
 #-------------------------------------------------------------------------------
 function launch_mergerA_0 {
     for i in $MERGERA_INDEX; do
-        NODE=wbua-TME-ComputeNode$i
+        NODE=$(node_name $i)
         rsync -aW $TEST_BASE/ $NODE:/root/testHW/
         COMMAND="$(cat << EOF
         (   cd /lustre/testHW ; \
@@ -56,7 +59,7 @@ EOF
 #-------------------------------------------------------------------------------
 function launch_mergers_1 {
     for i in $MERGER1_INDEXES; do
-        NODE=wbua-TME-ComputeNode$i
+        NODE=$(node_name $i)
         rsync -aW $TEST_BASE/ $NODE:/root/testHW/
         COMMAND="$(cat << EOF
         (   cd /lustre/testHW && \
@@ -78,7 +81,7 @@ EOF
 #-------------------------------------------------------------------------------
 function launch_mergers_2 {
     for i in $PRODUCER_INDEXES; do
-        NODE=wbua-TME-ComputeNode$i
+        NODE=$(node_name $i)
         rsync -aW $TEST_BASE/ $NODE:/root/testHW/
         COMMAND="$(cat << EOF
         (   cd /lustre/testHW && \
@@ -99,7 +102,7 @@ EOF
 #-------------------------------------------------------------------------------
 function launch_producers {
     for i in $PRODUCER_INDEXES; do
-        NODE=wbua-TME-ComputeNode$i
+        NODE=$(node_name $i)
         CONFIG=mergeConfigForReal
         rsync -aW $TEST_BASE/ $NODE:/root/testHW/
         COMMAND="$(cat << EOF
@@ -121,7 +124,7 @@ EOF
 #-------------------------------------------------------------------------------
 function launch_producers_A {
     for i in $PRODUCER_INDEXES; do
-        NODE=wbua-TME-ComputeNode$i
+        NODE=$(node_name $i)
         CONFIG=mergeConfigForReal_A
         rsync -aW $TEST_BASE/ $NODE:/root/testHW/
         COMMAND="$(cat << EOF
@@ -141,9 +144,24 @@ EOF
 
 
 #-------------------------------------------------------------------------------
-function launch_simple_cat {
-    echo "Simple cat is not yet implemented"
-} # launch_simple_cat
+function launch_simple_cat_A {
+    ## The number of process per node is passed as the first arg, default=1
+    PROCESSES_PER_NODE=${1:-1}
+    for i in $SIMPLE_CAT_A_INDEXES; do
+        NODE=$(node_name $i)
+        COMMAND="$(cat << EOF
+        SOURCES="/lustre/testHW/unmergedDATA/Run500/Data.500.LS${i}.StreamA.*.raw";
+        DESTINATION=/lustre/testHW/merged/Run500/Data.500.LS${i}.StreamA.raw;
+        LOG=/lustre/testHW/cat_${i}.log
+        (time cat $SOURCES > $DESTINATION) >& $LOG &
+EOF
+        )"
+        echo $NODE
+        echo "    $COMMAND"
+        #ssh $NODE "$COMMAND"
+    done
+# 1276  for i in {1..10} {12..14} 16; do NODE=wbua-TME-ComputeNode${i}; echo $NODE; ssh $NODE "( time cat  /lustre/testHW/unmergedDATA/Run500/Data.500.LS${i}.StreamA.*.raw > /lustre/testHW/merged/Run500/Data.500.LS${i}.StreamA.raw ) >& /lustre/testHW/cat_${i}.log & " & done
+} # launch_simple_cat_A
 
 echo "Deleting /lustre/testHW/{merged,unmerged*} ..."
 rm -rf /lustre/testHW/{merged,unmerged*}
@@ -155,9 +173,11 @@ echo
 # echo
 # launch_mergerA_0
 # echo
-launch_producers
-echo
-launch_producers_A
+# launch_producers
+# echo
+# launch_producers_A
+# echo
+launch_simple_cat_A
 echo
 
 #merge option 2
@@ -165,4 +185,3 @@ echo
 #echo
 #launch_producers
 #echo
-# 1276  for i in {1..10} {12..14} 16; do NODE=wbua-TME-ComputeNode${i}; echo $NODE; ssh $NODE "( time cat  /lustre/testHW/unmergedDATA/Run500/Data.500.LS${i}.StreamA.*.raw > /lustre/testHW/merged/Run500/Data.500.LS${i}.StreamA.raw ) >& /lustre/testHW/cat_${i}.log & " & done
