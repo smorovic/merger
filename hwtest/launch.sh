@@ -160,16 +160,16 @@ function launch_simple_cat_A {
         COMMAND="$(cat << EOF
         for j in {1..$PROCESSES_PER_NODE}; do\
             ((LS=i+(j-1)*PERIOD));\
-            SOURCES="$BASE/Data.500.LS${LS}.StreamA.*.raw";\
-            DESTINATION=$BASE/Data.500.LS${LS}.StreamA.raw;\
-            LOG=/lustre/testHW/cat_${LS}.log;\
+            SOURCES="$BASE/Data.500.LS\${LS}.StreamA.*.raw";\
+            DESTINATION=$BASE/Data.500.LS\${LS}.StreamA.raw;\
+            LOG=/lustre/testHW/cat_\${LS}.log;\
             (time cat \$SOURCES > \$DESTINATION) >& \$LOG &\
         done
 EOF
         )"
         echo $NODE
         echo "    $COMMAND"
-        #ssh $NODE "$COMMAND"
+        ssh $NODE "$COMMAND"
     done
     echo
 } # launch_simple_cat_A
