@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from configobj import ConfigObj
 from makeFiles import createFiles
@@ -93,7 +94,8 @@ if __name__ == '__main__':
 
        now = datetime.datetime.now()
     
-       while not now.second in (0, 20, 40):
+       # Produce files every 5 seconds
+       while not now.second % 5 == 0:
           time.sleep(1)
           now = datetime.datetime.now()
    
