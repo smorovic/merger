@@ -192,7 +192,7 @@ function delete_previous_runs {
 # launch_mergerA_0
 # launch_producers
 # launch_producers_A
-launch_simple_cat_A 5
+launch_simple_cat_A 10 
 
 #merge option 2
 #launch_mergers_2
