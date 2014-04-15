@@ -162,7 +162,8 @@ function launch_simple_cat_A {
         NODE=$(node_name $i)
         COMMAND="$(cat << EOF
         for j in {1..$PROCESSES_PER_NODE}; do\
-            ((LS=i+(j-1)*PERIOD));\
+            ((j--));\
+            ((LS=$PERIOD*($i-1)+j));\
             SOURCES="$BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.*.raw";\
             DESTINATION=$BASE/Data.${RUN}.LS\${LS}.Stream${STREAM}.raw;\
             LOG=/lustre/testHW/cat_\${LS}.log;\
