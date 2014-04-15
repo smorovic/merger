@@ -165,3 +165,4 @@ echo
 #echo
 #launch_producers
 #echo
+# 1276  for i in {1..10} {12..14} 16; do NODE=wbua-TME-ComputeNode${i}; echo $NODE; ssh $NODE "( time cat  /lustre/testHW/unmergedDATA/Run500/Data.500.LS${i}.StreamA.*.raw > /lustre/testHW/merged/Run500/Data.500.LS${i}.StreamA.raw ) >& /lustre/testHW/cat_${i}.log & " & done
