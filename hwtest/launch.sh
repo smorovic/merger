@@ -7,7 +7,7 @@ MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 PRODUCER_INDEXES="$(echo {1..9} 12)"
-SIMPLE_CAT_A_INDEXES="$(echo {1..1})"
+SIMPLE_CAT_A_INDEXES="$(echo {1..10})"
 #SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
 # PRODUCER_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
@@ -192,7 +192,7 @@ function delete_previous_runs {
 # launch_mergerA_0
 # launch_producers
 # launch_producers_A
-launch_simple_cat_A 10 
+launch_simple_cat_A 3 
 
 #merge option 2
 #launch_mergers_2
