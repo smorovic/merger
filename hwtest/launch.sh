@@ -7,6 +7,7 @@ MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 PRODUCER_INDEXES="$(echo {1..9} 12)"
+SIMPLE_CAT_INDEXES="$(echo {1..9} {12..14} 16)"
 # PRODUCER_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
 
@@ -138,16 +139,22 @@ EOF
     done
 } # launch_proudcers_A
 
+
+#-------------------------------------------------------------------------------
+function launch_simple_cat {
+    echo "Simple cat is not yet implemented"
+} # launch_simple_cat
+
 echo "Deleting /lustre/testHW/{merged,unmerged*} ..."
 rm -rf /lustre/testHW/{merged,unmerged*}
 echo "    ... done."
 echo
-#launch_mergers_1
-#echo
-launch_merger_0
-echo
-launch_mergerA_0
-echo
+# launch_mergers_1
+# echo
+# launch_merger_0
+# echo
+# launch_mergerA_0
+# echo
 launch_producers
 echo
 launch_producers_A
