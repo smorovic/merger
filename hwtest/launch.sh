@@ -46,7 +46,7 @@ function launch_main {
 
 #-------------------------------------------------------------------------------
 function kill_previous_mergers {
-    for i in $MERGER_INDEXES; do
+    for i in $NODE_INDEXES; do
         NODE=$(node_name $i)
         COMMAND=$(cat <<'EOF'
             PS_LINE=$(ps awwx | grep doMerg | egrep -v "grep|bash");\
