@@ -7,7 +7,7 @@ MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 # PRODUCER_INDEXES="$(echo {1..9} 12)"
-PRODUCER_INDEXES="$(echo {1..9})"
+PRODUCER_INDEXES="$(echo {1..10})"
 SIMPLE_CAT_A_INDEXES="$(echo {1..4})"
 
 #SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
