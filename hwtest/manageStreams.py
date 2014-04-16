@@ -8,6 +8,13 @@ import os, sys
 from optparse import OptionParser
 import multiprocessing
 import time,datetime
+import random
+import math
+# git commit -a -m "Can customize the length of lumisections and randomize the producer time
+
+mean_seconds_per_lumi = 85.7
+## Set to a very small positive number to avoid the random component
+sigma_seconds_per_lumi = math.sqrt(mean_seconds_per_lumi)
 
 def configureStreams(fileName):
     streamsConfigFile = fileName 
@@ -91,13 +98,12 @@ if __name__ == '__main__':
 
     for ls in range(lumiSections): 
        processs = []
-
+       
+       # Produce files every mean_seconds_per_lumi seconds with a random flutuation
+       time.sleep(seconds_to_wait(mean_seconds_per_lumi, 
+                                  sigma_seconds_per_lumi))
+          
        now = datetime.datetime.now()
-    
-       # Produce files every 5 seconds
-       while not now.second % 5 == 0:
-          time.sleep(1)
-          now = datetime.datetime.now()
    
        print now.strftime("%H:%M:%S"), ": writing ls(%d)" % (ls)
        for i in range(int(filesNb)):
@@ -109,3 +115,11 @@ if __name__ == '__main__':
        time.sleep(1)
     now = datetime.datetime.now()
     print now.strftime("%H:%M:%S"), ": finished, exiting..."
+
+    
+#______________________________________________________________________________    
+def seconds_to_wait(mean_seconds_per_lumi=20, sigma_seconds_per_lumi=0.001):
+    return random.lognormalvariate(mean_seconds_per_lumi, 
+                                   sigma_seconds_per_lumi)
+## seconds_to_wait
+    
