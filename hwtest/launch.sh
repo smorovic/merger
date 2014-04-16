@@ -52,7 +52,7 @@ function kill_previous_mergers {
             PS_LINE=$(ps awwx | grep doMerg | egrep -v "grep|bash");\
             PID=$(echo $PS_LINE | awk '{print $1}');\
             kill $PID
-    EOF
+EOF
         )
         echo "$COMMAND"
         ssh $NODE "$COMMAND"
