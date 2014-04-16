@@ -54,7 +54,7 @@ done
 pushd /lustre/testHW
 for DIR in *merged*; do
     for RUN in Run300 Run500; do
-        ls $DIR/$RUN >& /lustre/$NAME/${DIR}_${RUN}_list.dat &
+        ls -ll $DIR/$RUN >& /lustre/$NAME/${DIR}_${RUN}_list.dat &
     done
 done
 popd
