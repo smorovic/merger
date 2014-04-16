@@ -32,8 +32,6 @@ function launch_merger_0 {
             --expectedBUs=$(count_args $PRODUCER_INDEXES) \
             --option=0 \
             --paths_to_watch="/lustre/testHW/unmergedMON/Run${RUN}" \
-            --lumi-length-mean="$LUMI_LENGTH_MEAN" \
-            --lumi-length-sigma="$LUMI_LENGTH_SIGMA"
     )   >& /root/testHW/merger_opt0_run${RUN}_${i}.log &
 EOF
     )"
@@ -110,6 +108,8 @@ function launch_producers {
             --bu $i \
             -i /root/testHW/frozen/ \
             -p  /lustre/testHW/ \
+            --lumi-length-mean="$LUMI_LENGTH_MEAN" \
+            --lumi-length-sigma="$LUMI_LENGTH_SIGMA" \
             >& /root/testHW/producer_${CONFIG}_${i}.log &
 EOF
         )"
