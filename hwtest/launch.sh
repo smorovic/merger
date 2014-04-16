@@ -6,16 +6,36 @@ NODE_INDEXES="$(echo {1..9} 12 16)"
 MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
-PRODUCER_INDEXES="$(echo {1..9} 12)"
+# PRODUCER_INDEXES="$(echo {1..9} 12)"
+PRODUCER_INDEXES="$(echo {1..2})"
 SIMPLE_CAT_A_INDEXES="$(echo {1..4})"
+
 #SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
-# PRODUCER_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
 LUMI_LENGTH_MEAN=10.5
 LUMI_LENGTH_SIGMA=3.2
 
 ## defines node_name, count_args
 source $TEST_BASE/tools.sh
+
+#-------------------------------------------------------------------------------
+function launch_main {
+    delete_previous_runs
+    # launch_mergers_1
+
+    ## launch_merger <node> <run>
+    launch_merger_0 12 100 ## node=12 run=100
+    launch_merger_0 14 300 ## node=14 run=300
+    # launch_mergerA_0
+    launch_producers run100.cfg
+    launch_producers run300.cfg
+    # launch_producers_A
+    # launch_simple_cat_A 10
+
+    #merge option 2
+    #launch_mergers_2
+    #launch_producers
+} # launch_main
 
 #-------------------------------------------------------------------------------
 # Expects the node index as the first argument and the run number as
@@ -163,17 +183,4 @@ function delete_previous_runs {
     echo
 } # delete_previous_runs
 
-delete_previous_runs
-# launch_mergers_1
-## launch_merger <node> <run>
-launch_merger_0 12 100 ## node=12 run=100
-launch_merger_0 14 300 ## node=14 run=300
-# launch_mergerA_0
-launch_producers run100.cfg
-launch_producers run300.cfg
-# launch_producers_A
-# launch_simple_cat_A 10 
-
-#merge option 2
-#launch_mergers_2
-#launch_producers
+launch_main
