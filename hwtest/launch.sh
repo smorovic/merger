@@ -7,13 +7,13 @@ MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 # PRODUCER_INDEXES="$(echo {1..9} 12)"
-PRODUCER_INDEXES="$(echo {1..10})"
+PRODUCER_INDEXES="$(echo {1..9})"
 SIMPLE_CAT_A_INDEXES="$(echo {1..4})"
 
 #SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
-LUMI_LENGTH_MEAN=85
-LUMI_LENGTH_SIGMA=30
+LUMI_LENGTH_MEAN=76.5
+LUMI_LENGTH_SIGMA=25.5
 
 ## defines node_name, count_args
 source $TEST_BASE/tools.sh
