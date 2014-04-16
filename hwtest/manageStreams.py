@@ -41,13 +41,13 @@ def main():
        msg = "BIG PROBLEM, file does not exists!: %s" % str(theInputPath)
        raise RuntimeError, msg
 
-    mean_lumi_length = 20.
-    if (options.mean_lumi_length != None):
-       mean_lumi_length = float(options.mean_lumi_length)
+    lumi_length_mean = 20.
+    if (options.lumi_length_mean != None):
+       lumi_length_mean = float(options.lumi_length_mean)
     
-    sigma_lumi_length = 0.001
-    if (options.sigma_lumi_length != None):
-       sigma_lumi_length = float(options.sigma_lumi_length)
+    lumi_length_sigma = 0.001
+    if (options.lumi_length_sigma != None):
+       lumi_length_sigma = float(options.lumi_length_sigma)
 
     params = configureStreams(options.configFile)
     filesNb = params['Streams']['number']
@@ -70,8 +70,8 @@ def main():
     for ls in range(lumiSections):
        processs = []
 
-       # Produce files every mean_lumi_length seconds with a random flutuation
-       sleep_time = seconds_to_sleep(ls, mean_lumi_length, sigma_lumi_length)
+       # Produce files every lumi_length_mean seconds with a random flutuation
+       sleep_time = seconds_to_sleep(ls, lumi_length_mean, lumi_length_sigma)
        time.sleep(sleep_time)
 
        now = datetime.datetime.now()
@@ -109,11 +109,11 @@ def make_option_parser():
                       help="Input path")
 
     parser.add_option("-m", "--lumi-length-mean",
-                      action="store", dest="mean_lumi_length",
-                      help="Mean lenght of lumi sections in seconds as a float")
+                      action="store", dest="lumi_length_mean",
+                      help="Mean length of lumi sections in seconds as a float")
 
     parser.add_option("-s", "--lumi-length-sigma",
-                      action="store", dest="sigma_lumi_length",
+                      action="store", dest="lumi_length_sigma",
                       help="Standard deviation of lumi section length " +
                            "distribution as a float")
     return parser
@@ -137,9 +137,9 @@ def configureStreams(fileName):
     return config
 
 #______________________________________________________________________________
-def seconds_to_sleep(ls, mean_lumi_length=20, sigma_lumi_length=0.001):
-    mean_offset = ls * mean_lumi_length
-    expected_offset = mean_offset + random.gauss(0., sigma_lumi_length)
+def seconds_to_sleep(ls, lumi_length_mean=20, lumi_length_sigma=0.001):
+    mean_offset = ls * lumi_length_mean
+    expected_offset = mean_offset + random.gauss(0., lumi_length_sigma)
     actual_offset = total_seconds(datetime.datetime.now() - start_time)
     ret = max(0., expected_offset - actual_offset)
     return ret
