@@ -108,11 +108,11 @@ def make_option_parser():
                       action="store", dest="inputPath",
                       help="Input path")
 
-    parser.add_option("-m", "--mean-lumi-length",
+    parser.add_option("-m", "--lumi-length-mean",
                       action="store", dest="mean_lumi_length",
                       help="Mean lenght of lumi sections in seconds as a float")
 
-    parser.add_option("-s", "--sigma-lumi-length",
+    parser.add_option("-s", "--lumi-length-sigma",
                       action="store", dest="sigma_lumi_length",
                       help="Standard deviation of lumi section length " +
                            "distribution as a float")

@@ -11,6 +11,8 @@ SIMPLE_CAT_A_INDEXES="$(echo {1..4})"
 #SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
 # PRODUCER_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
+LUMI_LENGTH_MEAN=10.5
+LUMI_LENGTH_SIGMA=3.2
 
 ## defines node_name, count_args
 source $TEST_BASE/tools.sh
@@ -20,8 +22,8 @@ source $TEST_BASE/tools.sh
 # the second one. Use node=$MERGER_INDEX and run=300 as defaults.
 # as default
 function launch_merger_0 {
-    RUN=${1:-300}
     NODE_INDEX=${1:-$MERGER_INDEX}
+    RUN=${2:-300}
     NODE=$(node_name $NODE_INDEX)
     rsync -aW $TEST_BASE/ $NODE:/root/testHW/
     COMMAND="$(cat << EOF
@@ -30,6 +32,8 @@ function launch_merger_0 {
             --expectedBUs=$(count_args $PRODUCER_INDEXES) \
             --option=0 \
             --paths_to_watch="/lustre/testHW/unmergedMON/Run${RUN}" \
+            --lumi-length-mean="$LUMI_LENGTH_MEAN" \
+            --lumi-length-sigma="$LUMI_LENGTH_SIGMA"
     )   >& /root/testHW/merger_opt0_run${RUN}_${i}.log &
 EOF
     )"
@@ -161,9 +165,12 @@ function delete_previous_runs {
 
 delete_previous_runs
 # launch_mergers_1
+## launch_merger <node> <run>
 launch_merger_0 12 100 ## node=12 run=100
+launch_merger_0 14 300 ## node=14 run=300
 # launch_mergerA_0
 launch_producers run100.cfg
+launch_producers run300.cfg
 # launch_producers_A
 # launch_simple_cat_A 10 
 
