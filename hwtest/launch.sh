@@ -16,46 +16,34 @@ TEST_BASE=/root/merger/hwtest
 source $TEST_BASE/tools.sh
 
 #-------------------------------------------------------------------------------
+# Expects the node index as the first argument and the run number as
+# the second one. Use node=$MERGER_INDEX and run=300 as defaults.
+# as default
 function launch_merger_0 {
-    for i in $MERGER_INDEX; do
-        NODE=$(node_name $i)
-        rsync -aW $TEST_BASE/ $NODE:/root/testHW/
-        COMMAND="$(cat << EOF
-        (   cd /lustre/testHW ; \
-            nohup /root/testHW/doMergingFromList_ForTests.py \
-                --expectedBUs=$(count_args $PRODUCER_INDEXES) \
-                --option=0 \
-                --paths_to_watch="/lustre/testHW/unmergedMON/Run300" \
-        )   >& /root/testHW/merger_opt0_${i}.log &
+    RUN=${1:-300}
+    NODE_INDEX=${1:-$MERGER_INDEX}
+    NODE=$(node_name $NODE_INDEX)
+    rsync -aW $TEST_BASE/ $NODE:/root/testHW/
+    COMMAND="$(cat << EOF
+    (   cd /lustre/testHW ; \
+        nohup /root/testHW/doMergingFromList_ForTests.py \
+            --expectedBUs=$(count_args $PRODUCER_INDEXES) \
+            --option=0 \
+            --paths_to_watch="/lustre/testHW/unmergedMON/Run${RUN}" \
+    )   >& /root/testHW/merger_opt0_run${RUN}_${i}.log &
 EOF
-        )"
-        echo $NODE
-        echo "    $COMMAND"
-        ssh $NODE $COMMAND
-    done
+    )"
+    echo $NODE
+    echo "    $COMMAND"
+    ssh $NODE $COMMAND
     echo
 } # launch_merger_0
 
 
 #-------------------------------------------------------------------------------
+## Only for backwrad compatibility
 function launch_mergerA_0 {
-    for i in $MERGERA_INDEX; do
-        NODE=$(node_name $i)
-        rsync -aW $TEST_BASE/ $NODE:/root/testHW/
-        COMMAND="$(cat << EOF
-        (   cd /lustre/testHW ; \
-            nohup /root/testHW/doMergingFromList_ForTests.py \
-                --expectedBUs=$(count_args $PRODUCER_INDEXES) \
-                --option=0 \
-                --paths_to_watch="/lustre/testHW/unmergedMON/Run500" \
-        )   >& /root/testHW/mergerA_opt0_${i}.log &
-EOF
-        )"
-        echo $NODE
-        echo "    $COMMAND"
-        ssh $NODE $COMMAND
-    done
-    echo
+    launch_merger_0 $MERGERA_INDEX 500
 } # launch_mergerA_0
 
 
@@ -105,10 +93,12 @@ EOF
 } # launch_mergers_2
 
 #-------------------------------------------------------------------------------
+# Expects the config file name as the first argument, use mergeConfigForReal
+# as default
 function launch_producers {
+    CONFIG=${1:-mergeConfigForReal}
     for i in $PRODUCER_INDEXES; do
         NODE=$(node_name $i)
-        CONFIG=mergeConfigForReal
         rsync -aW $TEST_BASE/ $NODE:/root/testHW/
         COMMAND="$(cat << EOF
         nohup /root/testHW/manageStreams.py \
@@ -116,7 +106,7 @@ function launch_producers {
             --bu $i \
             -i /root/testHW/frozen/ \
             -p  /lustre/testHW/ \
-            >& /root/testHW/producer${i}.log &
+            >& /root/testHW/producer_${CONFIG}_${i}.log &
 EOF
         )"
         echo $NODE
@@ -129,24 +119,7 @@ EOF
 
 #-------------------------------------------------------------------------------
 function launch_producers_A {
-    for i in $PRODUCER_INDEXES; do
-        NODE=$(node_name $i)
-        CONFIG=mergeConfigForReal_A
-        rsync -aW $TEST_BASE/ $NODE:/root/testHW/
-        COMMAND="$(cat << EOF
-        nohup /root/testHW/manageStreams.py \
-            --config /root/testHW/$CONFIG \
-            --bu $i \
-            -i /root/testHW/frozen/ \
-            -p  /lustre/testHW/ \
-            >& /root/testHW/producer${i}_A.log &
-EOF
-        )"
-        echo $NODE
-        echo "    $COMMAND"
-        ssh $NODE $COMMAND
-    done
-    echo
+    launch_producers_A mergeConfigForReal_A
 } # launch_proudcers_A
 
 
@@ -186,13 +159,13 @@ function delete_previous_runs {
     echo
 } # delete_previous_runs
 
-# delete_previous_runs
+delete_previous_runs
 # launch_mergers_1
-# launch_merger_0
+launch_merger_0 12 100 ## node=12 run=100
 # launch_mergerA_0
-# launch_producers
+launch_producers run100.cfg
 # launch_producers_A
-launch_simple_cat_A 3 
+# launch_simple_cat_A 10 
 
 #merge option 2
 #launch_mergers_2
