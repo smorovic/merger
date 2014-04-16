@@ -11,10 +11,10 @@ import time,datetime
 import random
 import math
 
+start_time = datetime.datetime.now()
 
 #______________________________________________________________________________
 def main():
-    print "DEBUG: Starting ..."
     parser = make_option_parser()
 
     options, args = parser.parse_args()
@@ -43,12 +43,12 @@ def main():
 
     mean_lumi_length = 20.
     if (options.mean_lumi_length != None):
-       mean_lumi_length = options.mean_lumi_length
+       mean_lumi_length = float(options.mean_lumi_length)
     
     sigma_lumi_length = 0.001
     if (options.sigma_lumi_length != None):
-       sigma_lumi_length = options.sigma_lumi_length
-    
+       sigma_lumi_length = float(options.sigma_lumi_length)
+
     params = configureStreams(options.configFile)
     filesNb = params['Streams']['number']
     lumiSections = int(params['Streams']['ls'])
@@ -67,17 +67,15 @@ def main():
            contentInputFile.append(theInputfile.read())
         theInputfile.close()
 
-    print "DEBUG: Looping over lumis ..."
-    for ls in range(lumiSections): 
+    for ls in range(lumiSections):
        processs = []
-       
+
        # Produce files every mean_lumi_length seconds with a random flutuation
-       sleep_time = seconds_to_wait(mean_lumi_length, sigma_lumi_length)
-       print "DEBUG: sleep time:", sleep_time
+       sleep_time = seconds_to_sleep(ls, mean_lumi_length, sigma_lumi_length)
        time.sleep(sleep_time)
-          
+
        now = datetime.datetime.now()
-   
+
        print now.strftime("%H:%M:%S"), ": writing ls(%d)" % (ls)
        for i in range(int(filesNb)):
           streamName =  params['Streams']['name' + str(i)]
@@ -116,8 +114,8 @@ def make_option_parser():
 
     parser.add_option("-s", "--sigma-lumi-length",
                       action="store", dest="sigma_lumi_length",
-                      help=("Standard deviation of lumi section length " +
-                            "distribution as a float"))
+                      help="Standard deviation of lumi section length " +
+                           "distribution as a float")
     return parser
 ## make_option_parser
 
@@ -139,9 +137,21 @@ def configureStreams(fileName):
     return config
 
 #______________________________________________________________________________
-def seconds_to_wait(mean_lumi_length=20, sigma_lumi_length=0.001):
-    return random.lognormvariate(math.log(mean_lumi_length), sigma_lumi_length)
-## seconds_to_wait
+def seconds_to_sleep(ls, mean_lumi_length=20, sigma_lumi_length=0.001):
+    mean_offset = ls * mean_lumi_length
+    expected_offset = mean_offset + random.gauss(0., sigma_lumi_length)
+    actual_offset = total_seconds(datetime.datetime.now() - start_time)
+    ret = max(0., expected_offset - actual_offset)
+    return ret
+## seconds_to_sleep
+
+#______________________________________________________________________________
+def total_seconds(tdelta):
+    '''
+    Returns the total number of seconds of a datetime.timedelta object.
+    '''
+    return 3600 * 24 * tdelta.days + tdelta.seconds + 1e-6 * tdelta.microseconds
+## total_seconds
 
 #______________________________________________________________________________
 def startCreateFiles (streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath):
