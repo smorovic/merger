@@ -3,7 +3,7 @@
 
 ## Watch the input and output folders on lustre to be
 ## deleted, created, and filled (on node 10)
-watch "du -sk /lustre/testHW/*mev/null"
+watch "du -sk /lustre/testHW/*merged*/Run* 2>/dev/null"
 
 ## Watch a merger start up (and get killed, on nodes 13, 14)
 watch "echo $HOSTNAME; ps awwx | grep doMerging | grep -v grep"
@@ -19,3 +19,4 @@ NODES=$(echo wbua-TME-ComputeNode{1..9} wbua-TME-ComputeNode{12..14} wbua-TME-Co
 
 ## Add a missing frozen input
 MB=400; for n in $NODES; do echo $n; ssh $n "OF=/root/testHW/frozen/inputFile_${MB}MB.dat; dd if=/dev/zero of=$OF bs=1M count=$MB; echo >> $OF"; done
+
