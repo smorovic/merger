@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os, time, sys, getopt, fcntl
 import shutil
 import json, ast
@@ -23,53 +24,44 @@ def mergeFiles(outMergedFile, inputDataFolder, files, inputJsonFile):
 
    if(debug >= 20): print "List of files to be merged: ",files
 
+   ifnames = [os.path.join(inputDataFolder,f) for f in files]
    outMergedFileFullPath = outMergedFile
    maxSizeMergedFile = 50 * 1024 * 1024 * 1024
 
    if option == 0:
       if os.path.exists(outMergedFile):
          os.remove(outMergedFile)
-      filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-      with open(outMergedFileFullPath, 'w') as fdestination:
-         for filename in filenames:
-            with open(filename) as fsource:
-                shutil.copyfileobj(fsource, fdestination)
+      with open(outMergedFileFullPath, 'w') as ofile:
+         append_files(ifnames, ofile)
    
    elif option == 1:
-      filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-      with open(outMergedFileFullPath, 'a') as fout:
-         fcntl.flock(fout, fcntl.LOCK_EX)
-         for line in fileinput.input(filenames):
-   	    fout.write(line)
-            fout.flush()
-         fcntl.flock(fout, fcntl.LOCK_UN)
-      fout.close()
+      with open(outMergedFileFullPath, 'a') as ofile:
+         fcntl.flock(ofile, fcntl.LOCK_EX)
+         append_files(ifnames, ofile)
+         fcntl.flock(ofile, fcntl.LOCK_UN)
    
    elif option == 2:
       lockNameFullPath = outMergedFileFullPath.replace(".raw",".lock")
-      if (not os.path.exists(outMergedFileFullPath)) or (os.path.exists(outMergedFileFullPath) and os.path.getsize(outMergedFileFullPath) == 0):
-         with open(outMergedFileFullPath, 'w') as fout:
-            fcntl.flock(fout, fcntl.LOCK_EX)
-            fout.truncate(maxSizeMergedFile)
-            fout.seek(0)
+      if (not os.path.exists(outMergedFileFullPath)) or
+          exists_and_has_zero_size(outMergedFileFullPath)):
+         with open(outMergedFileFullPath, 'w') as ofile:
+            fcntl.flock(ofile, fcntl.LOCK_EX)
+            ofile.truncate(maxSizeMergedFile)
+            ofile.seek(0)
             os.chmod(outMergedFileFullPath, 0666)
 
-   	    with open(lockNameFullPath, 'w') as filelock:
-   	       fcntl.flock(filelock, fcntl.LOCK_EX)
-   	       filelock.write("%d" %(0))
-   	       filelock.flush()
-	       os.chmod(lockNameFullPath, 0666)
-   	       fcntl.flock(filelock, fcntl.LOCK_UN)
-   	    filelock.close()
+            with open(lockNameFullPath, 'w') as filelock:
+               fcntl.flock(filelock, fcntl.LOCK_EX)
+               filelock.write("%d" %(0))
+               filelock.flush()
+               os.chmod(lockNameFullPath, 0666)
+               fcntl.flock(filelock, fcntl.LOCK_UN)
 
-            fcntl.flock(fout, fcntl.LOCK_UN)
-         fout.close()
-
-      filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
+            fcntl.flock(ofile, fcntl.LOCK_UN)
 
       sum = 0
-      for nFile in range(0,len(filenames)):
-   	 sum = sum + os.path.getsize(filenames[nFile])
+      for nFile in range(0,len(ifnames)):
+         sum = sum + os.path.getsize(ifnames[nFile])
 
       while not os.path.exists(lockNameFullPath):
          if(float(debug) >= 0): log.info("Waiting for the file to exists: {0}".format(lockNameFullPath))
@@ -82,56 +74,17 @@ def mergeFiles(outMergedFile, inputDataFolder, files, inputJsonFile):
          filelock.write(",%d" % (ini+sum))
          filelock.flush()
          fcntl.flock(filelock, fcntl.LOCK_UN)
-      filelock.close()
 
-      with open(outMergedFileFullPath, 'r+w') as fout:
-         fout.seek(ini)
-         for line in fileinput.FileInput(filenames):
-            fout.write(line)
-            fout.flush()
-      fout.close()
+      with open(outMergedFileFullPath, 'r+w') as ofile:
+         ofile.seek(ini)
+         append_files(ifnames, ofile)
    
-   ### try 1
-   #filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-   #with open(outMergedFileFullPath, 'w') as fout:
-   #   for line in fileinput.input(filenames):
-   #	 fout.write(line)
-   #fout.close()
 
-   ### try 2
-   #filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-   #for filename in filenames:
-   #   msg = "cat %s >> %s" % (filename,outMergedFileFullPath)
-   #   os.system(msg)
-
-   ### try 3
-   #msg = "cat "
-   #filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-   #for filename in filenames:
-   #   msg += " %s " % (filename)
-   #msg += " >> %s" % (outMergedFileFullPath)
-   #os.system(msg)
-
-   ### try 4
-   #filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-   #with open(outMergedFileFullPath, 'w') as fout:
-   #   for tempfile in  filenames:
-   #	 with open(tempfile,'r') as fi: fout.write(fi.read())
-
-   ### try 5 (too much memory)
-   #filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-   #concatstr = ''.join([open(f).read() for f in filenames])
-   #fout = open(outMergedFileFullPath, 'w')
-   #fout.write(concatstr)
-   #fout.close
-
-   if(debug >= 20): print "List of files to be merged: ",filenames
+   if(debug >= 20): print "List of files to be merged: ",ifnames
 
    # files being deleted
    if doRemoveFiles == "True":
-      for nfile in range(0, len(files)):
-         inputFile = os.path.join(inputDataFolder, files[nfile])
-         os.remove(inputFile)
+      map(os.remove, ifnames)
 
    endMergingTime = time.time()
    now = datetime.datetime.now()
@@ -265,6 +218,25 @@ def doTheRecovering(paths_to_watch):
             inputJsonFile = os.path.join(inputDataFolder, afterString[i])
             inputJsonRenameFile = inputJsonFile.replace("_TEMP.jsn",".jsn")
             shutil.move(inputJsonFile,inputJsonRenameFile)
+
+
+#______________________________________________________________________________
+def append_files(ifnames, ofile)
+    '''
+    Appends contents of files given by a list of input file names ifname
+    to the given output file object ofile. Returns None.
+    '''
+    for ifname in ifnames:
+        with open(ifname) as ifile:
+            shutil.copyfileobj(ifile, ofile)
+# append_files
+
+
+#______________________________________________________________________________
+def exists_and_has_zero_size(filename):
+    return os.path.exists(filename) and os.path.getsize(filename) == 0
+# exists_and_has_zero_size
+
 
 """
 Main
