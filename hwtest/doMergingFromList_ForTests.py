@@ -220,7 +220,7 @@ def doTheRecovering(paths_to_watch):
 
 
 #______________________________________________________________________________
-def append_files(ifnames, ofile)
+def append_files(ifnames, ofile):
     '''
     Appends contents of files given by a list of input file names ifname
     to the given output file object ofile. Returns None.
