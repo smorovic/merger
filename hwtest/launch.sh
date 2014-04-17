@@ -2,7 +2,7 @@
 
 ## Indexes of all the nodes to be used
 #NODE_INDEXES="$( echo {1..10} {12..14} 16)"
-NODE_INDEXES="$(echo {1..10} {12..16})"
+NODE_INDEXES="$(echo {1..10} {12..14} 16)"
 MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
