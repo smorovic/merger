@@ -7,13 +7,13 @@ MERGER1_INDEXES="$(echo {1..9} 12)"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 # PRODUCER_INDEXES="$(echo {1..9} 12)"
-PRODUCER_INDEXES="$(echo {1..10})"
+PRODUCER_INDEXES="$(echo {1..2})"
 SIMPLE_CAT_A_INDEXES="$(echo {1..4})"
 
 #SIMPLE_CAT_A_INDEXES="$(echo {1..2})"
 TEST_BASE=/root/merger/hwtest
-LUMI_LENGTH_MEAN=76.5
-LUMI_LENGTH_SIGMA=25.5
+LUMI_LENGTH_MEAN=10
+LUMI_LENGTH_SIGMA=0.01
 
 ## defines node_name, count_args
 source $TEST_BASE/tools.sh
@@ -26,16 +26,16 @@ function launch_main {
 
     ## launch_merger <node> <run>
     launch_merger_0 12 100
-    launch_merger_0 13 200
-    launch_merger_0 14 300
-    launch_merger_0 15 400
-    launch_merger_0 16 500
+#     launch_merger_0 13 200
+#     launch_merger_0 14 300
+#     launch_merger_0 15 400
+#     launch_merger_0 16 500
     
     launch_producers run100.cfg
-    launch_producers run200.cfg
-    launch_producers run300.cfg
-    launch_producers run400.cfg
-    launch_producers run500.cfg
+#     launch_producers run200.cfg
+#     launch_producers run300.cfg
+#     launch_producers run400.cfg
+#     launch_producers run500.cfg
     # launch_producers_A
     # launch_simple_cat_A 10
 
