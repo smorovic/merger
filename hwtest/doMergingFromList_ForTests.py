@@ -42,8 +42,7 @@ def mergeFiles(outMergedFile, inputDataFolder, files, inputJsonFile):
    
    elif option == 2:
       lockNameFullPath = outMergedFileFullPath.replace(".raw",".lock")
-      if (not os.path.exists(outMergedFileFullPath)) or
-          exists_and_has_zero_size(outMergedFileFullPath)):
+      if nonexistent_or_zero_size(outMergedFileFullPath):
          with open(outMergedFileFullPath, 'w') as ofile:
             fcntl.flock(ofile, fcntl.LOCK_EX)
             ofile.truncate(maxSizeMergedFile)
@@ -233,8 +232,10 @@ def append_files(ifnames, ofile)
 
 
 #______________________________________________________________________________
-def exists_and_has_zero_size(filename):
-    return os.path.exists(filename) and os.path.getsize(filename) == 0
+def nonexistent_or_zero_size(filename):
+    nonexistent = not os.path.exists(filename)
+    zero_size = (os.path.exists(filename) and os.path.getsize(filename) == 0)
+    return nonexistent or zero_size
 # exists_and_has_zero_size
 
 
