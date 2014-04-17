@@ -3,7 +3,7 @@
 ## Indexes of all the nodes to be used
 #NODE_INDEXES="$( echo {1..10} {12..14} 16)"
 NODE_INDEXES="$(echo {1..10} {12..14} 16)"
-MERGER1_INDEXES="$(echo {1..9} 12)"
+MERGER1_INDEXES="$(echo {1..2})"
 MERGER_INDEX="13"
 MERGERA_INDEX="14"
 # PRODUCER_INDEXES="$(echo {1..9} 12)"
@@ -22,14 +22,15 @@ source $TEST_BASE/tools.sh
 function launch_main {
     delete_previous_runs
     kill_previous_mergers
-    # launch_mergers_1
 
     ## launch_merger <node> <run>
-    launch_merger_0 12 100
+#     launch_merger_0 12 100
 #     launch_merger_0 13 200
 #     launch_merger_0 14 300
 #     launch_merger_0 15 400
 #     launch_merger_0 16 500
+    
+    launch_mergers_1
     
     launch_producers run100.cfg
 #     launch_producers run200.cfg
@@ -39,9 +40,6 @@ function launch_main {
     # launch_producers_A
     # launch_simple_cat_A 10
 
-    #merge option 2
-    #launch_mergers_2
-    #launch_producers
 } # launch_main
 
 #-------------------------------------------------------------------------------
