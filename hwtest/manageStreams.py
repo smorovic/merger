@@ -29,6 +29,10 @@ def main():
     if (options.BUNumber != None):
        theBUNumber = options.BUNumber
 
+    theTotalBUs = 1
+    if (options.totalBUs != None):
+       theTotalBUs = options.totalBUs
+
     thePath = ""
     if (options.Path != None):
        thePath = options.Path
@@ -63,9 +67,10 @@ def main():
            msg = "BIG PROBLEM, file does not exists!: %s" % str(fullFileName)
            raise RuntimeError, msg
 
-        with open(fullFileName, 'r') as theInputfile:
-           contentInputFile.append(theInputfile.read())
-        theInputfile.close()
+        contentInputFile.append(fullFileName)
+        #with open(fullFileName, 'r') as theInputfile:
+        #   contentInputFile.append(theInputfile.read())
+        #theInputfile.close()
 
     for ls in range(lumiSections):
        processs = []
@@ -79,7 +84,7 @@ def main():
        print now.strftime("%H:%M:%S"), ": writing ls(%d)" % (ls)
        for i in range(int(filesNb)):
           streamName =  params['Streams']['name' + str(i)]
-          process = multiprocessing.Process(target = startCreateFiles, args = [streamName, contentInputFile[i], ls, runNumber, theBUNumber, thePath])
+          process = multiprocessing.Process(target = startCreateFiles, args = [streamName, contentInputFile[i], ls, runNumber, theBUNumber, thePath, theTotalBUs])
           process.start()
 
        print now.strftime("%H:%M:%S"), ": finished LS", ls, ", exiting..."
@@ -116,6 +121,11 @@ def make_option_parser():
                       action="store", dest="lumi_length_sigma",
                       help="Standard deviation of lumi section length " +
                            "distribution as a float")
+
+    parser.add_option("-a", "--number_of_bus",
+                      action="store", dest="totalBUs",
+                      help="Number of BUs")
+
     return parser
 ## make_option_parser
 
@@ -154,8 +164,8 @@ def total_seconds(tdelta):
 ## total_seconds
 
 #______________________________________________________________________________
-def startCreateFiles (streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath):
-          createFiles(streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath)
+def startCreateFiles (streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath, theTotalBUs):
+          createFiles(streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath, theTotalBUs)
 
 
 #______________________________________________________________________________

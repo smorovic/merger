@@ -9,14 +9,14 @@ import fileinput
 """
 Do actual files
 """
-def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls = 5, theBUNumber = 1):
+def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls = 5, theBUNumber = 1, theTotalBUs = 1):
 
    NumberOfFilesPerLS = 5
 
    random.seed(int(seeds))
    theNLoop = 1
-   nInput = 0
-   nOutput = 0
+   nInput = 1000
+   nOutput = 10
    LSNumber = ls
 
    start = time.time()
@@ -28,91 +28,56 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
      for i in range(0, numberOfSeedsNeeded):
        seedsRND.append(random.randint(0,999999))
 
-     myDir = "%sunmergedDATA/Run%d" % (path_to_make,RUNNumber)
+     myDir = "%sunmergedDATA/run%d" % (path_to_make,RUNNumber)
      if not os.path.exists(myDir):
         try:
            os.makedirs(myDir)
         except OSError, e:
            print "Looks like the directory " + myDir + " has just been created by someone else..."
 
-     myDir = "%sunmergedMON/Run%d" % (path_to_make,RUNNumber)
+     myDir = "%sunmergedMON/run%d" % (path_to_make,RUNNumber)
      if not os.path.exists(myDir):
         try:
            os.makedirs(myDir)
         except OSError, e:
            print "Looks like the directory " + myDir + " has just been created by someone else..."
 
-     myDir = "%sunmergedAUX/Run%d" % (path_to_make,RUNNumber)
-     if not os.path.exists(myDir):
-        try:
-           os.makedirs(myDir)
-        except OSError, e:
-           print "Looks like the directory " + myDir + " has just been created by someone else..."
+     if theNLoop == 1:
+     	fileIntNameFullPath = "%sunmergedDATA/run%d/run%d_ls0000_%s_BU%d.ini" % (path_to_make,RUNNumber,RUNNumber,streamName,int(theBUNumber))
+     	with open(fileIntNameFullPath, 'w') as thefile:
+     	   thefile.write('0' * 10)
+     	   thefile.write("\n")
+     	thefile.close()
 
-     nInput += 100
-     nOutput += 9
-     
-     fileOutputName = "%sunmergedDATA/Run%d/Data.%d.LS%d.%s.%d.BU%d.raw" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
-     # creating/copying the file
-     with open(fileOutputName, 'w') as thefile:
-        thefile.write(contentInputFile)
-     thefile.close()
+     fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%d.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
+     fileOutputName =                              "run%d_ls%d_%s_%d.BU%d.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
 
-     fileNameNoDir =  "Data.%d.LS%d.%s.%d.BU%d.raw" % (int(RUNNumber),int(LSNumber),streamName,seedsRND[0],int(theBUNumber))
-     fileNameAUX =  "%sunmergedAUX/Run%d/Data.%d.LS%d.%s.BU%d.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,int(theBUNumber))
-     with open(fileNameAUX, 'a') as thefile:
-        thefile.write(fileNameNoDir + "\n")
-     thefile.close()
+     # making a symbolic link
+     msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
+     os.system(msg)
+     # creating/copying the file (deprecated)
+     #with open(fileOutputNameFullPath, 'w') as thefile:
+     #   thefile.write(contentInputFile)
+     #thefile.close()
+
+     outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%d.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
+     theMergedJSONfile = open(outMergedJSONFullPath, 'w')
+     theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName)}))
+     theMergedJSONfile.close()
+     os.chmod(outMergedJSONFullPath, 0666)
 
      if(theNLoop%NumberOfFilesPerLS == 0):
-        fileJSONName=  "%sunmergedMON/Data.%d.LS%d.%s.BU%d.jsn" % (path_to_make,int(RUNNumber),int(LSNumber),streamName,int(theBUNumber))
-        fileNameAUX =  "%sunmergedAUX/Run%d/Data.%d.LS%d.%s.BU%d.dat" % (path_to_make,int(RUNNumber),int(RUNNumber),int(LSNumber),streamName,int(theBUNumber))
-        fileAUX = open(fileNameAUX, 'r')
-        nFileLine = fileAUX.readline()
-	listOfFilesDict = []
-	while(nFileLine != ''):
-	   nFile = nFileLine.split('\n')
-	   listOfFilesDict.append(nFile[0])
-           nFileLine = fileAUX.readline()
-        fileAUX.close()	   
-        #outputName = "%smerged/Run%d/Data.%d.LS%d.%s.BU%d.raw" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,int(theBUNumber))
-        outputName = "%smerged/Run%d/Data.%d.LS%d.%s.raw" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName)
-	outputNameDict = [outputName]
-        theJSONfile = open(fileJSONName, 'w')
-	#theJSONfile.write(json.dumps({'filelist': str(listOfFilesDict), 'outputName': str(outputNameDict)}, sort_keys=True, indent=4, separators=(',', ': ')))
-	theJSONfile.write("{\n\"filelist\": [")
-        for i in range(0, len(listOfFilesDict)):
-	   theJSONfile.write("\"" + listOfFilesDict[i] +"\"")
-	   if(i != len(listOfFilesDict)-1): 
-	      theJSONfile.write(",")
-	theJSONfile.write("],\n\"outputName\": [\"" + outputNameDict[0] +"\"]\n}\n")
-        theJSONfile.close()	  
-        myDir = "%smerged" % (path_to_make)
-        if not os.path.exists(myDir):
+        fileJSONNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
+        if not os.path.exists(fileJSONNameFullPath):
            try:
-              os.makedirs(myDir)
+              theFileJSONName = open(fileJSONNameFullPath, 'w')
+              theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
+              theFileJSONName.close()
+              os.chmod(fileJSONNameFullPath, 0666)
            except OSError, e:
-              print "Looks like the directory " + myDir + " has just been created by someone else..."
-        myDir = "%smerged/Run%d" % (path_to_make,RUNNumber)
-        if not os.path.exists(myDir):
-           try:
-              os.makedirs(myDir)
-           except OSError, e:
-              print "Looks like the directory " + myDir + " has just been created by someone else..."
-        os.remove(fileNameAUX)
+              print "Looks like the file " + fileJSONNameFullPath + " has just been created by someone else..."
 	
-        fileJSONNameFinal =  "%sunmergedMON/Run%d/Data.%d.LS%d.%s.BU%d.jsn" % (path_to_make,int(RUNNumber),int(RUNNumber),int(LSNumber),streamName,int(theBUNumber))
-        shutil.move(fileJSONName,fileJSONNameFinal)
-	
-	nInput = 0
-	nOutput = 0
 	LSNumber += 1
-
-     if(theNLoop%1000 == 0):
-	nInput = 0
-	nOutput = 0
-	LSNumber += 1
-	RUNNumber += 1
 
      theNLoop += 1
 
@@ -122,20 +87,13 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
 Main
 """
 
-#def createFiles(streamName = "StreamA", fullFileName = "", ls = 10, RUNNumber = 100, theBUNumber = 1, path_to_make = "", rate = 0.0, seeds = 999, timeEnd = -1):
-def createFiles(streamName = "StreamA", contentInputFile = "", ls = 10, RUNNumber = 100, theBUNumber = 1, path_to_make = "", rate = 0.0, seeds = 999, timeEnd = -1):
+def createFiles(streamName = "StreamA", contentInputFile = "", ls = 10, RUNNumber = 100, theBUNumber = 1, path_to_make = "", theTotalBUs = 1, rate = 0.0, seeds = 999, timeEnd = -1):
    
    now = datetime.datetime.now()
 
    print now.strftime("%H:%M:%S"), ": writing ls", ls, ", stream: ", streamName
  
    myDir = "%sunmergedDATA" % (path_to_make)
-   if not os.path.exists(myDir):
-      try:
-          os.makedirs(myDir)
-      except OSError, e:
-          print "Looks like the directory " + myDir + " has just been created by someone else..."
-   myDir = "%sunmergedAUX" % (path_to_make)
    if not os.path.exists(myDir):
       try:
           os.makedirs(myDir)
@@ -149,7 +107,7 @@ def createFiles(streamName = "StreamA", contentInputFile = "", ls = 10, RUNNumbe
       except OSError, e:
           print "Looks like the directory has just been created by someone else..." 
    
-   doFiles(int(RUNNumber), seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls, theBUNumber)
+   doFiles(int(RUNNumber), seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls, theBUNumber, theTotalBUs)
 
    now = datetime.datetime.now()
 
