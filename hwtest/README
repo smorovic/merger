@@ -1,0 +1,57 @@
+################################################################################
+# folders:
+#    unmergedDATA --> unmerged data files to be merged
+#    unmergedMON  --> json files, it indicates what to merge
+#    unmergedAUX  --> temporal folder, just useful while creating files
+#    merged       --> folder where files will be merged
+# three steps: (1) and (2) happens at the same time
+#    (1) script (doMergingFromList_ForTests) watchs a folder for merging
+#    (2) files are created (manageStreams)
+#    (3) results are analyzed (measurePerf)
+# python version >= 2.6 is needed
+################################################################################
+# first action to start from scratch
+rm -rf unmergedDATA unmergedAUX unmergedMON merged mergeOut.txt *.pyc
+
+#(A) --> test
+#(B) --> real study
+
+# make input files
+./makeInputFiles.py -p frozen_storage
+
+################################################################################
+# needed files for the creation of the data: 
+# manageStreams.py, mergeConfig, makeFiles.py, configobj.py
+
+#(A) only a few lumis and one stream
+./manageStreams.py --config mergeConfigTest    --bu 30 -i frozen_storage
+
+#(B) 50 lumi ssections, 10 streams with different sizes
+./manageStreams.py --config mergeConfigForReal --bu 30 -i frozen_storage
+
+################################################################################
+# needed files for merging:
+#     doMergingFromList_ForTests.py
+
+#(A) For testing, a lot of output
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 --option=0
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 --option=1 --bu=30
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --debug=99 --expectedBUs=1 --option=2 --bu=30
+
+#(B) For real
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 --option=0
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 --option=1 --bu=30
+./doMergingFromList_ForTests.py --paths_to_watch="unmergedMON/Run*" --expectedBUs=1 --option=2 --bu=30
+
+# paths_to_watch can use a full path
+# this job needs to be killed at some point since it runs forever
+
+###################################################################################
+# needed files for analysis: 
+# measurePerf.py
+
+#(A) for testing
+./measurePerf.py --config mergeConfigTest --file mergeOut.txt
+
+#(B) for real analysis
+./measurePerf.py --config mergeConfigForReal --file mergeOut.txt
