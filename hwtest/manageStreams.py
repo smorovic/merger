@@ -67,10 +67,10 @@ def main():
            msg = "BIG PROBLEM, file does not exists!: %s" % str(fullFileName)
            raise RuntimeError, msg
 
-        contentInputFile.append(fullFileName)
-        #with open(fullFileName, 'r') as theInputfile:
-        #   contentInputFile.append(theInputfile.read())
-        #theInputfile.close()
+        #contentInputFile.append(fullFileName)
+        with open(fullFileName, 'r') as theInputfile:
+           contentInputFile.append(theInputfile.read())
+        theInputfile.close()
 
     for ls in range(lumiSections):
        processs = []

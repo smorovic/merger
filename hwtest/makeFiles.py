@@ -52,13 +52,13 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
      fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%d.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
      fileOutputName =                              "run%d_ls%d_%s_%d.BU%d.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
 
-     # making a symbolic link
-     msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
-     os.system(msg)
+     # making a symbolic link (to aggressive)
+     #msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
+     #os.system(msg)
      # creating/copying the file (deprecated)
-     #with open(fileOutputNameFullPath, 'w') as thefile:
-     #   thefile.write(contentInputFile)
-     #thefile.close()
+     with open(fileOutputNameFullPath, 'w') as thefile:
+        thefile.write(contentInputFile)
+     thefile.close()
 
      outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%d.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
      theMergedJSONfile = open(outMergedJSONFullPath, 'w')
