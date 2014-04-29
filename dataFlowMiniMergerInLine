@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #configfile = "/opt/merger/dataFlowMerger.conf"
-configfile = "dataFlowMergerMini.conf"
+configfile = "dataFlowMiniMerger.conf"
 #configfile = "dataFlowMergerMacro.conf"
 
 import sys, os, socket, signal

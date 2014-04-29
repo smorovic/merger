@@ -1,10 +1,11 @@
 import os
+import sys
 import logging
 import logging.config
 import inspect
 from configobj import ConfigObj
 
-mergeConfigFileName = "/opt/merger/dataFlowMerger.conf"
+mergeConfigFileName = "dataFlowMerger.conf"
 try:
     if os.path.isfile(mergeConfigFileName):
         config = ConfigObj(mergeConfigFileName)
@@ -26,4 +27,3 @@ def getLogger():
     return logger
 
 log = getLogger()
-

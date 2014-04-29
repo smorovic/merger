@@ -9,7 +9,7 @@ import fileinput
 """
 Do actual files
 """
-def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls = 5, theBUNumber = 1, theTotalBUs = 1):
+def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls = 5, theBUNumber = "AAA", theTotalBUs = 1):
 
    NumberOfFilesPerLS = 5
 
@@ -43,24 +43,24 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
            print "Looks like the directory " + myDir + " has just been created by someone else..."
 
      if theNLoop == 1:
-     	fileIntNameFullPath = "%sunmergedDATA/run%d/run%d_ls0000_%s_BU%d.ini" % (path_to_make,RUNNumber,RUNNumber,streamName,int(theBUNumber))
+     	fileIntNameFullPath = "%sunmergedDATA/run%d/run%d_ls0000_%s_BU%s.ini" % (path_to_make,RUNNumber,RUNNumber,streamName,theBUNumber)
      	with open(fileIntNameFullPath, 'w') as thefile:
      	   thefile.write('0' * 10)
      	   thefile.write("\n")
      	thefile.close()
 
-     fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%d.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
-     fileOutputName =                              "run%d_ls%d_%s_%d.BU%d.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
+     fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
+     fileOutputName =                              "run%d_ls%d_%s_%d.BU%s.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
 
-     # making a symbolic link (to aggressive)
+     # making a symbolic link (sysadmins don't like it)
      #msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
      #os.system(msg)
-     # creating/copying the file (deprecated)
+     # creating/copying the file (default)
      with open(fileOutputNameFullPath, 'w') as thefile:
-        thefile.write(contentInputFile)
+     	thefile.write(contentInputFile)
      thefile.close()
 
-     outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%d.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],int(theBUNumber))
+     outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
      theMergedJSONfile = open(outMergedJSONFullPath, 'w')
      theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName)}))
      theMergedJSONfile.close()
@@ -87,7 +87,7 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
 Main
 """
 
-def createFiles(streamName = "StreamA", contentInputFile = "", ls = 10, RUNNumber = 100, theBUNumber = 1, path_to_make = "", theTotalBUs = 1, rate = 0.0, seeds = 999, timeEnd = -1):
+def createFiles(streamName = "StreamA", contentInputFile = "", ls = 10, RUNNumber = 100, theBUNumber = "AAA", path_to_make = "", theTotalBUs = 1, rate = 0.0, seeds = 999, timeEnd = -1):
    
    now = datetime.datetime.now()
 

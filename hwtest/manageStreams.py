@@ -25,9 +25,9 @@ def main():
     if (options.configFile == None):
         parser.error('Please specify the configuration file using the -c/--config option')
 
-    theBUNumber = 10
-    if (options.BUNumber != None):
-       theBUNumber = options.BUNumber
+    theBUId = 10
+    if (options.BUId != None):
+       theBUId = options.BUId
 
     theTotalBUs = 1
     if (options.totalBUs != None):
@@ -84,7 +84,7 @@ def main():
        print now.strftime("%H:%M:%S"), ": writing ls(%d)" % (ls)
        for i in range(int(filesNb)):
           streamName =  params['Streams']['name' + str(i)]
-          process = multiprocessing.Process(target = startCreateFiles, args = [streamName, contentInputFile[i], ls, runNumber, theBUNumber, thePath, theTotalBUs])
+          process = multiprocessing.Process(target = startCreateFiles, args = [streamName, contentInputFile[i], ls, runNumber, theBUId, thePath, theTotalBUs])
           process.start()
 
        print now.strftime("%H:%M:%S"), ": finished LS", ls, ", exiting..."
@@ -95,14 +95,14 @@ def main():
     
 #______________________________________________________________________________
 def make_option_parser():
-    parser = OptionParser(usage="usage: %prog [-h|--help] -c|--config config -b|--bu BUNumber | -p|--path Path | -i|--inputPath inputPath")
+    parser = OptionParser(usage="usage: %prog [-h|--help] -c|--config config -b|--bu BUId | -p|--path Path | -i|--inputPath inputPath")
 
     parser.add_option("-c", "--config",
                       action="store", dest="configFile",
                       help="Configuration file storing the info related to the simulated streams of data. Absolute path is needed")
 
     parser.add_option("-b", "--bu",
-                      action="store", dest="BUNumber",
+                      action="store", dest="BUId",
                       help="BU number")
 
     parser.add_option("-p", "--path",
@@ -164,8 +164,8 @@ def total_seconds(tdelta):
 ## total_seconds
 
 #______________________________________________________________________________
-def startCreateFiles (streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath, theTotalBUs):
-          createFiles(streamName, contentInputFile, lumiSections, runNumber, theBUNumber, thePath, theTotalBUs)
+def startCreateFiles (streamName, contentInputFile, lumiSections, runNumber, theBUId, thePath, theTotalBUs):
+          createFiles(streamName, contentInputFile, lumiSections, runNumber, theBUId, thePath, theTotalBUs)
 
 
 #______________________________________________________________________________

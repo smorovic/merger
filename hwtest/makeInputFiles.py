@@ -50,6 +50,7 @@ if __name__ == '__main__':
       except OSError, e:
    	 print "Looks like the directory " + thePath + " could not be created..."
 
+   #for sizePerFile in range(1,50): 
    for sizePerFile in (1,3,5): 
        initWritingTime = time.time()
        now = datetime.datetime.now()
