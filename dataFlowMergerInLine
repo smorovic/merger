@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+configfile = "dataFlowMerger.conf"
+
+import sys, os, socket, signal
+
+from configobj import ConfigObj
+from Logging import getLogger
+import cmsDataFlowMerger
+
+log = getLogger()
+
+def getMergeParams(mergeConfigFileName):
+    try:
+        if os.path.isfile(mergeConfigFileName):
+            config = ConfigObj(mergeConfigFileName)
+        else:
+            log.error("Configuration file not found: {0}!".format(mergeConfigFileName))
+            sys.exit(1)
+    except IOError, e:
+        log.error("Unable to open configuration file: {0}!".format(mergeConfigFileName))
+        sys.exit(1)
+
+    return config
+
+def get_params():
+    params = getMergeParams(configfile)
+
+    try:
+        in_path = params['Input']['dataPath']
+        out_path = params['Output']['dataPath']
+        eol_path = params['Input']['eolPath']
+        merge_type = params['Misc']['mergeType']
+	sm_path = params['Output']['smPath']
+        merge_option = params['Misc']['mergeOption']
+    except KeyError, e:
+        log.error("At least one non-optional parameter missing from the config file {0}:".format(configFile))
+        log.error("{0}".format(e))
+        exit(1)
+
+    try:
+        additional_label = params['Output']['outputEndName']
+    except KeyError, e:
+        additional_label = socket.gethostname()
+
+    try:
+        delete_files = params['Misc']['deleteFiles']
+    except KeyError, e:
+        delete_files = True
+
+    try:
+        debug_level = params['Misc']['debugLevel']
+    except KeyError, e:
+        debug_level = 10
+
+    return in_path, eol_path, out_path, sm_path, additional_label, merge_type, delete_files, merge_option, debug_level
+
+
+
+def DataFlowMerger():
+
+
+  [inPath, eolPath, outPath, smPath, adLabel, mType, delOrigFiles, mergeOption, debugLevel] = get_params()
+
+  log.info("delFiles: {0}".format(delOrigFiles))
+
+  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, smPath, adLabel, delOrigFiles, mergeOption, debugLevel)
+
+if __name__ == "__main__":
+
+    DataFlowMerger()
