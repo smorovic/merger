@@ -6,24 +6,24 @@ LIST_PRODUCERS=listProducers.txt
 MERGERID=lxplus0095
 CATID=lxplus0095
 
-TEST_BASE=/afs/cern.ch/user/c/ceballos/merger/hwtest
+TEST_BASE=/root/testHWGui/merger
 LUMI_LENGTH_MEAN=10
 LUMI_LENGTH_SIGMA=0.01
 
-INPUT_LOCATION=/afs/cern.ch/work/c/ceballos/testHW
-OUTPUT_LOCATION=/afs/cern.ch/work/c/ceballos/testHW
-ROOT_LOCATION=/afs/cern.ch/user/c/ceballos/merger
+INPUT_LOCATION=/lustre/testHWGui
+OUTPUT_LOCATION=/lustre/testHWGui
+ROOT_LOCATION=/root/testHWGui/merger
 
 ## defines node_name, count_args
-source $TEST_BASE/tools.sh
+source $TEST_BASE/hwtest/tools.sh
 
 #-------------------------------------------------------------------------------
 function launch_main {
-    delete_previous_runs
     kill_previous_mergers
+    delete_previous_runs
 
-    launch_producers mergeConfigTest 1
-    launch_merger 300 optionA lxplus0095.cern.ch 1
+    launch_producers run100.cfg 0
+    launch_merger 100 optionA wbua-TME-ComputeNode7 0
     #launch_simple_cat 300 0 lxplus0095
     
 #    launch_producers mergeConfigTest
@@ -62,74 +62,70 @@ function launch_merger {
     export useList=${4,-0}
     if [ ${useList} == "0" ]; then
 
-       mkdir -p $ROOT_LOCATION/${NODE};
+       mkdir -p $TEST_BASE/hwtest/${NODE};
        cp $ROOT_LOCATION/dataFlowMergerTemplate.conf \
-          $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|AAA|$INPUT_LOCATION/${NODE}/unmergedDATA/run${RUN}|"  $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|BBB|$INPUT_LOCATION/${NODE}/unmergedMON|"             $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|OPTION|$THEOPTION|"                                   $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|CCC|$OUTPUT_LOCATION/mergerMini|"                     $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|DDD|$OUTPUT_LOCATION/mergerMacro|"                    $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|LOG|$ROOT_LOCATION/logFormat.conf|"                   $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
+          $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|AAA|$INPUT_LOCATION/unmergedDATA/run${RUN}|"          $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|BBB|$INPUT_LOCATION/unmergedMON|"                     $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|OPTION|$THEOPTION|"                                   $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|CCC|$OUTPUT_LOCATION/mergerMini|"                     $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|DDD|$OUTPUT_LOCATION/mergerMacro|"                    $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|LOG|$ROOT_LOCATION/logFormat.conf|"                   $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
        
-       cp $ROOT_LOCATION/Logging.py               $ROOT_LOCATION/${NODE}/Logging_${NODE}.py;
-       cp $ROOT_LOCATION/dataFlowMergerInLine     $ROOT_LOCATION/${NODE}/dataFlowMergerInLine_${NODE};
-       cp $ROOT_LOCATION/Logging.py               $ROOT_LOCATION/${NODE}/Logging_${NODE}.py;
-       cp $ROOT_LOCATION/cmsDataFlowMerger.py     $ROOT_LOCATION/${NODE}/cmsDataFlowMerger.py;
-       cp $ROOT_LOCATION/cmsActualMergingFiles.py $ROOT_LOCATION/${NODE}/cmsActualMergingFiles.py;
+       cp $ROOT_LOCATION/configobj.py             $TEST_BASE/hwtest/${NODE}/configobj.py;
+       cp $ROOT_LOCATION/Logging.py               $TEST_BASE/hwtest/${NODE}/Logging.py;
+       cp $ROOT_LOCATION/dataFlowMergerInLine     $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine;
+       cp $ROOT_LOCATION/Logging.py               $TEST_BASE/hwtest/${NODE}/Logging.py;
+       cp $ROOT_LOCATION/cmsDataFlowMerger.py     $TEST_BASE/hwtest/${NODE}/cmsDataFlowMerger.py;
+       cp $ROOT_LOCATION/cmsActualMergingFiles.py $TEST_BASE/hwtest/${NODE}/cmsActualMergingFiles.py;
 
-       sed -i "s|dataFlowMerger.conf|$ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf|" $ROOT_LOCATION/${NODE}/dataFlowMergerInLine_${NODE};
-       sed -i "s|dataFlowMerger.conf|$ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf|" $ROOT_LOCATION/${NODE}/Logging_${NODE}.py;
-       sed -i "s|Logging|Logging_${NODE}|" $ROOT_LOCATION/${NODE}/dataFlowMergerInLine_${NODE};
-       sed -i "s|Logging|Logging_${NODE}|" $ROOT_LOCATION/${NODE}/cmsDataFlowMerger.py;
-       sed -i "s|Logging|Logging_${NODE}|" $ROOT_LOCATION/${NODE}/cmsActualMergingFiles.py;
+       sed -i "s|dataFlowMerger.conf|$TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine;
+       sed -i "s|dataFlowMerger.conf|$TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/Logging.py;
 
-       #rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/hwtest/
+       rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/;
        COMMAND="$(cat << EOF
        (   cd $OUTPUT_LOCATION ; \
-           nohup $ROOT_LOCATION/${NODE}/dataFlowMergerInLine_${NODE} \ 
+           nohup $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine \ 
        )   >& $ROOT_LOCATION/hwtest/merger_${THEOPTION}_run${RUN}_${NODE}.log &
 EOF
        )"
        echo $NODE
-       echo "    $COMMAND"
-       ssh $NODE $COMMAND
+       echo "     $COMMAND"
+       ssh $NODE "$COMMAND"
 
     else
        for NODE in `cat $LIST_PRODUCERS | cut -d' ' -f1`; do
 
-       mkdir -p $ROOT_LOCATION/${NODE};
+       mkdir -p $TEST_BASE/hwtest/${NODE};
        cp $ROOT_LOCATION/dataFlowMergerTemplate.conf \
-          $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|AAA|$INPUT_LOCATION/${NODE}/unmergedDATA/run${RUN}|"  $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|BBB|$INPUT_LOCATION/${NODE}/unmergedMON|"             $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|OPTION|$THEOPTION|"                                   $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|CCC|$OUTPUT_LOCATION/mergerMini|"                     $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|DDD|$OUTPUT_LOCATION/mergerMacro|"                    $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
-       sed -i "s|LOG|$ROOT_LOCATION/logFormat.conf|"                   $ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf;
+          $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|AAA|$INPUT_LOCATION/${NODE}/unmergedDATA/run${RUN}|"  $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|BBB|$INPUT_LOCATION/${NODE}/unmergedMON|"             $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|OPTION|$THEOPTION|"                                   $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|CCC|$OUTPUT_LOCATION/mergerMini|"                     $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|DDD|$OUTPUT_LOCATION/mergerMacro|"                    $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
+       sed -i "s|LOG|$ROOT_LOCATION/logFormat.conf|"                   $TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf;
        
-       cp $ROOT_LOCATION/Logging.py               $ROOT_LOCATION/${NODE}/Logging_${NODE}.py;
-       cp $ROOT_LOCATION/dataFlowMergerInLine     $ROOT_LOCATION/${NODE}/dataFlowMergerInLine_${NODE};
-       cp $ROOT_LOCATION/Logging.py               $ROOT_LOCATION/${NODE}/Logging_${NODE}.py;
-       cp $ROOT_LOCATION/cmsDataFlowMerger.py     $ROOT_LOCATION/${NODE}/cmsDataFlowMerger.py;
-       cp $ROOT_LOCATION/cmsActualMergingFiles.py $ROOT_LOCATION/${NODE}/cmsActualMergingFiles.py;
+       cp $ROOT_LOCATION/configobj.py             $TEST_BASE/hwtest/${NODE}/configobj.py;
+       cp $ROOT_LOCATION/Logging.py               $TEST_BASE/hwtest/${NODE}/Logging.py;
+       cp $ROOT_LOCATION/dataFlowMergerInLine     $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine;
+       cp $ROOT_LOCATION/Logging.py               $TEST_BASE/hwtest/${NODE}/Logging.py;
+       cp $ROOT_LOCATION/cmsDataFlowMerger.py     $TEST_BASE/hwtest/${NODE}/cmsDataFlowMerger.py;
+       cp $ROOT_LOCATION/cmsActualMergingFiles.py $TEST_BASE/hwtest/${NODE}/cmsActualMergingFiles.py;
 
-       sed -i "s|dataFlowMerger.conf|$ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf|" $ROOT_LOCATION/${NODE}/dataFlowMergerInLine_${NODE};
-       sed -i "s|dataFlowMerger.conf|$ROOT_LOCATION/${NODE}/dataFlowMerger_${NODE}.conf|" $ROOT_LOCATION/${NODE}/Logging_${NODE}.py;
-       sed -i "s|Logging|Logging_${NODE}|" $ROOT_LOCATION/${NODE}/dataFlowMergerInLine_${NODE};
-       sed -i "s|Logging|Logging_${NODE}|" $ROOT_LOCATION/${NODE}/cmsDataFlowMerger.py;
-       sed -i "s|Logging|Logging_${NODE}|" $ROOT_LOCATION/${NODE}/cmsActualMergingFiles.py;
+       sed -i "s|dataFlowMerger.conf|$TEST_BASE/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine;
+       sed -i "s|dataFlowMerger.conf|$TEST_BASE/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/Logging.py;
 
-       #rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/hwtest/
+       rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/;
        COMMAND="$(cat << EOF
        (   cd $OUTPUT_LOCATION ; \
-           nohup $ROOT_LOCATION/${NODE}/dataFlowMergerInLine_${NODE} \ 
+           nohup $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine \ 
        )   >& $ROOT_LOCATION/hwtest/merger_${THEOPTION}_run${RUN}_${NODE}.log &
 EOF
        )"
        echo $NODE
-       echo "    $COMMAND"
-       ssh $NODE $COMMAND
+       echo "     $COMMAND"
+       ssh $NODE "$COMMAND"
 
        done
     fi
@@ -143,7 +139,7 @@ function launch_producers {
     DOSUBFOLDER=${2:-0}
     TOTALBUS=$(count_args $LIST_PRODUCERS)
     for NODE in `cat $LIST_PRODUCERS | cut -d' ' -f1`; do
-        #rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/hwtest/
+        rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/;
 	SUBFOLDER=""
 	if [ ${DOSUBFOLDER} == "1" ]; then
 	  SUBFOLDER=${NODE}"/"
@@ -152,7 +148,7 @@ function launch_producers {
         nohup $ROOT_LOCATION/hwtest/manageStreams.py \
             --config $ROOT_LOCATION/hwtest/$CONFIG \
             --bu $NODE \
-            -i $ROOT_LOCATION/hwtest/frozen_storage/ \
+            -i $INPUT_LOCATION/frozen_storage/ \
             -p $INPUT_LOCATION/${SUBFOLDER} \
 	    -a $TOTALBUS \
             --lumi-length-mean="$LUMI_LENGTH_MEAN" \
@@ -161,8 +157,8 @@ function launch_producers {
 EOF
         )"
         echo $NODE
-        echo "    $COMMAND"
-        ssh $NODE $COMMAND
+        echo "     $COMMAND"
+        ssh $NODE "$COMMAND"
     done
     echo
 } # launch_producers
@@ -181,6 +177,7 @@ function launch_simple_cat {
     SOURCES="$SOURCE_BASE/run${RUN}_ls${LS}_Stream${STREAM}_*.dat";
     DESTINATION="$DESTINATION_BASE/run${RUN}_ls${LS}_Stream${STREAM}_SM.dat";
     LOG="$OUTPUT_LOCATION/cat_${LS}.log";
+    rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/;
     (time cat \$SOURCES > \$DESTINATION) >& \$LOG &
 EOF
     )"

@@ -296,13 +296,15 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		if keyEoLS not in eventsEoLSDict.keys():
 	           EoLSName = path_eol + "/" + fileNameString[0] + "/" + fileNameString[0] + "_" + fileNameString[1] + "_EoLS.jsn"
                    if(float(debug) >= 10): log.info("EoLSName: {0}".format(EoLSName))
-                   if os.path.exists(EoLSName):
+                   if os.path.exists(EoLSName) and os.path.getsize(EoLSName) > 0:
                       inputEoLSName = open(EoLSName, "r").read()
                       settingsEoLS  = json.loads(inputEoLSName)
                       eventsEoLS    = int(settingsEoLS['data'][0])
                       filesEoLS     = int(settingsEoLS['data'][1])
                       eventsAllEoLS = int(settingsEoLS['data'][2])
 		      eventsEoLSDict.update({keyEoLS:[eventsEoLS,filesEoLS,eventsAllEoLS]})
+                   else:
+		      print "PROBLEM WITH: ",EoLSName
 
         	if keyEoLS in eventsEoLSDict.keys(): # and key in filesDict.keys():
         	#try:

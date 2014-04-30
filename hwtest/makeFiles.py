@@ -42,13 +42,24 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
         except OSError, e:
            print "Looks like the directory " + myDir + " has just been created by someone else..."
 
-     if theNLoop == 1:
+     if theNLoop == 1 and ls == 0:
      	fileIntNameFullPath = "%sunmergedDATA/run%d/run%d_ls0000_%s_BU%s.ini" % (path_to_make,RUNNumber,RUNNumber,streamName,theBUNumber)
      	with open(fileIntNameFullPath, 'w') as thefile:
      	   thefile.write('0' * 10)
      	   thefile.write("\n")
      	thefile.close()
 
+     if theNLoop == 1:
+        fileJSONNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
+        if not os.path.exists(fileJSONNameFullPath):
+           try:
+              theFileJSONName = open(fileJSONNameFullPath, 'w')
+              theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
+              theFileJSONName.close()
+              os.chmod(fileJSONNameFullPath, 0666)
+           except OSError, e:
+              print "Looks like the file " + fileJSONNameFullPath + " has just been created by someone else..."
+	
      fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
      fileOutputName =                              "run%d_ls%d_%s_%d.BU%s.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
 
@@ -67,17 +78,7 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
      os.chmod(outMergedJSONFullPath, 0666)
 
      if(theNLoop%NumberOfFilesPerLS == 0):
-        fileJSONNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
-        if not os.path.exists(fileJSONNameFullPath):
-           try:
-              theFileJSONName = open(fileJSONNameFullPath, 'w')
-              theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
-              theFileJSONName.close()
-              os.chmod(fileJSONNameFullPath, 0666)
-           except OSError, e:
-              print "Looks like the file " + fileJSONNameFullPath + " has just been created by someone else..."
-	
-	LSNumber += 1
+        LSNumber += 1
 
      theNLoop += 1
 
