@@ -53,10 +53,10 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
         fileJSONNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
         if not os.path.exists(fileJSONNameFullPath):
            try:
-              theFileJSONName = open(fileJSONNameFullPath, 'w')
-              theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
+              with open(fileJSONNameFullPath, 'w') as theFileJSONName:
+                 theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
               theFileJSONName.close()
-              os.chmod(fileJSONNameFullPath, 0666)
+              ###os.chmod(fileJSONNameFullPath, 0666)
            except OSError, e:
               print "Looks like the file " + fileJSONNameFullPath + " has just been created by someone else..."
 	
@@ -72,10 +72,10 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
      thefile.close()
 
      outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
-     theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-     theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName)}))
+     with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
+        theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName)}))
      theMergedJSONfile.close()
-     os.chmod(outMergedJSONFullPath, 0666)
+     ###os.chmod(outMergedJSONFullPath, 0666)
 
      if(theNLoop%NumberOfFilesPerLS == 0):
         LSNumber += 1

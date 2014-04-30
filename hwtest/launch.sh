@@ -1,13 +1,13 @@
 ## Source this script to launch the merging test
 
 LIST_PRODUCERS=listProducers.txt
-#LIST_MERGERS=listMergers.txt
+LIST_MERGERS=listMergers.txt
 
 MERGERID=lxplus0095
 CATID=lxplus0095
 
 TEST_BASE=/root/testHWGui/merger
-LUMI_LENGTH_MEAN=10
+LUMI_LENGTH_MEAN=20
 LUMI_LENGTH_SIGMA=0.01
 
 INPUT_LOCATION=/lustre/testHWGui
@@ -22,8 +22,8 @@ function launch_main {
     kill_previous_mergers
     delete_previous_runs
 
-    launch_producers run100.cfg 0
-    launch_merger 100 optionA wbua-TME-ComputeNode7 0
+    launch_producers run100.cfg 1
+    launch_merger 100 optionC wbua-TME-ComputeNode7 1
     #launch_simple_cat 300 0 lxplus0095
     
 #    launch_producers mergeConfigTest
@@ -38,7 +38,7 @@ function launch_main {
 #-------------------------------------------------------------------------------
 function kill_previous_mergers {
 
-    for NODE in `cat $LIST_PRODUCERS | cut -d' ' -f1`; do
+    for NODE in `cat $LIST_MERGERS | cut -d' ' -f1`; do
         COMMAND=$(cat <<'EOF'
             PS_LINE=$(ps awwx | grep python | egrep -v "grep|bash");\
             PID=$(echo $PS_LINE | awk '{print $1}');\
@@ -113,8 +113,8 @@ EOF
        cp $ROOT_LOCATION/cmsDataFlowMerger.py     $TEST_BASE/hwtest/${NODE}/cmsDataFlowMerger.py;
        cp $ROOT_LOCATION/cmsActualMergingFiles.py $TEST_BASE/hwtest/${NODE}/cmsActualMergingFiles.py;
 
-       sed -i "s|dataFlowMerger.conf|$TEST_BASE/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine;
-       sed -i "s|dataFlowMerger.conf|$TEST_BASE/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/Logging.py;
+       sed -i "s|dataFlowMerger.conf|$TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine;
+       sed -i "s|dataFlowMerger.conf|$TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/Logging.py;
 
        rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/;
        COMMAND="$(cat << EOF
