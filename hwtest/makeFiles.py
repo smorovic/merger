@@ -106,7 +106,7 @@ def createFiles(streamName = "StreamA", contentInputFile = "", ls = 10, RUNNumbe
       try:
           os.makedirs(myDir)
       except OSError, e:
-          print "Looks like the directory has just been created by someone else..." 
+          print "Looks like the directory " + myDir + " has just been created by someone else..." 
    
    doFiles(int(RUNNumber), seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls, theBUNumber, theTotalBUs)
 

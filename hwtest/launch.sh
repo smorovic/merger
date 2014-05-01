@@ -23,6 +23,7 @@ function launch_main {
     delete_previous_runs
 
     launch_producers run100.cfg 1
+    sleep $LUMI_LENGTH_MEAN
     launch_merger 100 optionC wbua-TME-ComputeNode7 1
     #launch_simple_cat 300 0 lxplus0095
     
