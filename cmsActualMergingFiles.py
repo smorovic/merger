@@ -43,15 +43,18 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
          filenames = [iniNameFullPath]
          with open(outMergedFileFullPath, 'w') as fout:
             append_files(filenames, fout)
+         fout.close()
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
 
    filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
 
-   if(float(debug) > 20): log.info("Will merge: {0}".format(filenames))
+   if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
    with open(outMergedFileFullPath, 'a') as fout:
       append_files(filenames, fout)
+   fout.close()
+   if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
    os.chmod(outMergedFileFullPath, 0666)
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
@@ -60,8 +63,6 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
    os.chmod(outMergedJSONFullPath, 0666)
-
-   #log.info("doRemoveFiles: {0}".format(doRemoveFiles))
 
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
@@ -116,6 +117,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
                filenames = [iniNameFullPath]
                append_files(filenames, fout)
                fcntl.flock(fout, fcntl.LOCK_UN)
+            fout.close()
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
 
@@ -134,6 +136,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          fcntl.flock(fout, fcntl.LOCK_EX)
          append_files(filenames, fout)
          fcntl.flock(fout, fcntl.LOCK_UN)
+      fout.close()
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
@@ -217,6 +220,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    	       filelock.close()
 
                fcntl.flock(fout, fcntl.LOCK_UN)
+            fout.close()
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
 	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
@@ -254,6 +258,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.seek(ini)
          append_files(filenames, fout)
+      fout.close()
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
@@ -292,6 +297,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
 
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.truncate(totalSize)
+      fout.close()
 
       outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
@@ -314,6 +320,5 @@ def append_files(ifnames, ofile):
     for ifname in ifnames:
         with open(ifname) as ifile:
             shutil.copyfileobj(ifile, ofile)
+        ifile.close()
 # append_files
-
-

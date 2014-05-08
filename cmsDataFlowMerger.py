@@ -308,7 +308,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
         	if keyEoLS in eventsEoLSDict.keys(): # and key in filesDict.keys():
         	#try:
-		   if(float(debug) >= 20): log.info("mini-EventsEoLS/EventsInput-LS/Stream: {0}, {1}, {2}, {3}".format(eventsEoLS, eventsIDict[key][0], fileNameString[1], fileNameString[2]))
+		   if(float(debug) >= 20): log.info("mini-EventsEoLS/EventsInput-LS/Stream: {0}, {1}, {2}, {3}".format(eventsEoLSDict[keyEoLS][0], eventsIDict[key][0], fileNameString[1], fileNameString[2]))
                    if(eventsEoLSDict[keyEoLS][0] == eventsIDict[key][0]):
 	              # merged files
 	              outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + ".dat";
@@ -352,7 +352,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                        log.info("Events number does not match: EoL says {0}, we have in the files: {1}".format(eventsOutput, eventsIDict[key][0]))
 
           before = after
-      if nLoops <= nWithPollMax and nWithPollMax > 0:
+      if nLoops <= nWithPollMax or nWithPollMax < 0:
          thePool.close()
          thePool.join()
 
