@@ -202,6 +202,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	  for i in range(0, len(afterString)):
 	     if ".jsn" not in afterString[i]: continue
 	     if "index" in afterString[i]: continue
+	     if afterString[i].endswith("recv"): continue
 	     if "EoLS" in afterString[i]: continue
 	     if "EoR" in afterString[i]: continue
 	     if "TEMP" in afterString[i]: continue
