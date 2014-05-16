@@ -18,12 +18,13 @@ log = getLogger()
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, debug):
+def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode))
    
    outMergedFileFullPath = os.path.join(outputMergedFolder, outMergedFile)
    outMergedJSONFullPath = os.path.join(outputMergedFolder, outMergedJSON)
+   outMonJSONFullPath    = os.path.join(outputMonFolder,    outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
    initMergingTime = time.time()
@@ -64,6 +65,13 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    theMergedJSONfile.close()
    os.chmod(outMergedJSONFullPath, 0666)
 
+   # used for monitoring purposes
+   if typeMerging == "mini":
+      try:
+         shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
+
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
       for nfile in range(0, len(files)):
@@ -88,14 +96,14 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode))
    
    # we will merge file at the BU level only!
    outMergedFileFullPath = os.path.join(outputSMMergedFolder, outMergedFile)
-
-   outMergedJSONFullPath = os.path.join(outputMergedFolder, outMergedJSON)
+   outMergedJSONFullPath = os.path.join(outputMergedFolder,   outMergedJSON)
+   outMonJSONFullPath    = os.path.join(outputMonFolder,      outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
    initMergingTime = time.time()
@@ -110,7 +118,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
-         if (not os.path.exists(outMergedFileFullPath)) or (os.path.exists(outMergedFileFullPath) and os.path.getsize(outMergedFileFullPath) == 0):
+         if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'a') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
                os.chmod(outMergedFileFullPath, 0666)
@@ -145,7 +153,12 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    theMergedJSONfile.close()
    os.chmod(outMergedJSONFullPath, 0666)
 
-   #log.info("doRemoveFiles: {0}".format(doRemoveFiles))
+   # used for monitoring purposes
+   if typeMerging == "mini":
+      try:
+         shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
 
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
@@ -174,14 +187,14 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode))
 
    # we will merge file at the BU level only!
    outMergedFileFullPath = os.path.join(outputSMMergedFolder, outMergedFile)
-
-   outMergedJSONFullPath = os.path.join(outputMergedFolder, outMergedJSON)
+   outMergedJSONFullPath = os.path.join(outputMergedFolder,   outMergedJSON)
+   outMonJSONFullPath    = os.path.join(outputMonFolder,      outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
    initMergingTime = time.time()
@@ -201,7 +214,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
-         if (not os.path.exists(outMergedFileFullPath)) or (os.path.exists(outMergedFileFullPath) and os.path.getsize(outMergedFileFullPath) == 0):
+         if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'w') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
                fout.truncate(maxSizeMergedFile)
@@ -267,7 +280,12 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    theMergedJSONfile.close()
    os.chmod(outMergedJSONFullPath, 0666)
 
-   #log.info("doRemoveFiles: {0}".format(doRemoveFiles))
+   # used for monitoring purposes
+   if typeMerging == "mini":
+      try:
+         shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
 
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
