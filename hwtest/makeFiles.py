@@ -71,9 +71,10 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
      	thefile.write(contentInputFile)
      thefile.close()
 
+     fileSize = os.path.getsize(fileOutputNameFullPath)
      outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
      with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
-        theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName)}))
+        theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName, fileSize)}))
      theMergedJSONfile.close()
      ###os.chmod(outMergedJSONFullPath, 0666)
 

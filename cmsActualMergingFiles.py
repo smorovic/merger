@@ -18,9 +18,9 @@ log = getLogger()
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
-   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode))
+   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
    
    outMergedFileFullPath = os.path.join(outputMergedFolder, outMergedFile)
    outMergedJSONFullPath = os.path.join(outputMergedFolder, outMergedJSON)
@@ -41,6 +41,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
+         fileSize = os.path.getsize(iniNameFullPath) + fileSize
          filenames = [iniNameFullPath]
          with open(outMergedFileFullPath, 'w') as fout:
             append_files(filenames, fout)
@@ -61,7 +62,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, infoEoLS[1], infoEoLS[2])}))
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
    os.chmod(outMergedJSONFullPath, 0666)
 
@@ -89,6 +90,9 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
+   if fileSize != os.path.getsize(outMergedFileFullPathStable):
+      log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
+
    endMergingTime = time.time() 
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
@@ -96,9 +100,9 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
-   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode))
+   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
    
    # we will merge file at the BU level only!
    outMergedFileFullPath = os.path.join(outputSMMergedFolder, outMergedFile)
@@ -118,6 +122,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
+         fileSize = os.path.getsize(iniNameFullPath) + fileSize
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'a') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
@@ -149,7 +154,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, infoEoLS[1], infoEoLS[2])}))
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
    os.chmod(outMergedJSONFullPath, 0666)
 
@@ -180,6 +185,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
+   if fileSize != os.path.getsize(outMergedFileFullPathStable):
+      log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
+
    endMergingTime = time.time() 
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
@@ -187,9 +195,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
-   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, filesJSON, errorCode))
+   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
 
    # we will merge file at the BU level only!
    outMergedFileFullPath = os.path.join(outputSMMergedFolder, outMergedFile)
@@ -214,6 +222,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
+         fileSize = os.path.getsize(iniNameFullPath) + fileSize
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'w') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
@@ -276,7 +285,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, infoEoLS[1], infoEoLS[2])}))
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
    os.chmod(outMergedJSONFullPath, 0666)
 
@@ -320,6 +329,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+
+   if fileSize != os.path.getsize(outMergedFileFullPathStable):
+      log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
