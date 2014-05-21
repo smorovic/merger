@@ -5,7 +5,7 @@ import logging.config
 import inspect
 from configobj import ConfigObj
 
-mergeConfigFileName = "dataFlowMergerMacro2.conf"
+mergeConfigFileName = "dataFlowMerger.conf"
 try:
     if os.path.isfile(mergeConfigFileName):
         config = ConfigObj(mergeConfigFileName)

@@ -11,7 +11,7 @@ Do actual files
 """
 def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls = 5, theBUNumber = "AAA", theTotalBUs = 1):
 
-   NumberOfFilesPerLS = 5
+   NumberOfFilesPerLS = 10
 
    random.seed(int(seeds))
    theNLoop = 1
@@ -64,12 +64,12 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
      fileOutputName =                              "run%d_ls%d_%s_%d.BU%s.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
 
      # making a symbolic link (sysadmins don't like it)
-     #msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
-     #os.system(msg)
+     msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
+     os.system(msg)
      # creating/copying the file (default)
-     with open(fileOutputNameFullPath, 'w') as thefile:
-     	thefile.write(contentInputFile)
-     thefile.close()
+     #with open(fileOutputNameFullPath, 'w') as thefile:
+     	#thefile.write(contentInputFile)
+     #thefile.close()
 
      outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
      with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
