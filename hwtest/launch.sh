@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ## Source this script to launch the merging test
 
 LIST_PRODUCERS=listProducers.txt
@@ -23,10 +25,10 @@ source $TEST_BASE/hwtest/tools.sh
 #-------------------------------------------------------------------------------
 function launch_main {
     echo "+ Launching the test ..."
-    kill_previous_mergers
+    # kill_previous_mergers
     # delete_previous_runs
 
-    # launch_producers run100.cfg 1
+    launch_producers run100.cfg 1
     # sleep $LUMI_LENGTH_MEAN
     # launch_merger 100 optionC wbua-TME-ComputeNode7 1
     #launch_simple_cat 300 0 lxplus0095
@@ -38,7 +40,7 @@ function launch_main {
 #    launch_producers run400.cfg
 #    launch_producers run500.cfg
 
-    echo "+ ... Finished launching the test."
+    echo "+ ... done. Finished launching the test."
 } # launch_main
 
 
@@ -56,7 +58,7 @@ EOF
             )"
         echo_and_ssh $NODE "$COMMAND"
     done
-    echo "++ ... Finished killing previous mergers."
+    printf "++ ... done. Finished killing previous mergers.\n\n"
 } # kill_previous_mergers
 
 
@@ -133,12 +135,12 @@ EOHD
 # Expects the config file name as the first argument
 # the second argument is to allow for a subdirectory depending on the node
 function launch_producers {
+    echo "++ Launching producers ..."
     CONFIG=${1:-mergeConfigForReal}
     DOSUBFOLDER=${2:-0}
     TOTALBUS=$(count_args $LIST_PRODUCERS)
     for NODE in $(parse_machine_list $LIST_PRODUCERS); do
-        echo $NODE
-        rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/;
+        rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/
         SUBFOLDER=""
         if [ ${DOSUBFOLDER} == "1" ]; then
             SUBFOLDER=${NODE}"/"
@@ -150,14 +152,14 @@ function launch_producers {
             -i $FROZEN_LOCATION \
             -p $INPUT_LOCATION/${SUBFOLDER} \
             -a $TOTALBUS \
-            --lumi-length-mean="$LUMI_LENGTH_MEAN" \
-            --lumi-length-sigma="$LUMI_LENGTH_SIGMA" \
+            --lumi-length-mean=$LUMI_LENGTH_MEAN \
+            --lumi-length-sigma=$LUMI_LENGTH_SIGMA \
             >& $ROOT_LOCATION/hwtest/producer_${CONFIG}_${NODE}.log &
 EOF
         )"
-        echo_and_ssh $NODE $COMMNAD
+        echo_and_ssh $NODE "$COMMAND"
     done
-    echo
+    printf "++ ... done. Finished launching producers.\n\n"
 } # launch_producers
 
 #-------------------------------------------------------------------------------
@@ -186,10 +188,12 @@ EOF
 
 #-------------------------------------------------------------------------------
 function delete_previous_runs {
+    echo "++ Deleting previous runs ..."
     echo_and_rm $INPUT_LOCATION/*merge*
     echo_and_rm $OUTPUT_LOCATION/*merge*
     echo_and_rm $INPUT_LOCATION/*/*merge*
     echo_and_rm $OUTPUT_LOCATION/*/*merge*
+    printf "++ ... done. Finished deleting previous runs.\n\n"
 } # delete_previous_runs
 
 
@@ -198,8 +202,11 @@ function echo_and_ssh {
     NODE=$1
     COMMAND="$2"
     echo "+++ $NODE"
-    ## Format the command for printing
-    FORMATTED_COMMAND="$(echo $COMMAND | tr ';' '\n'| sed -E 's/^/    /g')"
+    ## Format the command for printing, add more line breaks.
+    FORMATTED_COMMAND="$(echo $COMMAND |\
+                         tr ';' '\n' |\
+                         sed -e 's/ -/\n    -/g' -e 's/ >/\n    >/g' |\
+                         sed -E 's/^/    /g')"
     echo "$FORMATTED_COMMAND"
     ssh $NODE "$COMMAND"
 }  ## echo_and_ssh
@@ -216,10 +223,15 @@ function parse_machine_list {
 #-------------------------------------------------------------------------------
 function echo_and_rm {
     if [[ ! -z "$@" ]]; then
-        echo "Deleting $@ ..."
+        printf "+++ Deleting $@ ..."
         rm -rf $@
-        echo "... done."
+        printf " done.\n"
     fi
-} # echo_and_rm
+} ## echo_and_rm
+
+#-------------------------------------------------------------------------------
+function quote {
+    echo "\`"${@}"'"
+} ## quote
 
 launch_main
