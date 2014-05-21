@@ -27,18 +27,8 @@ function launch_main {
     echo "+ Launching the test ..."
     kill_previous_mergers_and_producers
     delete_previous_runs
-    # launch_merger 100 optionC wbua-TME-ComputeNode7 1
+    launch_mergers 100 optionB
     launch_producers run100.cfg 1
-    # sleep $LUMI_LENGTH_MEAN
-    #launch_simple_cat 300 0 lxplus0095
-    
-#    launch_producers mergeConfigTest
-#    launch_producers run100.cfg
-#    launch_producers run200.cfg
-#    launch_producers run300.cfg
-#    launch_producers run400.cfg
-#    launch_producers run500.cfg
-
     echo "+ ... done. Finished launching the test."
 } # launch_main
 
@@ -64,89 +54,76 @@ EOF
 
 
 #-------------------------------------------------------------------------------
-function kill_previous_producers {
-    echo "++ Killing previous producers ..."
+# Expects the run number as the first argument,
+# the merging option as the second one
+function launch_mergers {
+    echo "++ Launching mergers ..."
+    RUN=${1:-300}
+    OPTION=${2:-OptionA}
     for NODE in $(parse_machine_list $LIST_MERGERS); do
-        COMMAND="$(cat <<'EOF'
-            PS_LINE=$(ps awwx | grep python | egrep -v "grep|bash");\
-            PID=$(echo $PS_LINE | awk '{print $1}')                ;\
-            if [[ ! -z "$PID" ]]; then                              \
-                kill -9 $PID                                       ;\
-            fi
-EOF
-            )"
-        echo_and_ssh $NODE "$COMMAND"
+        launch_merger $RUN $OPTION $NODE
     done
-    printf "++ ... done. Finished killing previous producers.\n\n"
-} # kill_previous_mergers
+    printf "++ ... done. Finished launching mergers.\n\n"
+} # launch_mergers
 
-
-# #-------------------------------------------------------------------------------
-# function kill_previous_mergers {
-#     for NODE in $(parse_machine_list $LIST_MERGERS); do
-#         COMMAND=$(cat <<'EOF'
-#             PS_LINE=$(ps awwx | grep python | egrep -v "grep|bash");\
-#             PID=$(echo $PS_LINE | awk '{print $1}');\
-#             if [[ ! -z "$PID" ]]; then\
-#                 kill -9 $PID;\
-#             fi\
-# EOF
-#         )
-#         #echo "$COMMAND"
-#         echo_and_ssh $NODE "$COMMAND"
-#     done
-# } # kill_previous_mergers
 
 #-------------------------------------------------------------------------------
-# Expects the run number as the first argument, 
+# Expects the run number as the first argument,
 # the merging option as the second one
-# the node name as the third one, if none then a list of nodes will be used
+# the node name as the third one
 function launch_merger {
-    export RUN=${1:-300}
-    export THEOPTION=${2:-OptionA}
-    export NODE=${3:-}
+    RUN=${1:-300}
+    THEOPTION=${2:-OptionA}
+    NODE=${3:-}
     if [ -z $NODE ]; then
-        ## Iterate over all nodes in the list given in the $LIST_PRODUCERS
-        for NODE in $(parse_machine_list $LIST_MERGERS); do
-            launch_merger $RUN $THEOPTION $NODE
-        done
-    else
-#         echo $NODE
-#         mkdir -p $TEST_BASE/hwtest/${NODE}
-#         CONFIG=$TEST_BASE/hwtest/dataFlowMerger.conf
-#         cp $TEST_BASE/dataFlowMergerTemplate.conf $CONFIG
-#         sed -e "s|AAA|$INPUT_LOCATION/${NODE}/unmergedDATA/run${RUN}|" \
-#             -e "s|BBB|$INPUT_LOCATION/${NODE}/unmergedMON|"            \
-#             -e "s|OPTION|$THEOPTION|"                                  \
-#             -e "s|CCC|$OUTPUT_LOCATION/mergerMini|"                    \
-#             -e "s|DDD|$OUTPUT_LOCATION/mergerMacro|"                   \
-#             -e "s|LOG|$ROOT_LOCATION/logFormat.conf|"                  \
-#             -i $CONFIG
-# 
-#         # sed -i "s|dataFlowMerger.conf|$TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/dataFlowMergerInLine;
-#         # sed -i "s|dataFlowMerger.conf|$TEST_BASE/hwtest/${NODE}/dataFlowMerger.conf|" $TEST_BASE/hwtest/${NODE}/Logging.py;
-# 
-#         ## Make sure that the remote folder to contain source code exists
-#         echo_and_ssh $NODE "mkdir -p $ROOT_LOCATION/$NODE"
-# 
-#         ## Sync the source code to the remote node
-#         rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/$NODE
-# 
-#         ## Launch the merger
-#         COMMAND="$(cat << EOF
-#         (   cd $OUTPUT_LOCATION ; \
-#             nohup $ROOT_LOCATION/${NODE}/dataFlowMergerInLine \
-#         )   >& $ROOT_LOCATION/hwtest/merger_${THEOPTION}_run${RUN}_${NODE}.log &
-# EOF
-        COMMAND="$(cat << EOHD
-        (                                                        \
-            cd $OUTPUT_LOCATION ;                                \
-            nohup $ROOT_LOCATION/${NODE}/dataFlowMergerInLine    \
-        )
-EOHD
-        )"
-        echo_and_ssh $NODE $COMMAND
+        echo "launch_merger: ERROR: no target host name specified\!"
+        return 1
     fi
+
+    ## Create a custom config file
+    CONFIG=$TEST_BASE/dataFlowMerger.conf
+    /bin/cp $TEST_BASE/dataFlowMergerTemplate.conf $CONFIG
+    sed -e "s|AAA|$INPUT_LOCATION/${NODE}/unmergedDATA/run${RUN}|" \
+        -e "s|BBB|$INPUT_LOCATION/${NODE}/unmergedMON|"            \
+        -e "s|OPTION|$THEOPTION|"                                  \
+        -e "s|CCC|$OUTPUT_LOCATION/mergerMini|"                    \
+        -e "s|DDD|$OUTPUT_LOCATION/mergerMacro|"                   \
+        -e "s|LOG|$ROOT_LOCATION/logFormat.conf|"                  \
+        -i $CONFIG
+
+    ## Update hard-cody path to the config file
+    mkdir -p $TEST_BASE/hwtest/${NODE}
+    /bin/cp $TEST_BASE/{dataFlowMergerInLine,Logging.py} \
+        $TEST_BASE/hwtest/${NODE}
+    
+    sed -i "s|dataFlowMerger.conf|$ROOT_LOCATION/$NODE/dataFlowMerger.conf|" \
+        $TEST_BASE/hwtest/${NODE}/{dataFlowMergerInLine,Logging.py}
+
+    ## Make sure that the remote folder to contain source code exists
+    echo_and_ssh $NODE "mkdir -p $ROOT_LOCATION/$NODE"
+
+    ## Sync the common source code to the remote node
+    rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/$NODE
+    ## Sync the custom source code to the remote node
+    rsync -aW $TEST_BASE/hwtest/${NODE}/ $NODE:$ROOT_LOCATION/$NODE
+
+    ## Create the launch command
+    COMMAND="$(cat << EOF
+    (   cd $OUTPUT_LOCATION ; \
+        nohup $ROOT_LOCATION/${NODE}/dataFlowMergerInLine \
+    )   >& $ROOT_LOCATION/hwtest/merger_${THEOPTION}_run${RUN}_${NODE}.log &
+EOF
+    )"
+#     COMMAND="$(cat << EOHD
+#     (                                                        \
+#         cd $OUTPUT_LOCATION ;                                \
+#         nohup $ROOT_LOCATION/${NODE}/dataFlowMergerInLine    \
+#     )
+# EOHD
+#     )"
+
+    ## Launch the merger
+    echo_and_ssh $NODE "$COMMAND"
 } # launch_merger
 
 
@@ -208,10 +185,10 @@ EOF
 #-------------------------------------------------------------------------------
 function delete_previous_runs {
     echo "++ Deleting previous runs ..."
-    echo_and_rm $INPUT_LOCATION/*merge*
-    echo_and_rm $OUTPUT_LOCATION/*merge*
-    echo_and_rm $INPUT_LOCATION/*/*merge*
-    echo_and_rm $OUTPUT_LOCATION/*/*merge*
+    echo_and_rm "$INPUT_LOCATION/*merge*/run*"
+    echo_and_rm "$OUTPUT_LOCATION/*merge*/run*"
+    echo_and_rm "$INPUT_LOCATION/*/*merge*/run*"
+    echo_and_rm "$OUTPUT_LOCATION/*/*merge*/run*"
     printf "++ ... done. Finished deleting previous runs.\n\n"
 } # delete_previous_runs
 
@@ -224,7 +201,7 @@ function echo_and_ssh {
     ## Format the command for printing, add more line breaks.
     FORMATTED_COMMAND="$(echo $COMMAND |\
                          tr ';' '\n' |\
-                         sed -e 's/ -/\n    -/g' -e 's/ >/\n    >/g' |\
+                         sed -e 's/ -/ \\\n    -/g' -e 's/ >/ \\\n    >/g' |\
                          sed -E 's/^/    /g')"
     echo "$FORMATTED_COMMAND"
     ssh $NODE "$COMMAND"

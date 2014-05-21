@@ -1,1 +1,20 @@
-wbua-TME-ComputeNode4
+## Cannot ping this one
+# wbua-TME-ComputeNode1
+wbua-TME-ComputeNode2
+wbua-TME-ComputeNode3
+# wbua-TME-ComputeNode4
+# wbua-TME-ComputeNode5
+# wbua-TME-ComputeNode6
+# wbua-TME-ComputeNode7
+# wbua-TME-ComputeNode8
+# wbua-TME-ComputeNode9
+## Used for management and control (head node)
+# wbua-TME-ComputeNode10
+# wbua-TME-ComputeNode11
+# wbua-TME-ComputeNode12
+## Is not reliable
+# wbua-TME-ComputeNode13
+# wbua-TME-ComputeNode14
+## Needs password
+# wbua-TME-ComputeNode15
+# wbua-TME-ComputeNode16

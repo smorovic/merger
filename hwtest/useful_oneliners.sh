@@ -3,7 +3,7 @@
 
 ## Watch the input and output folders on lustre to be
 ## deleted, created, and filled (on node 10)
-watch "du -sk /lustre/testHW/{,*/}*merged*/run* 2>/dev/null"
+watch "du -sk /lustre/testHW/{,*/}*merge*/run* 2>/dev/null"
 
 ## Watch a merger start up (and get killed, on nodes 13, 14)
 watch "echo $HOSTNAME; ps awwx | grep doMerging | grep -v grep"
