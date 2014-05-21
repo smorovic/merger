@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-configfile = "dataFlowMerger.conf"
+configfile = "dataFlowMergerMacro2.conf"
 
 import sys, os, socket, signal
 

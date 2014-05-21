@@ -18,5 +18,5 @@ ls /lustre/testHW/unmerged*/*
 NODES=$(echo wbua-TME-ComputeNode{1..9} wbua-TME-ComputeNode{12..14} wbua-TME-ComputeNode16)
 
 ## Add a missing frozen input
-MB=400; for n in $NODES; do echo $n; ssh $n "OF=/root/testHW/frozen/inputFile_${MB}MB.dat; dd if=/dev/zero of=$OF bs=1M count=$MB; echo >> $OF"; done
+for n in $NODES; do echo $n; ssh $n "mkdir -p /root/testHW/frozen"; for MB in 10 20 30 40 50 100 200 300 400 500; do ssh $n "OF=/root/testHW/frozen/inputFile_${MB}MB.dat; dd if=/dev/zero of=\$OF bs=1M count=$MB; echo >> \$OF"; done; done
 

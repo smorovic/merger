@@ -7,5 +7,5 @@ function node_name {
 
 #______________________________________________________________________________
 function count_args {
-    wc -l $1|awk '{print$1}'
+    echo $@ | wc -w
 } # count_args

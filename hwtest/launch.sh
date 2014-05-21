@@ -3,9 +3,10 @@
 ## Source this script to launch the merging test
 
 LIST_PRODUCERS=listProducers.txt
-LIST_MERGERS=listMergers.txt
+#LIST_MERGERS=listMergers.txt
+LIST_MERGERS=$LIST_PRODUCERS
 
-LUMI_LENGTH_MEAN=20
+LUMI_LENGTH_MEAN=2
 LUMI_LENGTH_SIGMA=0.01
 
 ## Top-leve directory for the test management and control
@@ -40,10 +41,12 @@ function kill_previous_mergers_and_producers {
     NODES="$NODES $(parse_machine_list $LIST_PRODUCERS)"
     for NODE in $NODES; do
         COMMAND="$(cat <<'EOF'
-            PS_LINE=$(ps awwx | grep python | egrep -v "grep|bash");\
-            PID=$(echo $PS_LINE | awk '{print $1}')                ;\
-            if [[ ! -z "$PID" ]]; then                              \
-                kill -9 $PID                                       ;\
+            PROCESS_IDS=$(ps awwx |\
+                grep python |\
+                egrep -v "grep|bash" |\
+                awk '{print $1}');\
+            if [[ ! -z "$PROCESS_IDS" ]]; then                              \
+                kill -9 $PROCESS_IDS                                       ;\
             fi
 EOF
             )"
@@ -91,7 +94,13 @@ function launch_merger {
         -e "s|LOG|$ROOT_LOCATION/logFormat.conf|"                  \
         -i $CONFIG
 
-    ## Update hard-cody path to the config file
+    ## Make sure that the remote folder to contain source code exists
+    echo_and_ssh $NODE "mkdir -p $ROOT_LOCATION/$NODE"
+
+    ## Sync the common source code to the remote node
+    rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/$NODE
+
+    ## Customize source code: update hard-cody path to the config file
     mkdir -p $TEST_BASE/hwtest/${NODE}
     /bin/cp $TEST_BASE/{dataFlowMergerInLine,Logging.py} \
         $TEST_BASE/hwtest/${NODE}
@@ -99,13 +108,11 @@ function launch_merger {
     sed -i "s|dataFlowMerger.conf|$ROOT_LOCATION/$NODE/dataFlowMerger.conf|" \
         $TEST_BASE/hwtest/${NODE}/{dataFlowMergerInLine,Logging.py}
 
-    ## Make sure that the remote folder to contain source code exists
-    echo_and_ssh $NODE "mkdir -p $ROOT_LOCATION/$NODE"
-
-    ## Sync the common source code to the remote node
-    rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/$NODE
     ## Sync the custom source code to the remote node
     rsync -aW $TEST_BASE/hwtest/${NODE}/ $NODE:$ROOT_LOCATION/$NODE
+
+    ## Clean up custom sources
+    rm -rf $TEST_BASE/hwtest/${NODE}
 
     ## Create the launch command
     COMMAND="$(cat << EOF
@@ -114,14 +121,7 @@ function launch_merger {
     )   >& $ROOT_LOCATION/hwtest/merger_${THEOPTION}_run${RUN}_${NODE}.log &
 EOF
     )"
-#     COMMAND="$(cat << EOHD
-#     (                                                        \
-#         cd $OUTPUT_LOCATION ;                                \
-#         nohup $ROOT_LOCATION/${NODE}/dataFlowMergerInLine    \
-#     )
-# EOHD
-#     )"
-
+    
     ## Launch the merger
     echo_and_ssh $NODE "$COMMAND"
 } # launch_merger
@@ -134,7 +134,7 @@ function launch_producers {
     echo "++ Launching producers ..."
     CONFIG=${1:-mergeConfigForReal}
     DOSUBFOLDER=${2:-0}
-    TOTALBUS=$(count_args $LIST_PRODUCERS)
+    TOTALBUS=$(count_args $(parse_machine_list $LIST_PRODUCERS))
     for NODE in $(parse_machine_list $LIST_PRODUCERS); do
         rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/
         SUBFOLDER=""
@@ -157,6 +157,7 @@ EOF
     done
     printf "++ ... done. Finished launching producers.\n\n"
 } # launch_producers
+
 
 #-------------------------------------------------------------------------------
 function launch_simple_cat {
