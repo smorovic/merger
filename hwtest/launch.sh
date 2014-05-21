@@ -25,12 +25,11 @@ source $TEST_BASE/hwtest/tools.sh
 #-------------------------------------------------------------------------------
 function launch_main {
     echo "+ Launching the test ..."
-    # kill_previous_mergers
-    # delete_previous_runs
-
+    kill_previous_mergers_and_producers
+    delete_previous_runs
+    # launch_merger 100 optionC wbua-TME-ComputeNode7 1
     launch_producers run100.cfg 1
     # sleep $LUMI_LENGTH_MEAN
-    # launch_merger 100 optionC wbua-TME-ComputeNode7 1
     #launch_simple_cat 300 0 lxplus0095
     
 #    launch_producers mergeConfigTest
@@ -45,8 +44,28 @@ function launch_main {
 
 
 #-------------------------------------------------------------------------------
-function kill_previous_mergers {
-    echo "++ Killing previous mergers ..."
+function kill_previous_mergers_and_producers {
+    echo "++ Killing previous mergers and producers ..."
+    NODES=$(parse_machine_list $LIST_MERGERS)
+    NODES="$NODES $(parse_machine_list $LIST_PRODUCERS)"
+    for NODE in $NODES; do
+        COMMAND="$(cat <<'EOF'
+            PS_LINE=$(ps awwx | grep python | egrep -v "grep|bash");\
+            PID=$(echo $PS_LINE | awk '{print $1}')                ;\
+            if [[ ! -z "$PID" ]]; then                              \
+                kill -9 $PID                                       ;\
+            fi
+EOF
+            )"
+        echo_and_ssh $NODE "$COMMAND"
+    done
+    printf "++ ... done. Finished killing previous mergers and producers.\n\n"
+} # kill_previous_mergers_and_producers
+
+
+#-------------------------------------------------------------------------------
+function kill_previous_producers {
+    echo "++ Killing previous producers ..."
     for NODE in $(parse_machine_list $LIST_MERGERS); do
         COMMAND="$(cat <<'EOF'
             PS_LINE=$(ps awwx | grep python | egrep -v "grep|bash");\
@@ -58,7 +77,7 @@ EOF
             )"
         echo_and_ssh $NODE "$COMMAND"
     done
-    printf "++ ... done. Finished killing previous mergers.\n\n"
+    printf "++ ... done. Finished killing previous producers.\n\n"
 } # kill_previous_mergers
 
 
