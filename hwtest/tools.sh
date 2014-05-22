@@ -9,3 +9,27 @@ function node_name {
 function count_args {
     echo $@ | wc -w
 } # count_args
+
+
+#______________________________________________________________________________
+function parse_machine_list {
+    ## sed removes Bash/Python-style comments starting with `#'
+    ## awk makes sure to ignore white space around the node name
+    echo "$(sed 's/#.*$//' $1 | awk '{print $1}')"
+} ## parse_machine_list
+
+
+#______________________________________________________________________________
+function echo_and_ssh {
+    NODE=$1
+    COMMAND="$2"
+    echo "+++ $NODE"
+    ## Format the command for printing, add more line breaks.
+    FORMATTED_COMMAND="$(echo $COMMAND |\
+                         tr ';' '\n' |\
+                         sed -e 's/ -/ \\\n    -/g' -e 's/ >/ \\\n    >/g' |\
+                         sed -E 's/^/    /g')"
+    echo "$FORMATTED_COMMAND"
+    ssh $NODE "$COMMAND"
+}  ## echo_and_ssh
+

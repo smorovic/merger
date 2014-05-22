@@ -7,7 +7,7 @@ LIST_PRODUCERS=listProducers.txt
 LIST_MERGERS=$LIST_PRODUCERS
 ALL_NODES=all_nodes.txt
 
-LUMI_LENGTH_MEAN=5
+LUMI_LENGTH_MEAN=9
 LUMI_LENGTH_SIGMA=0.01
 
 ## Top-leve directory for the test management and control
@@ -22,15 +22,15 @@ OUTPUT_LOCATION=/lustre/testHW
 ## Top level directory for the producer and merger scripts used during the test
 ROOT_LOCATION=/root/testHW/python
 
-## defines node_name, count_args
+## Provides node_name, count_args, parse_machine_list, echo_and_ssh
 source $TEST_BASE/hwtest/tools.sh
 
 #-------------------------------------------------------------------------------
 function launch_main {
     echo "+ Launching the test ..."
     clean_up
-    launch_merger 100 optionB wbua-TME-ComputeNode16 macro
-    launch_mergers 100 optionB
+    launch_merger 100 optionC wbua-TME-ComputeNode16 macro
+    launch_mergers 100 optionC
     launch_producers run100.cfg 1
     echo "+ ... done. Finished launching the test."
 } # launch_main
@@ -229,35 +229,13 @@ EOF
 #-------------------------------------------------------------------------------
 function delete_previous_runs {
     echo "++ Deleting previous runs ..."
-    echo_and_rm "$INPUT_LOCATION/*merge*/run*"
-    echo_and_rm "$OUTPUT_LOCATION/*merge*/run*"
-    echo_and_rm "$INPUT_LOCATION/*/*merge*/run*"
-    echo_and_rm "$OUTPUT_LOCATION/*/*merge*/run*"
+    NODES=$(parse_machine_list $ALL_NODES)
+    for NODE in $NODES; do
+        COMMAND="rm -rf {$INPUT_LOCATION,$OUTPUT_LOCATION}/{,*/}*merge*/run*"
+        echo_and_ssh $NODE "$COMMAND"
+    done
     printf "++ ... done. Finished deleting previous runs.\n\n"
 } # delete_previous_runs
-
-
-#-------------------------------------------------------------------------------
-function echo_and_ssh {
-    NODE=$1
-    COMMAND="$2"
-    echo "+++ $NODE"
-    ## Format the command for printing, add more line breaks.
-    FORMATTED_COMMAND="$(echo $COMMAND |\
-                         tr ';' '\n' |\
-                         sed -e 's/ -/ \\\n    -/g' -e 's/ >/ \\\n    >/g' |\
-                         sed -E 's/^/    /g')"
-    echo "$FORMATTED_COMMAND"
-    ssh $NODE "$COMMAND"
-}  ## echo_and_ssh
-
-
-#-------------------------------------------------------------------------------
-function parse_machine_list {
-    ## sed removes Bash/Python-style comments starting with `#'
-    ## awk makes sure to ignore white space around the node name
-    echo "$(sed 's/#.*$//' $1 | awk '{print $1}')"
-} ## parse_machine_list
 
 
 #-------------------------------------------------------------------------------
