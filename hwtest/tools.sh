@@ -23,6 +23,7 @@ function parse_machine_list {
 function echo_and_ssh {
     NODE=$1
     COMMAND="$2"
+    LAUNCH_IN_THE_BACKGROUND=${1:-0}
     echo "+++ $NODE"
     ## Format the command for printing, add more line breaks.
     FORMATTED_COMMAND="$(echo $COMMAND |\
@@ -30,6 +31,10 @@ function echo_and_ssh {
                          sed -e 's/ -/ \\\n    -/g' -e 's/ >/ \\\n    >/g' |\
                          sed -E 's/^/    /g')"
     echo "$FORMATTED_COMMAND"
-    ssh $NODE "$COMMAND"
+    if [[ $LAUNCH_IN_THE_BACKGROUND == "1" ]]; then
+        ssh $NODE "$COMMAND" &
+    else
+        ssh $NODE "$COMMAND"
+    fi
 }  ## echo_and_ssh
 

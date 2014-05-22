@@ -7,8 +7,8 @@ LIST_PRODUCERS=listProducers.txt
 LIST_MERGERS=$LIST_PRODUCERS
 ALL_NODES=all_nodes.txt
 
-LUMI_LENGTH_MEAN=9
-LUMI_LENGTH_SIGMA=0.01
+LUMI_LENGTH_MEAN=10
+LUMI_LENGTH_SIGMA=0.1
 
 ## Top-leve directory for the test management and control
 TEST_BASE=/root/veverka/merger
@@ -165,7 +165,7 @@ EOF
     )"
     
     ## Launch the merger
-    echo_and_ssh $NODE "$COMMAND"
+    echo_and_ssh $NODE "$COMMAND" 1
 } # launch_merger
 
 
@@ -196,7 +196,7 @@ function launch_producers {
             >& $ROOT_LOCATION/producer_${CONFIG}_${NODE}.log &
 EOF
         )"
-        echo_and_ssh $NODE "$COMMAND"
+        echo_and_ssh $NODE "$COMMAND" 1
     done
     printf "++ ... done. Finished launching producers.\n\n"
 } # launch_producers

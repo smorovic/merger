@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=logs_v11.
+NAME=logs_v11.11
 NODES=$(parse_machine_list all_nodes.txt)
 
 #______________________________________________________________________________
@@ -17,7 +17,7 @@ for NODE in $NODES; do
     LOGS_MASK='/root/testHW/python/*.log'
     COMMAND=$(cat <<EOF
         mkdir $DESTINATION_DIR; \
-        mv $LOGS_MASK $DESTINATION_DIR;
+        cp $LOGS_MASK $DESTINATION_DIR;
 EOF
     )
     echo_and_ssh $NODE "$COMMAND"
@@ -30,6 +30,7 @@ for DIR in merger*; do
     pushd $DIR
     for RUN in run*; do
         ls -ll $RUN >& /lustre/$NAME/${DIR}_${RUN}_list.dat &
+        ls -ll $RUN/open >& /lustre/$NAME/${DIR}_${RUN}_open_list.dat &
     done
     popd
 done

@@ -251,6 +251,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          ini = int(lockFullString[len(lockFullString)-1])
          filelock.write(",%d" % (ini+sum))
          filelock.flush()
+         if(float(debug) >= 10): log.info("Writing in lock file ({0}): {1}".format(lockNameFullPath,(ini+sum)))
          #os.fdatasync(filelock)
          fcntl.flock(filelock, fcntl.LOCK_UN)
       filelock.close()
