@@ -54,11 +54,16 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
         if not os.path.exists(fileJSONNameFullPath):
            try:
               with open(fileJSONNameFullPath, 'w') as theFileJSONName:
+                 fcntl.flock(theFileJSONName, fcntl.LOCK_EX)
                  theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
+                 fcntl.flock(theFileJSONName, fcntl.LOCK_UN)
               theFileJSONName.close()
               ###os.chmod(fileJSONNameFullPath, 0666)
            except OSError, e:
               print "Looks like the file " + fileJSONNameFullPath + " has just been created by someone else..."
+        fileBoLSFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName)
+	msg = "touch %s" % fileBoLSFullPath
+	os.system(msg)
 	
      fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
      fileOutputName =                              "run%d_ls%d_%s_%d.BU%s.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
