@@ -7,7 +7,7 @@ LIST_PRODUCERS=listProducers.txt
 LIST_MERGERS=$LIST_PRODUCERS
 ALL_NODES=all_nodes.txt
 
-LUMI_LENGTH_MEAN=8
+LUMI_LENGTH_MEAN=7.2
 LUMI_LENGTH_SIGMA=0.1
 
 ## Top-leve directory for the test management and control
@@ -39,8 +39,8 @@ function launch_main {
 #-------------------------------------------------------------------------------
 function clean_up {
     kill_previous_mergers_and_producers
-    # delete_previous_runs
-    # delete_previous_code
+    delete_previous_runs
+    delete_previous_code
 } # clean_up
 
 
@@ -231,7 +231,7 @@ function delete_previous_runs {
     echo "++ Deleting previous runs ..."
     NODES=$(parse_machine_list $ALL_NODES)
     for NODE in $NODES; do
-        COMMAND="rm -rf {$INPUT_LOCATION,$OUTPUT_LOCATION}/{,*/}*merge*/run*"
+        COMMAND="rm -rf {$INPUT_LOCATION,$OUTPUT_LOCATION}/{,*/}*merge*/run200"
         echo_and_ssh $NODE "$COMMAND"
     done
     printf "++ ... done. Finished deleting previous runs.\n\n"
