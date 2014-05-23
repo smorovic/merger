@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=logs_v11.11
+NAME=logs_v11.12
 NODES=$(parse_machine_list all_nodes.txt)
 
 #______________________________________________________________________________
@@ -38,6 +38,6 @@ done
 popd
 jobs
 
-# git tag netapp$(echo $NAME | sed 's/logs//')
-# git log | head -n 6 > /lustre/$NAME/README
-# vim /lustre/$NAME/README
+git tag netapp$(echo $NAME | sed 's/logs//')
+git log | head -n 6 > /lustre/$NAME/README
+vim /lustre/$NAME/README

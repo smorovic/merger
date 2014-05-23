@@ -7,7 +7,7 @@ LIST_PRODUCERS=listProducers.txt
 LIST_MERGERS=$LIST_PRODUCERS
 ALL_NODES=all_nodes.txt
 
-LUMI_LENGTH_MEAN=10
+LUMI_LENGTH_MEAN=8
 LUMI_LENGTH_SIGMA=0.1
 
 ## Top-leve directory for the test management and control
@@ -29,9 +29,9 @@ source $TEST_BASE/hwtest/tools.sh
 function launch_main {
     echo "+ Launching the test ..."
     clean_up
-    launch_merger 100 optionC wbua-TME-ComputeNode16 macro
-    launch_mergers 100 optionC
-    launch_producers run100.cfg 1
+    launch_merger 200 optionC wbua-TME-ComputeNode16 macro
+    launch_mergers 200 optionC
+    launch_producers run200.cfg 1
     echo "+ ... done. Finished launching the test."
 } # launch_main
 
@@ -39,8 +39,8 @@ function launch_main {
 #-------------------------------------------------------------------------------
 function clean_up {
     kill_previous_mergers_and_producers
-    delete_previous_runs
-    delete_previous_code
+    # delete_previous_runs
+    # delete_previous_code
 } # clean_up
 
 
