@@ -1,5 +1,5 @@
 #!/bin/bash
-NAME=logs_v11.16
+NAME=logs_v11.17
 NODES=$(parse_machine_list all_nodes.txt)
 
 #______________________________________________________________________________

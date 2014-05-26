@@ -14,7 +14,7 @@ LUMI_LENGTH_SIGMA=0.1
 TEST_BASE=/root/veverka/merger
 ## Folder for the producer inputs
 #FROZEN_LOCATION=/root/testHW/frozen
-FROZEN_LOCATION=/root/testHW/frozen
+FROZEN_LOCATION=/ramdisk/testHW/frozen
 ## Top-level directory for the producer outputs / merger inputs
 INPUT_LOCATION=/root/testHW/data
 ## Top-level directory for the merger outputs
