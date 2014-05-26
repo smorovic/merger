@@ -7,7 +7,7 @@ LIST_PRODUCERS=listProducers.txt
 LIST_MERGERS=$LIST_PRODUCERS
 ALL_NODES=all_nodes.txt
 
-LUMI_LENGTH_MEAN=9.0
+LUMI_LENGTH_MEAN=10.0
 LUMI_LENGTH_SIGMA=0.1
 
 ## Top-leve directory for the test management and control
