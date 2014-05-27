@@ -16,7 +16,7 @@ TEST_BASE=/root/veverka/merger
 #FROZEN_LOCATION=/root/testHW/frozen
 FROZEN_LOCATION=/ramdisk/testHW/frozen
 ## Top-level directory for the producer outputs / merger inputs
-INPUT_LOCATION=/root/testHW/data
+INPUT_LOCATION=/ramdisk/testHW/data
 ## Top-level directory for the merger outputs
 OUTPUT_LOCATION=/lustre/testHW
 ## Top level directory for the producer and merger scripts used during the test
