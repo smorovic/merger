@@ -36,7 +36,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = files[0].split('_')
+   fileNameString = filesJSON[0].split('_')
    if typeMerging == "macro":
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
@@ -78,18 +78,21 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
       for nfile in range(0, len(files)):
          if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
    	 inputFileToRemove = os.path.join(inputDataFolder, files[nfile])
-   	 os.remove(inputFileToRemove)
+         if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
+   	    os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
          if(float(debug) >= 10): log.info("removing filesJSON: {0}".format(filesJSON[nfile]))
    	 inputFileToRemove = os.path.join(inputDataFolder, filesJSON[nfile])
-   	 os.remove(inputFileToRemove)
-      # Removing BoLS file, the last step
-      BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-      BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
-      if os.path.exists(BoLSFileNameFullPath):
-	 os.remove(BoLSFileNameFullPath)
-      else:
-	 log.error("BIG PROBLEM, BoLSFileNameFullPath {0} does not exist".format(BoLSFileNameFullPath))
+         if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
+   	    os.remove(inputFileToRemove)
+      if typeMerging == "mini":
+         # Removing BoLS file, the last step
+         BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
+         BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
+         if os.path.exists(BoLSFileNameFullPath):
+	    os.remove(BoLSFileNameFullPath)
+         else:
+	    log.error("BIG PROBLEM, BoLSFileNameFullPath {0} does not exist".format(BoLSFileNameFullPath))
 
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/open/../."
    outMergedFileFullPathStable = outputMergedFolder + "/../" + outMergedFile
@@ -97,7 +100,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
-   if fileSize != os.path.getsize(outMergedFileFullPathStable):
+   if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    endMergingTime = time.time() 
@@ -124,7 +127,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = files[0].split('_')
+   fileNameString = filesJSON[0].split('_')
    if typeMerging == "mini":
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
@@ -178,18 +181,21 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          for nfile in range(0, len(files)):
             if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
    	    inputFileToRemove = os.path.join(inputDataFolder, files[nfile])
-   	    os.remove(inputFileToRemove)
+            if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
+   	       os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
          if(float(debug) >= 10): log.info("removing filesJSON: {0}".format(filesJSON[nfile]))
    	 inputFileToRemove = os.path.join(inputDataFolder, filesJSON[nfile])
-   	 os.remove(inputFileToRemove)
-      # Removing BoLS file, the last step
-      BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-      BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
-      if os.path.exists(BoLSFileNameFullPath):
-	 os.remove(BoLSFileNameFullPath)
-      else:
-	 log.error("BIG PROBLEM, BoLSFileNameFullPath {0} does not exist".format(BoLSFileNameFullPath))
+         if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
+   	    os.remove(inputFileToRemove)
+      if typeMerging == "mini":
+         # Removing BoLS file, the last step
+         BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
+         BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
+         if os.path.exists(BoLSFileNameFullPath):
+	    os.remove(BoLSFileNameFullPath)
+         else:
+	    log.error("BIG PROBLEM, BoLSFileNameFullPath {0} does not exist".format(BoLSFileNameFullPath))
 
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/open/../."
    if typeMerging == "macro":
@@ -199,7 +205,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
-   if fileSize != os.path.getsize(outMergedFileFullPathStable):
+   if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    endMergingTime = time.time() 
@@ -226,7 +232,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = files[0].split('_')
+   fileNameString = filesJSON[0].split('_')
 
    lockName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + "StorageManager" + ".lock"
    lockNameFullPath = os.path.join(outputSMMergedFolder, lockName)
@@ -316,18 +322,21 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          for nfile in range(0, len(files)):
             if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
    	    inputFileToRemove = os.path.join(inputDataFolder, files[nfile])
-   	    os.remove(inputFileToRemove)
+            if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
+   	       os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
          if(float(debug) >= 10): log.info("removing filesJSON: {0}".format(filesJSON[nfile]))
    	 inputFileToRemove = os.path.join(inputDataFolder, filesJSON[nfile])
-   	 os.remove(inputFileToRemove)
-      # Removing BoLS file, the last step
-      BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-      BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
-      if os.path.exists(BoLSFileNameFullPath):
-	 os.remove(BoLSFileNameFullPath)
-      else:
-	 log.error("BIG PROBLEM, BoLSFileNameFullPath {0} does not exist".format(BoLSFileNameFullPath))
+         if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
+   	    os.remove(inputFileToRemove)
+      if typeMerging == "mini":
+         # Removing BoLS file, the last step
+         BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
+         BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
+         if os.path.exists(BoLSFileNameFullPath):
+	    os.remove(BoLSFileNameFullPath)
+         else:
+	    log.error("BIG PROBLEM, BoLSFileNameFullPath {0} does not exist".format(BoLSFileNameFullPath))
 
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/open/../."
    if typeMerging == "macro":
@@ -341,7 +350,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          totalSize = int(lockFullString[len(lockFullString)-1])
       filelock.close()
       if(doRemoveFiles == "True"):
-         os.remove(lockNameFullPath)
+         if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
+            os.remove(lockNameFullPath)
 
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.truncate(totalSize)
@@ -351,7 +361,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
-   if fileSize != os.path.getsize(outMergedFileFullPathStable):
+   if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
@@ -369,7 +379,10 @@ def append_files(ifnames, ofile):
     to the given output file object `ofile'. Returns None.
     '''
     for ifname in ifnames:
-        with open(ifname) as ifile:
-            shutil.copyfileobj(ifile, ofile)
-        ifile.close()
+        if "Error" in ifname:
+	   print "SSS ",ifname
+        if (os.path.exists(ifname) and (not os.path.isdir(ifname))):
+            with open(ifname) as ifile:
+                shutil.copyfileobj(ifile, ofile)
+            ifile.close()
 # append_files
