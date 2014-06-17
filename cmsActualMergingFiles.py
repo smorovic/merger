@@ -36,7 +36,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = filesJSON[0].split('_')
+   fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
    if typeMerging == "macro":
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
@@ -82,7 +82,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    	    os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
          if(float(debug) >= 10): log.info("removing filesJSON: {0}".format(filesJSON[nfile]))
-   	 inputFileToRemove = os.path.join(inputDataFolder, filesJSON[nfile])
+   	 inputFileToRemove = filesJSON[nfile]
          if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	    os.remove(inputFileToRemove)
       if typeMerging == "mini":
@@ -127,7 +127,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = filesJSON[0].split('_')
+   fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
    if typeMerging == "mini":
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
@@ -150,8 +150,8 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
 
       # first renaming the files
       for nfile in range(0, len(filesJSON)):
-   	 inputFile       = os.path.join(inputDataFolder, filesJSON[nfile])
-   	 inputFileRename = os.path.join(inputDataFolder, filesJSON[nfile].replace("_TEMPAUX.jsn","_DONE.jsn"))
+   	 inputFile       = inputDataFolder, filesJSON[nfile]
+   	 inputFileRename = inputDataFolder, filesJSON[nfile].replace("_TEMPAUX.jsn","_DONE.jsn")
          shutil.move(inputFile,inputFileRename)
 	 filesJSON[nfile] = filesJSON[nfile].replace("_TEMPAUX.jsn","_DONE.jsn")
 
@@ -185,7 +185,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    	       os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
          if(float(debug) >= 10): log.info("removing filesJSON: {0}".format(filesJSON[nfile]))
-   	 inputFileToRemove = os.path.join(inputDataFolder, filesJSON[nfile])
+   	 inputFileToRemove = filesJSON[nfile]
          if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	    os.remove(inputFileToRemove)
       if typeMerging == "mini":
@@ -232,7 +232,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = filesJSON[0].split('_')
+   fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
 
    lockName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + "StorageManager" + ".lock"
    lockNameFullPath = os.path.join(outputSMMergedFolder, lockName)
@@ -274,8 +274,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
 
       # first renaming the files (INTENTIONAL WRONG FOR THE TIME BEING)
       for nfile in range(0, len(filesJSON)):
-   	 inputFile       = os.path.join(inputDataFolder, filesJSON[nfile])
-   	 inputFileRename = os.path.join(inputDataFolder, filesJSON[nfile].replace("_TEMPNO.jsn","_DONE.jsn"))
+   	 inputFile       = inputDataFolder, filesJSON[nfile]
+   	 inputFileRename = inputDataFolder, filesJSON[nfile].replace("_TEMPNO.jsn","_DONE.jsn")
          shutil.move(inputFile,inputFileRename)
 	 filesJSON[nfile] = filesJSON[nfile].replace("_TEMPNO.jsn","_DONE.jsn")
 
@@ -326,7 +326,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    	       os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
          if(float(debug) >= 10): log.info("removing filesJSON: {0}".format(filesJSON[nfile]))
-   	 inputFileToRemove = os.path.join(inputDataFolder, filesJSON[nfile])
+   	 inputFileToRemove = filesJSON[nfile]
          if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	    os.remove(inputFileToRemove)
       if typeMerging == "mini":
