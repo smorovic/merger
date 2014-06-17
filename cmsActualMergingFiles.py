@@ -37,7 +37,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
       os.remove(outMergedJSONFullPath)
 
    fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
-   if typeMerging == "macro":
+   if (typeMerging == "macro" and fileNameString[2] != "streamDQMhistograms"):
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
@@ -53,11 +53,18 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
 
    if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
-   with open(outMergedFileFullPath, 'a') as fout:
-      append_files(filenames, fout)
-   fout.close()
-   if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
-   os.chmod(outMergedFileFullPath, 0666)
+   if (fileNameString[2] != "streamDQMhistograms"):
+      with open(outMergedFileFullPath, 'a') as fout:
+         append_files(filenames, fout)
+      fout.close()
+      if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
+      os.chmod(outMergedFileFullPath, 0666)
+   
+   else:
+      msg = "fastHadd add -o %s " % outMergedFileFullPath
+      for nfile in range(0, len(filenames)):
+         msg = msg + filenames[nfile] + " "
+         os.system(msg)
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
@@ -379,8 +386,6 @@ def append_files(ifnames, ofile):
     to the given output file object `ofile'. Returns None.
     '''
     for ifname in ifnames:
-        if "Error" in ifname:
-	   print "SSS ",ifname
         if (os.path.exists(ifname) and (not os.path.isdir(ifname))):
             with open(ifname) as ifile:
                 shutil.copyfileobj(ifile, ofile)
