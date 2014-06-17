@@ -61,10 +61,10 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
       os.chmod(outMergedFileFullPath, 0666)
    
    else:
-      msg = "fastHadd add -o %s " % outMergedFileFullPath
+      msg = "fastHadd add -o %s " % (outMergedFileFullPath)
       for nfile in range(0, len(filenames)):
          msg = msg + filenames[nfile] + " "
-         os.system(msg)
+      os.system(msg)
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
