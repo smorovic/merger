@@ -36,7 +36,10 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
+   # ugly, need to be done better
+   inputDataFolderModified = inputDataFolder.replace("ramdisk","output")
+   fileNameString = filesJSON[0].replace(inputDataFolderModified,"").replace("/","").split('_')
+
    if (typeMerging == "macro" and fileNameString[2] != "streamDQMhistograms"):
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
@@ -58,7 +61,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
          append_files(filenames, fout)
       fout.close()
       if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
-      os.chmod(outMergedFileFullPath, 0666)
+      #os.chmod(outMergedFileFullPath, 0666)
    
    else:
       msg = "fastHadd add -o %s " % (outMergedFileFullPath)
@@ -71,7 +74,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
    theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
-   os.chmod(outMergedJSONFullPath, 0666)
+   #os.chmod(outMergedJSONFullPath, 0666)
 
    # used for monitoring purposes
    if typeMerging == "mini":
@@ -134,7 +137,10 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
+   # ugly, need to be done better
+   inputDataFolderModified = inputDataFolder.replace("ramdisk","output")
+   fileNameString = filesJSON[0].replace(inputDataFolderModified,"").replace("/","").split('_')
+
    if typeMerging == "mini":
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
@@ -143,7 +149,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'a') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
-               os.chmod(outMergedFileFullPath, 0666)
+               #os.chmod(outMergedFileFullPath, 0666)
                filenames = [iniNameFullPath]
                append_files(filenames, fout)
                fcntl.flock(fout, fcntl.LOCK_UN)
@@ -157,8 +163,8 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
 
       # first renaming the files
       for nfile in range(0, len(filesJSON)):
-   	 inputFile       = inputDataFolder, filesJSON[nfile]
-   	 inputFileRename = inputDataFolder, filesJSON[nfile].replace("_TEMPAUX.jsn","_DONE.jsn")
+   	 inputFile       = filesJSON[nfile]
+   	 inputFileRename = filesJSON[nfile].replace("_TEMPAUX.jsn","_DONE.jsn")
          shutil.move(inputFile,inputFileRename)
 	 filesJSON[nfile] = filesJSON[nfile].replace("_TEMPAUX.jsn","_DONE.jsn")
 
@@ -173,7 +179,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
    theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
-   os.chmod(outMergedJSONFullPath, 0666)
+   #os.chmod(outMergedJSONFullPath, 0666)
 
    # used for monitoring purposes
    if typeMerging == "mini":
@@ -209,11 +215,12 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+
+      if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
+         log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
+
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
-
-   if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
-      log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -239,7 +246,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
+   # ugly, need to be done better
+   inputDataFolderModified = inputDataFolder.replace("ramdisk","output")
+   fileNameString = filesJSON[0].replace(inputDataFolderModified,"").replace("/","").split('_')
 
    lockName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + "StorageManager" + ".lock"
    lockNameFullPath = os.path.join(outputSMMergedFolder, lockName)
@@ -255,7 +264,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
                fcntl.flock(fout, fcntl.LOCK_EX)
                fout.truncate(maxSizeMergedFile)
                fout.seek(0)
-               os.chmod(outMergedFileFullPath, 0666)
+               #os.chmod(outMergedFileFullPath, 0666)
                filenames = [iniNameFullPath]
                append_files(filenames, fout)
 
@@ -264,7 +273,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    	          filelock.write("%d" %(os.path.getsize(iniNameFullPath)))
    	          filelock.flush()
    	          #os.fdatasync(filelock)
-		  os.chmod(lockNameFullPath, 0666)
+		  #os.chmod(lockNameFullPath, 0666)
    	          fcntl.flock(filelock, fcntl.LOCK_UN)
    	       filelock.close()
 
@@ -281,8 +290,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
 
       # first renaming the files (INTENTIONAL WRONG FOR THE TIME BEING)
       for nfile in range(0, len(filesJSON)):
-   	 inputFile       = inputDataFolder, filesJSON[nfile]
-   	 inputFileRename = inputDataFolder, filesJSON[nfile].replace("_TEMPNO.jsn","_DONE.jsn")
+   	 inputFile       = filesJSON[nfile]
+   	 inputFileRename = filesJSON[nfile].replace("_TEMPNO.jsn","_DONE.jsn")
          shutil.move(inputFile,inputFileRename)
 	 filesJSON[nfile] = filesJSON[nfile].replace("_TEMPNO.jsn","_DONE.jsn")
 
@@ -314,7 +323,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
    theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
-   os.chmod(outMergedJSONFullPath, 0666)
+   #os.chmod(outMergedJSONFullPath, 0666)
 
    # used for monitoring purposes
    if typeMerging == "mini":
