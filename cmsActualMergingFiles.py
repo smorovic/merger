@@ -18,7 +18,7 @@ log = getLogger()
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
    
@@ -106,8 +106,11 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
 
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/open/../."
    outMergedFileFullPathStable = outputMergedFolder + "/../" + outMergedFile
-   shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
+   if (typeMerging == "macro" and ("DQM" in fileNameString[2])):
+      outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
+      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
+   shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
    if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
@@ -120,7 +123,7 @@ def mergeFilesA(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
    
@@ -213,6 +216,8 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/open/../."
    if typeMerging == "macro":
       outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
+      if ("DQM" in fileNameString[2]):
+         outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
@@ -220,6 +225,8 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
+   if (typeMerging == "macro" and ("DQM" in fileNameString[2])):
+      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
    endMergingTime = time.time() 
@@ -229,7 +236,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
 
@@ -374,13 +381,17 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMerg
       fout.close()
 
       outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
+      if ("DQM" in fileNameString[2]):
+         outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
-   if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
-      log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
+      if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
+         log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
+   if (typeMerging == "macro" and ("DQM" in fileNameString[2])):
+      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
    endMergingTime = time.time() 

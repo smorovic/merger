@@ -1,10 +1,10 @@
 [Streams]
-number = "1"
-ls = "1"
+number = "2"
+ls = "2"
 runnumber = "300"
 name0 = "StreamA"
 size0 = "10"
-name1 = "StreamB"
+name1 = "StreamDQM"
 size1 = "10"
 name2 = "StreamC"
 size2 = "30"
