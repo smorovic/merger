@@ -98,7 +98,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outMergedFile, outMer
       if typeMerging == "mini":
          # Removing BoLS file, the last step
          BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-         BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
+         BoLSFileNameFullPath = os.path.join(inputDataFolderModified, BoLSFileName)
          if os.path.exists(BoLSFileNameFullPath):
 	    os.remove(BoLSFileNameFullPath)
          else:
@@ -207,7 +207,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if typeMerging == "mini":
          # Removing BoLS file, the last step
          BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-         BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
+         BoLSFileNameFullPath = os.path.join(inputDataFolderModified, BoLSFileName)
          if os.path.exists(BoLSFileNameFullPath):
 	    os.remove(BoLSFileNameFullPath)
          else:
@@ -355,7 +355,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if typeMerging == "mini":
          # Removing BoLS file, the last step
          BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-         BoLSFileNameFullPath = os.path.join(inputDataFolder, BoLSFileName)
+         BoLSFileNameFullPath = os.path.join(inputDataFolderModified, BoLSFileName)
          if os.path.exists(BoLSFileNameFullPath):
 	    os.remove(BoLSFileNameFullPath)
          else:
