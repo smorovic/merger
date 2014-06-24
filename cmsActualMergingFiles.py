@@ -146,7 +146,6 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
-         fileSize = os.path.getsize(iniNameFullPath) + fileSize
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'a') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
@@ -157,6 +156,8 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
             fout.close()
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
+	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
+	 raise RuntimeError, msg
 
       filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
 
@@ -174,6 +175,16 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          append_files(filenames, fout)
          fcntl.flock(fout, fcntl.LOCK_UN)
       fout.close()
+
+   if typeMerging == "macro":
+      iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
+      iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
+      if os.path.exists(iniNameFullPath):
+         fileSize = os.path.getsize(iniNameFullPath) + fileSize
+      else:
+         log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
+	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
+	 raise RuntimeError, msg
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
@@ -262,7 +273,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
-         fileSize = os.path.getsize(iniNameFullPath) + fileSize
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'w') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
@@ -322,6 +332,16 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          fout.seek(ini)
          append_files(filenames, fout)
       fout.close()
+
+   if typeMerging == "macro":
+      iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
+      iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
+      if os.path.exists(iniNameFullPath):
+         fileSize = os.path.getsize(iniNameFullPath) + fileSize
+      else:
+         log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
+	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
+	 raise RuntimeError, msg
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
