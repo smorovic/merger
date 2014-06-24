@@ -147,9 +147,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
          if (not os.path.exists(outMergedFileFullPath)):
-            fileSize = os.path.getsize(iniNameFullPath) + fileSize
             with open(outMergedFileFullPath, 'a') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
+               fileSize = os.path.getsize(iniNameFullPath) + fileSize
                #os.chmod(outMergedFileFullPath, 0666)
                filenames = [iniNameFullPath]
                append_files(filenames, fout)
@@ -265,9 +265,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
          if (not os.path.exists(outMergedFileFullPath)):
-            fileSize = os.path.getsize(iniNameFullPath) + fileSize
             with open(outMergedFileFullPath, 'w') as fout:
                fcntl.flock(fout, fcntl.LOCK_EX)
+               fileSize = os.path.getsize(iniNameFullPath) + fileSize
                fout.truncate(maxSizeMergedFile)
                fout.seek(0)
                #os.chmod(outMergedFileFullPath, 0666)
