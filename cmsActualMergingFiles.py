@@ -301,7 +301,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
 
       sum = 0
       for nFile in range(0,len(filenames)):
-   	 sum = sum + os.path.getsize(filenames[nFile])
+         if os.path.exists(filenames[nFile]) and os.path.isfile(filenames[nFile]):
+   	    sum = sum + os.path.getsize(filenames[nFile])
 
       while not os.path.exists(lockNameFullPath):
          if(float(debug) >= 0): log.info("Waiting for the file to exists: {0}".format(lockNameFullPath))
