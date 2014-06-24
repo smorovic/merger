@@ -36,9 +36,8 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outMergedFile, outMer
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   # ugly, need to be done better
-   inputDataFolderModified = inputDataFolder.replace("ramdisk","output")
-   fileNameString = filesJSON[0].replace(inputDataFolderModified,"").replace("/","").split('_')
+   inputJsonFolder = os.path.dirname(filesJSON[0])
+   fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
    if (typeMerging == "macro" and fileNameString[2] != "streamDQMhistograms"):
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
@@ -98,7 +97,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outMergedFile, outMer
       if typeMerging == "mini":
          # Removing BoLS file, the last step
          BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-         BoLSFileNameFullPath = os.path.join(inputDataFolderModified, BoLSFileName)
+         BoLSFileNameFullPath = os.path.join(inputJsonFolder, BoLSFileName)
          if os.path.exists(BoLSFileNameFullPath):
 	    os.remove(BoLSFileNameFullPath)
          else:
@@ -140,9 +139,8 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   # ugly, need to be done better
-   inputDataFolderModified = inputDataFolder.replace("ramdisk","output")
-   fileNameString = filesJSON[0].replace(inputDataFolderModified,"").replace("/","").split('_')
+   inputJsonFolder = os.path.dirname(filesJSON[0])
+   fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
    if typeMerging == "mini":
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
@@ -207,7 +205,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if typeMerging == "mini":
          # Removing BoLS file, the last step
          BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-         BoLSFileNameFullPath = os.path.join(inputDataFolderModified, BoLSFileName)
+         BoLSFileNameFullPath = os.path.join(inputJsonFolder, BoLSFileName)
          if os.path.exists(BoLSFileNameFullPath):
 	    os.remove(BoLSFileNameFullPath)
          else:
@@ -253,9 +251,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    if os.path.exists(outMergedJSONFullPath):
       os.remove(outMergedJSONFullPath)
 
-   # ugly, need to be done better
-   inputDataFolderModified = inputDataFolder.replace("ramdisk","output")
-   fileNameString = filesJSON[0].replace(inputDataFolderModified,"").replace("/","").split('_')
+   inputJsonFolder = os.path.dirname(filesJSON[0])
+   fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
    lockName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + "StorageManager" + ".lock"
    lockNameFullPath = os.path.join(outputSMMergedFolder, lockName)
@@ -355,7 +352,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if typeMerging == "mini":
          # Removing BoLS file, the last step
          BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-         BoLSFileNameFullPath = os.path.join(inputDataFolderModified, BoLSFileName)
+         BoLSFileNameFullPath = os.path.join(inputJsonFolder, BoLSFileName)
          if os.path.exists(BoLSFileNameFullPath):
 	    os.remove(BoLSFileNameFullPath)
          else:

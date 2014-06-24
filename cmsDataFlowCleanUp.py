@@ -13,7 +13,6 @@ clean up run folder if some conditions are met
 def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber):
    
    settingsEoR = ""
-   print EoRFileName
    try:
       settingsEoR_textI = open(EoRFileName, "r").read()
       if(float(debug) >= 50): log.info("trying to load EoR file: {0}".format(EoRFileName))
