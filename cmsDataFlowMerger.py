@@ -412,8 +412,23 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
 	  # clean-up work is done here
           EoRFileName = path_eol + "/" + theRunNumber + "/" + theRunNumber + "_ls0000_EoR.jsn"
-          if(doRemoveFiles == "True" and os.path.exists(EoRFileName) and os.path.getsize(EoRFileName) > 0):
-	     cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber)
+          if(os.path.exists(EoRFileName) and os.path.getsize(EoRFileName) > 0):
+	     # need to copy the file to DQM downstream
+	     EoRFileNameOutput      = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
+	     EoRFileNameOutputFinal = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
+	     if(typeMerging == "macro"):
+	        EoRFileNameOutput      = outputDQMMergedFolder + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
+	        EoRFileNameOutputFinal = outputDQMMergedFolder + "/" + theRunNumber + "_ls0000_EoR.jsn"
+	     if(not os.path.exists(EoRFileNameOutputFinal)):
+                if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameOutputFinal))
+		try:
+	          shutil.copy(EoRFileName,EoRFileNameOutput)
+                  shutil.move(EoRFileNameOutput,EoRFileNameOutputFinal)
+                except OSError, e:
+                   log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameOutputFinal))
+
+	     if(doRemoveFiles == "True" and typeMerging == "mini"):
+	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber)
           before = after
 
       if nLoops <= nWithPollMax or nWithPollMax < 0:
