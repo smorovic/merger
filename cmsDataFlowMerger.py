@@ -148,7 +148,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
 	  if not os.path.exists(outputECALMergedFolder) and typeMerging == "macro":
              try:
-                os.makedirs(outputECALergedFolder)
+                os.makedirs(outputECALMergedFolder)
              except OSError, e:
                  log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMergedFolder))
 

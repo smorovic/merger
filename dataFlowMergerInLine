@@ -32,7 +32,7 @@ def get_params():
         merge_type = params['Misc']['mergeType']
 	sm_path = params['Output']['smPath']
         dqm_path = params['Output']['dqmPath']
-	ecal_path = = params['Output']['ecalPath']
+	ecal_path = params['Output']['ecalPath']
         merge_option = params['Misc']['mergeOption']
     except KeyError, e:
         log.error("At least one non-optional parameter missing from the config file {0}:".format(configFile))
