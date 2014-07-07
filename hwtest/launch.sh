@@ -3,19 +3,19 @@
 LIST_PRODUCERS=listProducers.txt
 LIST_MERGERS=listMergers.txt
 
-LUMI_LENGTH_MEAN=20
+LUMI_LENGTH_MEAN=2
 LUMI_LENGTH_SIGMA=0.01
 
-## Top-leve directory for the test management and control
-TEST_BASE=/root/veverka/merger
+## Top-level directory for the test management and control
+TEST_BASE=/root/cern/merger
 ## Folder for the producer inputs
-FROZEN_LOCATION=/root/testHW/frozen
+FROZEN_LOCATION=/root/cern/frozen
 ## Top-level directory for the producer outputs / merger inputs
-INPUT_LOCATION=/lustre/testHW
+INPUT_LOCATION=/lustre/cern/data
 ## Top-level directory for the merger outputs
-OUTPUT_LOCATION=/lustre/testHW
+OUTPUT_LOCATION=/lustre/cern/data
 ## Top level directory for the producer and merger scripts used during the test
-ROOT_LOCATION=/root/testHW
+ROOT_LOCATION=/root/cern/opt
 
 ## defines node_name, count_args
 source $TEST_BASE/hwtest/tools.sh
@@ -29,7 +29,7 @@ function launch_main {
     # launch_producers run100.cfg 1
     # sleep $LUMI_LENGTH_MEAN
     # launch_merger 100 optionC wbua-TME-ComputeNode7 1
-    #launch_simple_cat 300 0 lxplus0095
+    # launch_simple_cat 300 0 lxplus0095
     
 #    launch_producers mergeConfigTest
 #    launch_producers run100.cfg

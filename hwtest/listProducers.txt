@@ -1,2 +1,1 @@
-wbua-TME-ComputeNode2
-wbua-TME-ComputeNode3
+cern06
