@@ -40,4 +40,4 @@ jobs
 
 git tag netapp$(echo $NAME | sed 's/logs//')
 git log | head -n 6 > /lustre/$NAME/README
-vim /lustre/$NAME/README
+

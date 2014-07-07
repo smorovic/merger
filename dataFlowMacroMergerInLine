@@ -33,6 +33,8 @@ def get_params():
         eol_path = params['Input']['eolPath']
         merge_type = params['Misc']['mergeType']
 	sm_path = params['Output']['smPath']
+        dqm_path = params['Output']['dqmPath']
+	ecal_path = params['Output']['ecalPath']
         merge_option = params['Misc']['mergeOption']
     except KeyError, e:
         log.error("At least one non-optional parameter missing from the config file {0}:".format(configFile))
@@ -54,17 +56,17 @@ def get_params():
     except KeyError, e:
         debug_level = 10
 
-    return in_path, eol_path, out_path, sm_path, additional_label, merge_type, delete_files, merge_option, debug_level
+    return in_path, eol_path, out_path, sm_path, dqm_path, ecal_path, additional_label, merge_type, delete_files, merge_option, debug_level
 
 
 
 def DataFlowMerger():
 
-  [inPath, eolPath, outPath, smPath, adLabel, mType, delOrigFiles, mergeOption, debugLevel] = get_params()
+  [inPath, eolPath, outPath, smPath, dqmPath, ecalPath, adLabel, mType, delOrigFiles, mergeOption, debugLevel] = get_params()
 
   log.info("delFiles: {0}".format(delOrigFiles))
 
-  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, smPath, adLabel, delOrigFiles, mergeOption, debugLevel)
+  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, smPath, dqmPath, ecalPath, adLabel, delOrigFiles, mergeOption, debugLevel)
 
 if __name__ == "__main__":
 
