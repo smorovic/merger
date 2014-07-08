@@ -1,1 +1,1 @@
-cern06
+server06

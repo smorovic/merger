@@ -1,9 +1,17 @@
+## Password-less access
+eval `ssh-agent`
+ssh-add
+
 ## Launch a test (on node 10 in /root/merger/hwtest)
 . launch.sh
 
+## Bring the functions defined in tools.sh into your name space
+. tools.sh
+
 ## Watch the input and output folders on lustre to be
 ## deleted, created, and filled (on node 10)
-watch "du -sk /lustre/cern/data/{,*/}*merge*/run* 2>/dev/null"
+INPUT_BASE=/lustre/cern/data
+watch "du -sk $INPUT_BASE/{,*/}*merge*/run* 2>/dev/null"
 
 ## Watch a merger start up (and get killed, on nodes 13, 14)
 watch "echo $HOSTNAME; ps awwx | grep doMerging | grep -v grep"
@@ -15,10 +23,18 @@ watch "echo $HOSTNAME; ps awwx | grep manageStreams | grep -v grep"
 ls /lustre/cern/data/unmerged*/*
 
 ## Define a list of nodes
-NODES=$(echo wbua-TME-ComputeNode{1..9} wbua-TME-ComputeNode{12..14} wbua-TME-ComputeNode16)
+NODES="$(parse_machine_list all_nodes.txt)"
 
 ## Add a missing frozen input
-for n in $NODES; do echo $n; ssh $n "mkdir -p /root/testHW/frozen"; for MB in 10 20 30 40 50 100 200 300 400 500; do ssh $n "OF=/root/testHW/frozen/inputFile_${MB}MB.dat; dd if=/dev/zero of=\$OF bs=1M count=$MB; echo >> \$OF"; done; done
+SIZES="10 20 30 40 50 100 200 300 400 500"
+FROZEN_BASE=/home/cern/frozen
+for n in $NODES; do
+    echo $n
+    ssh $n "mkdir -p $FROZEN_BASE"
+    for MB in $SIZES; do
+        ssh $n "OF=$FROZEN_BASE/inputFile_${MB}MB.dat; dd if=/dev/zero of=\$OF bs=1M count=$MB; echo >> \$OF"
+    done
+done
 
 for MB in 10 20 30 40 50 100 200 300 400 500; do OF=/root/testHW/frozen/inputFile_${MB}MB.dat; dd if=/dev/zero of=$OF bs=1M count=$MB; echo >> $OF; done
 

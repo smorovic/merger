@@ -11,18 +11,18 @@ LUMI_LENGTH_MEAN=2
 LUMI_LENGTH_SIGMA=0.01
 
 ## Top-level directory for the test management and control
-TEST_BASE=/root/cern/merger
-## Folder for the producer inputs
-FROZEN_LOCATION=/root/cern/frozen
-## Top-level directory for the producer outputs / merger inputs
-INPUT_LOCATION=/lustre/cern/data
-## Top-level directory for the merger outputs
-OUTPUT_LOCATION=/lustre/cern/data
+MASTER_BASE=/home/cern/merger
 ## Top level directory for the producer and merger scripts used during the test
-ROOT_LOCATION=/root/cern/opt
+SLAVE_BASE=/home/cern/opt
+## Folder for the producer inputs
+FROZEN_BASE=/home/cern/frozen
+## Top-level directory for the producer outputs / merger inputs
+INPUT_BASE=/lustre/cern/data
+## Top-level directory for the merger outputs
+OUTPUT_BASE=/lustre/cern/data
 
 ## Provides node_name, count_args, parse_machine_list, echo_and_ssh
-source $TEST_BASE/hwtest/tools.sh
+source $MASTER_BASE/hwtest/tools.sh
 
 #-------------------------------------------------------------------------------
 function launch_main {
@@ -30,7 +30,7 @@ function launch_main {
     clean_up
     # launch_merger 200 optionC wbua-TME-ComputeNode16 macro
     # launch_mergers 200 optionC
-    # launch_producers run200.cfg 1
+    launch_producers run100.cfg
     echo "+ ... done. Finished launching the test."
 } # launch_main
 
@@ -44,11 +44,23 @@ function clean_up {
 
 
 #-------------------------------------------------------------------------------
+function delete_previous_runs {
+    echo "++ Deleting previous runs ..."
+    NODES=$(parse_machine_list $ALL_NODES)
+    for NODE in $NODES; do
+        COMMAND="rm -rf {$INPUT_BASE,$OUTPUT_BASE}/{,*/}*merge*/run200"
+        echo_and_ssh $NODE "$COMMAND"
+    done
+    printf "++ ... done. Finished deleting previous runs.\n\n"
+} # delete_previous_runs
+
+
+#-------------------------------------------------------------------------------
 function delete_previous_code {
     echo "++ Delete previous code ..."
     NODES="$(parse_machine_list $ALL_NODES)"
     for NODE in $NODES; do
-        COMMAND="rm -rf $ROOT_LOCATION"
+        COMMAND="rm -rf $SLAVE_BASE"
         echo_and_ssh $NODE "$COMMAND"
     done
     printf "++ ... done. Finished deleting previous code.\n\n"    
@@ -104,28 +116,28 @@ function launch_merger {
         return 1
     fi
 
-    ROOT_BASE=$ROOT_LOCATION/$NODE/$MODE
+    SLAVE_BASE=$SLAVE_BASE/$NODE/$MODE
 
     ## Create a custom config file
-    CONFIG=$TEST_BASE/dataFlowMerger.conf
-    /bin/cp $TEST_BASE/dataFlowMergerTemplate.conf $CONFIG
+    CONFIG=$MASTER_BASE/dataFlowMerger.conf
+    /bin/cp $MASTER_BASE/dataFlowMergerTemplate.conf $CONFIG
 
     if [ $MODE == "mini" ]; then
-        sed -e "s|AAA|$INPUT_LOCATION/${NODE}/unmergedDATA/run${RUN}|" \
-            -e "s|BBB|$INPUT_LOCATION/${NODE}/unmergedMON|"            \
+        sed -e "s|AAA|$INPUT_BASE/${NODE}/unmergedDATA/run${RUN}|" \
+            -e "s|BBB|$INPUT_BASE/${NODE}/unmergedMON|"            \
             -e "s|OPTION|$THEOPTION|"                                  \
-            -e "s|CCC|$OUTPUT_LOCATION/mergerMini|"                    \
-            -e "s|DDD|$OUTPUT_LOCATION/mergerMacro|"                   \
-            -e "s|LOG|$ROOT_BASE/logFormat.conf|"                      \
+            -e "s|CCC|$OUTPUT_BASE/mergerMini|"                    \
+            -e "s|DDD|$OUTPUT_BASE/mergerMacro|"                   \
+            -e "s|LOG|$SLAVE_BASE/logFormat.conf|"                      \
             -e "s|MODE|mini|"                                          \
             -i $CONFIG
     elif [ $MODE == "macro" ]; then
-        sed -e "s|AAA|$OUTPUT_LOCATION/mergerMini/run${RUN}|"          \
-            -e "s|BBB|$OUTPUT_LOCATION/mergerMacro|"                   \
+        sed -e "s|AAA|$OUTPUT_BASE/mergerMini/run${RUN}|"          \
+            -e "s|BBB|$OUTPUT_BASE/mergerMacro|"                   \
             -e "s|OPTION|$THEOPTION|"                                  \
-            -e "s|CCC|$OUTPUT_LOCATION/mergerMacro|"                   \
-            -e "s|DDD|$OUTPUT_LOCATION/mergerMacro|"                   \
-            -e "s|LOG|$ROOT_BASE/logFormat.conf|"                      \
+            -e "s|CCC|$OUTPUT_BASE/mergerMacro|"                   \
+            -e "s|DDD|$OUTPUT_BASE/mergerMacro|"                   \
+            -e "s|LOG|$SLAVE_BASE/logFormat.conf|"                      \
             -e "s|MODE|macro|"                                         \
             -i $CONFIG
     else
@@ -135,31 +147,31 @@ function launch_merger {
     fi
 
     ## Make sure that the remote folder to contain source code exists
-    ssh $NODE "mkdir -p $ROOT_BASE"
+    ssh $NODE "mkdir -p $SLAVE_BASE"
 
     ## Sync the common source code to the remote node
-    rsync -aW $TEST_BASE/ $NODE:$ROOT_BASE
+    rsync -aW $MASTER_BASE/ $NODE:$SLAVE_BASE
 
     ## Customize source code: update hard-cody path to the config file
-    mkdir -p $TEST_BASE/custom
-    /bin/cp $TEST_BASE/{dataFlowMergerInLine,Logging.py} \
-        $TEST_BASE/custom
+    mkdir -p $MASTER_BASE/custom
+    /bin/cp $MASTER_BASE/{dataFlowMergerInLine,Logging.py} \
+        $MASTER_BASE/custom
     
-    sed -i "s|dataFlowMerger.conf|$ROOT_BASE/dataFlowMerger.conf|" \
-        $TEST_BASE/custom/{dataFlowMergerInLine,Logging.py}
+    sed -i "s|dataFlowMerger.conf|$SLAVE_BASE/dataFlowMerger.conf|" \
+        $MASTER_BASE/custom/{dataFlowMergerInLine,Logging.py}
 
     ## Sync the custom source code to the remote node
-    rsync -aW $TEST_BASE/custom/ $NODE:$ROOT_BASE
+    rsync -aW $MASTER_BASE/custom/ $NODE:$SLAVE_BASE
 
     ## Clean up custom sources
-    rm -rf $TEST_BASE/custom
+    rm -rf $MASTER_BASE/custom
 
     ## Create the launch command
     LOG=merger_${THEOPTION}_run${RUN}_${NODE}_${MODE}.log
     COMMAND="$(cat << EOF
-    (   cd $OUTPUT_LOCATION ; \
-        nohup $ROOT_BASE/dataFlowMergerInLine \
-    )   >& $ROOT_LOCATION/$LOG &
+    (   cd $OUTPUT_BASE ; \
+        nohup $SLAVE_BASE/dataFlowMergerInLine \
+    )   >& $SLAVE_BASE/$LOG &
 EOF
     )"
     
@@ -177,22 +189,22 @@ function launch_producers {
     DOSUBFOLDER=${2:-0}
     TOTALBUS=$(count_args $(parse_machine_list $LIST_PRODUCERS))
     for NODE in $(parse_machine_list $LIST_PRODUCERS); do
-        ssh $NODE "mkdir -p $ROOT_LOCATION"
-        rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/
+        ssh $NODE "mkdir -p $SLAVE_BASE"
+        rsync -aW $MASTER_BASE/ $NODE:$SLAVE_BASE/
         SUBFOLDER=""
         if [ ${DOSUBFOLDER} == "1" ]; then
             SUBFOLDER=${NODE}"/"
         fi
         COMMAND="$(cat << EOF
-        nohup $ROOT_LOCATION/hwtest/manageStreams.py \
-            --config $ROOT_LOCATION/hwtest/$CONFIG \
+        nohup $SLAVE_BASE/hwtest/manageStreams.py \
+            --config $SLAVE_BASE/hwtest/$CONFIG \
             --bu $NODE \
-            -i $FROZEN_LOCATION \
-            -p $INPUT_LOCATION/${SUBFOLDER} \
+            -i $FROZEN_BASE \
+            -p $INPUT_BASE/${SUBFOLDER} \
             -a $TOTALBUS \
             --lumi-length-mean=$LUMI_LENGTH_MEAN \
             --lumi-length-sigma=$LUMI_LENGTH_SIGMA \
-            >& $ROOT_LOCATION/producer_${CONFIG}_${NODE}.log &
+            >& $SLAVE_BASE/producer_${CONFIG}_${NODE}.log &
 EOF
         )"
         echo_and_ssh $NODE "$COMMAND" 1
@@ -209,13 +221,13 @@ function launch_simple_cat {
     NODE=$3
     STREAM=A
     echo $RUN
-    SOURCE_BASE=$INPUT_LOCATION/unmergedDATA/run${RUN}
-    DESTINATION_BASE=$OUTPUT_LOCATION/mergerMini/run${RUN}
+    SOURCE_BASE=$INPUT_BASE/unmergedDATA/run${RUN}
+    DESTINATION_BASE=$OUTPUT_BASE/mergerMini/run${RUN}
     COMMAND="$(cat << EOF
     SOURCES="$SOURCE_BASE/run${RUN}_ls${LS}_Stream${STREAM}_*.dat";
     DESTINATION="$DESTINATION_BASE/run${RUN}_ls${LS}_Stream${STREAM}_SM.dat";
-    LOG="$OUTPUT_LOCATION/cat_${LS}.log";
-    rsync -aW $TEST_BASE/ $NODE:$ROOT_LOCATION/;
+    LOG="$OUTPUT_BASE/cat_${LS}.log";
+    rsync -aW $MASTER_BASE/ $NODE:$SLAVE_BASE/;
     (time cat \$SOURCES > \$DESTINATION) >& \$LOG &
 EOF
     )"
@@ -223,18 +235,6 @@ EOF
     echo_and_ssh $NODE $COMMAND
     echo
 } # launch_simple_cat
-
-
-#-------------------------------------------------------------------------------
-function delete_previous_runs {
-    echo "++ Deleting previous runs ..."
-    NODES=$(parse_machine_list $ALL_NODES)
-    for NODE in $NODES; do
-        COMMAND="rm -rf {$INPUT_LOCATION,$OUTPUT_LOCATION}/{,*/}*merge*/run200"
-        echo_and_ssh $NODE "$COMMAND"
-    done
-    printf "++ ... done. Finished deleting previous runs.\n\n"
-} # delete_previous_runs
 
 
 #-------------------------------------------------------------------------------
