@@ -13,7 +13,7 @@ LUMI_LENGTH_SIGMA=0.01
 ## Top-level directory for the test management and control
 MASTER_BASE=/home/cern/merger
 ## Top level directory for the producer and merger scripts used during the test
-SLAVE_BASE=/home/cern/opt
+SLAVE_BASE=/home/cern/slave
 ## Folder for the producer inputs
 FROZEN_BASE=/home/cern/frozen
 ## Top-level directory for the producer outputs / merger inputs
@@ -28,9 +28,9 @@ source $MASTER_BASE/hwtest/tools.sh
 function launch_main {
     echo "+ Launching the test ..."
     clean_up
-    # launch_merger 200 optionC wbua-TME-ComputeNode16 macro
-    # launch_mergers 200 optionC
-    launch_producers run100.cfg
+    launch_merger 100 optionC server06 macro
+    launch_mergers 100 optionC
+    launch_producers run100.cfg 1
     echo "+ ... done. Finished launching the test."
 } # launch_main
 
@@ -48,7 +48,7 @@ function delete_previous_runs {
     echo "++ Deleting previous runs ..."
     NODES=$(parse_machine_list $ALL_NODES)
     for NODE in $NODES; do
-        COMMAND="rm -rf {$INPUT_BASE,$OUTPUT_BASE}/{,*/}*merge*/run200"
+        COMMAND="rm -rf {$INPUT_BASE,$OUTPUT_BASE}/{,*/}*merge*/run*"
         echo_and_ssh $NODE "$COMMAND"
     done
     printf "++ ... done. Finished deleting previous runs.\n\n"
@@ -116,7 +116,7 @@ function launch_merger {
         return 1
     fi
 
-    SLAVE_BASE=$SLAVE_BASE/$NODE/$MODE
+    MERGER_BASE=$SLAVE_BASE/$NODE/$MODE
 
     ## Create a custom config file
     CONFIG=$MASTER_BASE/dataFlowMerger.conf
@@ -125,20 +125,20 @@ function launch_merger {
     if [ $MODE == "mini" ]; then
         sed -e "s|AAA|$INPUT_BASE/${NODE}/unmergedDATA/run${RUN}|" \
             -e "s|BBB|$INPUT_BASE/${NODE}/unmergedMON|"            \
-            -e "s|OPTION|$THEOPTION|"                                  \
+            -e "s|OPTION|$THEOPTION|"                              \
             -e "s|CCC|$OUTPUT_BASE/mergerMini|"                    \
             -e "s|DDD|$OUTPUT_BASE/mergerMacro|"                   \
-            -e "s|LOG|$SLAVE_BASE/logFormat.conf|"                      \
-            -e "s|MODE|mini|"                                          \
+            -e "s|LOG|$MERGER_BASE/logFormat.conf|"          \
+            -e "s|MODE|mini|"                                      \
             -i $CONFIG
     elif [ $MODE == "macro" ]; then
         sed -e "s|AAA|$OUTPUT_BASE/mergerMini/run${RUN}|"          \
             -e "s|BBB|$OUTPUT_BASE/mergerMacro|"                   \
-            -e "s|OPTION|$THEOPTION|"                                  \
+            -e "s|OPTION|$THEOPTION|"                              \
             -e "s|CCC|$OUTPUT_BASE/mergerMacro|"                   \
             -e "s|DDD|$OUTPUT_BASE/mergerMacro|"                   \
-            -e "s|LOG|$SLAVE_BASE/logFormat.conf|"                      \
-            -e "s|MODE|macro|"                                         \
+            -e "s|LOG|$MERGER_BASE/logFormat.conf|"          \
+            -e "s|MODE|macro|"                                     \
             -i $CONFIG
     else
         echo "launch_merger: ERROR: mode $(quote $MODE) not supported\!"
@@ -147,21 +147,21 @@ function launch_merger {
     fi
 
     ## Make sure that the remote folder to contain source code exists
-    ssh $NODE "mkdir -p $SLAVE_BASE"
+    ssh $NODE "mkdir -p $MERGER_BASE"
 
     ## Sync the common source code to the remote node
-    rsync -aW $MASTER_BASE/ $NODE:$SLAVE_BASE
+    rsync -aW $MASTER_BASE/ $NODE:$MERGER_BASE
 
     ## Customize source code: update hard-cody path to the config file
     mkdir -p $MASTER_BASE/custom
     /bin/cp $MASTER_BASE/{dataFlowMergerInLine,Logging.py} \
         $MASTER_BASE/custom
     
-    sed -i "s|dataFlowMerger.conf|$SLAVE_BASE/dataFlowMerger.conf|" \
+    sed -i "s|dataFlowMerger.conf|$MERGER_BASE/dataFlowMerger.conf|" \
         $MASTER_BASE/custom/{dataFlowMergerInLine,Logging.py}
 
     ## Sync the custom source code to the remote node
-    rsync -aW $MASTER_BASE/custom/ $NODE:$SLAVE_BASE
+    rsync -aW $MASTER_BASE/custom/ $NODE:$MERGER_BASE
 
     ## Clean up custom sources
     rm -rf $MASTER_BASE/custom
@@ -170,8 +170,8 @@ function launch_merger {
     LOG=merger_${THEOPTION}_run${RUN}_${NODE}_${MODE}.log
     COMMAND="$(cat << EOF
     (   cd $OUTPUT_BASE ; \
-        nohup $SLAVE_BASE/dataFlowMergerInLine \
-    )   >& $SLAVE_BASE/$LOG &
+        nohup $MERGER_BASE/dataFlowMergerInLine \
+    )   >& $MERGER_BASE/$LOG &
 EOF
     )"
     
@@ -189,22 +189,23 @@ function launch_producers {
     DOSUBFOLDER=${2:-0}
     TOTALBUS=$(count_args $(parse_machine_list $LIST_PRODUCERS))
     for NODE in $(parse_machine_list $LIST_PRODUCERS); do
-        ssh $NODE "mkdir -p $SLAVE_BASE"
-        rsync -aW $MASTER_BASE/ $NODE:$SLAVE_BASE/
+        PRODUCER_BASE=$SLAVE_BASE/$NODE/prod
+        ssh $NODE "mkdir -p $PRODUCER_BASE"
+        rsync -aW $MASTER_BASE/ $NODE:$PRODUCER_BASE/
         SUBFOLDER=""
         if [ ${DOSUBFOLDER} == "1" ]; then
             SUBFOLDER=${NODE}"/"
         fi
         COMMAND="$(cat << EOF
-        nohup $SLAVE_BASE/hwtest/manageStreams.py \
-            --config $SLAVE_BASE/hwtest/$CONFIG \
+        nohup $PRODUCER_BASE/hwtest/manageStreams.py \
+            --config $PRODUCER_BASE/hwtest/$CONFIG \
             --bu $NODE \
             -i $FROZEN_BASE \
             -p $INPUT_BASE/${SUBFOLDER} \
             -a $TOTALBUS \
             --lumi-length-mean=$LUMI_LENGTH_MEAN \
             --lumi-length-sigma=$LUMI_LENGTH_SIGMA \
-            >& $SLAVE_BASE/producer_${CONFIG}_${NODE}.log &
+            >& $PRODUCER_BASE/producer_${CONFIG}_${NODE}.log &
 EOF
         )"
         echo_and_ssh $NODE "$COMMAND" 1

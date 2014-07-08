@@ -45,3 +45,21 @@ for NODE in $(parse_machine_list all_nodes.txt); do
     COMMAND="mkdir -p /ramdisk/testHW/frozen; for MB in 10 20 30 40 50 100 200; do OF=/ramdisk/testHW/frozen/inputFile_\${MB}MB.dat; dd if=/dev/zero of=\$OF bs=1M count=\$MB; echo >> $OF; done"
     echo_and_ssh $NODE "$COMMAND"
 done
+
+## Remount Lustre with the flock option to enable the POSIX file locking
+umount /lustre
+mount -t lustre -o flock 192.168.110.72@o2ib:/scratch /lustre ## DDN
+
+
+## Setup a DDN node
+ssh root@$NODE
+grep 500 /etc/passwd
+userdel test
+rm -rf /home/test /var/mail/test
+useradd cern
+passwd cern
+yum -y install rsync
+exit
+ssh-copy-id $NODE
+ssh $NODE
+exit
