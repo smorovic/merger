@@ -56,6 +56,9 @@ def get_params():
     except KeyError, e:
         debug_level = 10
 
+    if (merge_option != "optionA"):
+        delete_files = True
+
     return in_path, eol_path, out_path, sm_path, dqm_path, ecal_path, additional_label, merge_type, delete_files, merge_option, debug_level
 
 
