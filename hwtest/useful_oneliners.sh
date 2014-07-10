@@ -50,16 +50,38 @@ done
 umount /lustre
 mount -t lustre -o flock 192.168.110.72@o2ib:/scratch /lustre ## DDN
 
+## Screen
+C-a : multiuser on
+C-a : acladd cern
+
 
 ## Setup a DDN node
 ssh root@$NODE
-grep 500 /etc/passwd
-userdel test
-rm -rf /home/test /var/mail/test
-useradd cern
+
+## Add user CERN with the ID 500
+useradd cern -u500
+# grep 500 /etc/passwd
+# userdel test
+# rm -rf /home/test /var/mail/test
 passwd cern
 yum -y install rsync
+
+## Remount Lustre with the flock option to enable the POSIX file locking
+umount /lustre
+mount -t lustre -o flock 192.168.110.72@o2ib:/scratch /lustre ## DDN
+
 exit
+
+## Copy the public key for passwordless ssh
 ssh-copy-id $NODE
 ssh $NODE
+## Make frozen inputs
+FROZEN_BASE=/home/cern/frozen
+SIZES="10 20 30 40 50 100 200 300 400 500"
+mkdir -p $FROZEN_BASE
+for MB in $SIZES; do
+    OF=$FROZEN_BASE/inputFile_${MB}MB.dat
+    dd if=/dev/zero of=$OF bs=1M count=$MB
+    echo >> $OF
+done
 exit

@@ -1,6 +1,6 @@
 #!/bin/bash
 source tools.sh
-NAME=logs_v0.3
+NAME=logs_v0.6
 NODES=$(parse_machine_list all_nodes.txt)
 MASTER_BASE=/home/cern/merger
 SLAVE_BASE=/home/cern/slave
