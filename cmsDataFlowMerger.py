@@ -352,6 +352,8 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              extensionName = ".dat"
              if fileNameString[2] == "streamError":
                 extensionName = ".raw"
+             elif fileNameString[2] == "streamDQMHistograms":
+                extensionName = ".pb"
 
 	     if typeMerging == "mini": 
         	keyEoLS = (fileNameString[0],fileNameString[1])
