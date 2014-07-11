@@ -65,7 +65,9 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    else:
       msg = "fastHadd add -o %s " % (outMergedFileFullPath)
       for nfile in range(0, len(filenames)):
-         msg = msg + filenames[nfile] + " "
+         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile]))):
+            msg = msg + filenames[nfile] + " "
+      if(float(debug) > 20): log.info("running {0}".format(msg))
       os.system(msg)
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
