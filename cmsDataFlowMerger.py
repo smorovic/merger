@@ -186,7 +186,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                    inputName  = os.path.join(inputDataFolder,afterString[i])
                    if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
                    fileIniString = afterString[i].split('_')
-                   if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError")):
+                   if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError" or fileIniString[2] == "streamDQMHistograms")):
 		      # init name: runxxx_ls0000_streamY_HOST.ini
 		      inputNameString = afterString[i].split('_')
                       # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
