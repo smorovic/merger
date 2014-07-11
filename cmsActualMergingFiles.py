@@ -115,7 +115,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
-   if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
+   if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError" and fileNameString[2] != "streamDQMHistograms":
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    endMergingTime = time.time() 
@@ -227,7 +227,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
-      if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
+      if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError" and fileNameString[2] != "streamDQMHistograms":
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
@@ -399,7 +399,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
-      if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
+      if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError" and fileNameString[2] != "streamDQMHistograms":
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
