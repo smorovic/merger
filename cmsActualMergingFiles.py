@@ -39,7 +39,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    inputJsonFolder = os.path.dirname(filesJSON[0])
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
-   if (typeMerging == "macro" and fileNameString[2] != "streamDQMhistograms"):
+   if (typeMerging == "macro" and fileNameString[2] != "streamDQMHistograms"):
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
@@ -55,7 +55,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 
    if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
-   if (fileNameString[2] != "streamDQMhistograms"):
+   if (fileNameString[2] != "streamDQMHistograms"):
       with open(outMergedFileFullPath, 'a') as fout:
          append_files(filenames, fout)
       fout.close()
