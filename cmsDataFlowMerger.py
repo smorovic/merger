@@ -23,10 +23,10 @@ Do actual merging
 """
 def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug):
 
-   # streamDQMhistograms stream uses always with optionA
+   # streamDQMHistograms stream uses always with optionA
    fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
 
-   if (optionMerging == "optionA" or fileNameString[2] == "streamDQMhistograms"):
+   if (optionMerging == "optionA" or fileNameString[2] == "streamDQMHistograms"):
       cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug)
 
    elif (optionMerging == "optionB"):
