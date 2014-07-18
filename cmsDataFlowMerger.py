@@ -243,6 +243,9 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
 
+             # avoid empty files
+	     if(os.path.getsize(inputJsonFile) == 0): continue
+
              # moving the file to avoid issues
 	     inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
              shutil.move(inputJsonFile,inputJsonRenameFile)
