@@ -24,7 +24,6 @@ def doTheTransfers(paths_to_watch, debug):
           after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
           afterString = [f for f in after]
           added = [f for f in after if not f in before]
-          if(float(debug) >= 50): log.info("afterString: {0}".format(afterString))
           removed = [f for f in before if not f in after]
 
           isComplete = cmsDataFlowCleanUp.isCompleteRun(debug, inputDataFolder, afterString)
