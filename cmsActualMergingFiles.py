@@ -147,9 +147,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    inputJsonFolder = os.path.dirname(filesJSON[0])
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
+   iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
+   iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
    if typeMerging == "mini":
-      iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
-      iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'a') as fout:
@@ -182,6 +182,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          fcntl.flock(fout, fcntl.LOCK_UN)
       fout.close()
 
+   if typeMerging == "macro" and os.path.exists(iniNameFullPath) and eventsO == 0:
+      fileSize = os.path.getsize(iniNameFullPath)
+   
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
@@ -269,10 +272,10 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    lockName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + "StorageManager" + ".lock"
    lockNameFullPath = os.path.join(outputSMMergedFolder, lockName)
 
+   iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
+   iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
    if typeMerging == "mini":
       maxSizeMergedFile = 50 * 1024 * 1024 * 1024
-      iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
-      iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'w') as fout:
@@ -338,6 +341,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          append_files(filenames, fout)
       fout.close()
 
+   if typeMerging == "macro" and os.path.exists(iniNameFullPath) and eventsO == 0:
+      fileSize = os.path.getsize(iniNameFullPath)
+   
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
@@ -391,7 +397,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
             os.remove(lockNameFullPath)
 
       with open(outMergedFileFullPath, 'r+w') as fout:
-         fout.truncate(totalSize)
+         fout.truncate(fileSize)
       fout.close()
 
       outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
