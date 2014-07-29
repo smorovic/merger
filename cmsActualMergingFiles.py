@@ -381,6 +381,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          msg = "lock file %s does not exist!\n" % (lockNameFullPath)
 	 raise RuntimeError,msg
 
+      totalSize = 0
       with open(lockNameFullPath, 'r+w') as filelock:
          lockFullString = filelock.readline().split(',')
          totalSize = int(lockFullString[len(lockFullString)-1])
