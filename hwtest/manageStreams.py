@@ -75,16 +75,18 @@ def main():
     for ls in range(lumiSections):
        processs = []
 
-       # Produce files every lumi_length_mean seconds with a random flutuation
-       sleep_time = seconds_to_sleep(ls, lumi_length_mean, lumi_length_sigma)
-       time.sleep(sleep_time)
-
        now = datetime.datetime.now()
 
        print now.strftime("%H:%M:%S"), ": writing ls(%d)" % (ls)
        for i in range(int(filesNb)):
+          # Produce files every lumi_length_mean seconds with random flutuation
+          sleep_time = seconds_to_sleep(ls, lumi_length_mean, lumi_length_sigma)
           streamName =  params['Streams']['name' + str(i)]
-          process = multiprocessing.Process(target = startCreateFiles, args = [streamName, contentInputFile[i], ls, runNumber, theBUId, thePath, theTotalBUs])
+          process = multiprocessing.Process(
+              target = launch_file_making,
+              args = [streamName, contentInputFile[i], ls, runNumber, theBUId,
+                      thePath, theTotalBUs, sleep_time]
+              )
           process.start()
 
        print now.strftime("%H:%M:%S"), ": finished LS", ls, ", exiting..."
@@ -164,8 +166,12 @@ def total_seconds(tdelta):
 ## total_seconds
 
 #______________________________________________________________________________
-def startCreateFiles (streamName, contentInputFile, lumiSections, runNumber, theBUId, thePath, theTotalBUs):
-          createFiles(streamName, contentInputFile, lumiSections, runNumber, theBUId, thePath, theTotalBUs)
+def launch_file_making(streamName, contentInputFile, lumiSections, runNumber,
+                       theBUId, thePath, theTotalBUs, sleep_time):
+    time.sleep(sleep_time)
+    createFiles(streamName, contentInputFile, lumiSections, runNumber,
+                theBUId, thePath, theTotalBUs)
+## launch_file_making
 
 
 #______________________________________________________________________________

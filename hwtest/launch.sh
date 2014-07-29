@@ -7,17 +7,19 @@ LIST_PRODUCERS=listProducers.txt
 LIST_MERGERS=$LIST_PRODUCERS
 ALL_NODES=all_nodes.txt
 
-LUMI_LENGTH_MEAN=2
-LUMI_LENGTH_SIGMA=0.01
+LUMI_LENGTH_MEAN=6.0
+LUMI_LENGTH_SIGMA=3.0
 
 ## Top-level directory for the test management and control
 MASTER_BASE=/home/cern/merger
 ## Top level directory for the producer and merger scripts used during the test
 SLAVE_BASE=/home/cern/slave
 ## Folder for the producer inputs
-FROZEN_BASE=/home/cern/frozen
+#FROZEN_BASE=/home/cern/frozen # HDD
+FROZEN_BASE=/ramdisk/frozen # RAM disk
 ## Top-level directory for the producer outputs / merger inputs
-INPUT_BASE=/lustre/cern/data
+#INPUT_BASE=/home/cern/data # HDD
+INPUT_BASE=/ramdisk/data # RAM disk
 ## Top-level directory for the merger outputs
 OUTPUT_BASE=/lustre/cern/data
 
@@ -28,7 +30,7 @@ source $MASTER_BASE/hwtest/tools.sh
 function launch_main {
     echo "+ Launching the test ..."
     clean_up
-    launch_merger 100 optionC server06 macro
+    launch_merger 100 optionC server20 macro
     launch_mergers 100 optionC
     launch_producers run100.cfg 1
     echo "+ ... done. Finished launching the test."

@@ -1,7 +1,9 @@
-server02
-server03
 server06
 server07
 server08
-server16
-server17
+server20
+server21
+server22
+server23
+server24
+server25

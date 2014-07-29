@@ -14,8 +14,8 @@ def main():
     throughput = bandwidth / time
     print 'Average throughput:',
     print '%.0f GB / %d s = %.2f GB/s' % (bandwidth, time, throughput),
-    print '(%.2f GB/s stream A,' % (_stream_A_fraction * throughput,),
-    print '%.2f GB/s others)' % ((1 - _stream_A_fraction) * throughput,)
+    # print '(%.2f GB/s stream A,' % (_stream_A_fraction * throughput,),
+    # print '%.2f GB/s others)' % ((1 - _stream_A_fraction) * throughput,)
 ## main
 
 
