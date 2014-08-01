@@ -23,10 +23,10 @@ Do actual merging
 """
 def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug):
 
-   # streamDQMhistograms stream uses always with optionA
+   # streamDQMHistograms stream uses always with optionA
    fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
 
-   if (optionMerging == "optionA" or fileNameString[2] == "streamDQMhistograms"):
+   if (optionMerging == "optionA" or fileNameString[2] == "streamDQMHistograms"):
       cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug)
 
    elif (optionMerging == "optionB"):
@@ -88,7 +88,7 @@ def is_completed(filepath):
 """
 Do loops
 """
-def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging):
+def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold):
    filesDict      = dict() 
    fileSizeDict   = dict() 
    errorCodeDict  = dict()    
@@ -186,7 +186,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                    inputName  = os.path.join(inputDataFolder,afterString[i])
                    if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
                    fileIniString = afterString[i].split('_')
-                   if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError")):
+                   if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError" or fileIniString[2] == "streamDQMHistograms")):
 		      # init name: runxxx_ls0000_streamY_HOST.ini
 		      inputNameString = afterString[i].split('_')
                       # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
@@ -242,6 +242,9 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
+
+             # avoid empty files
+	     if(os.path.getsize(inputJsonFile) == 0): continue
 
              # moving the file to avoid issues
 	     inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
@@ -352,6 +355,8 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              extensionName = ".dat"
              if fileNameString[2] == "streamError":
                 extensionName = ".raw"
+             elif fileNameString[2] == "streamDQMHistograms":
+                extensionName = ".pb"
 
 	     if typeMerging == "mini": 
         	keyEoLS = (fileNameString[0],fileNameString[1])
@@ -371,8 +376,8 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
         	if keyEoLS in eventsEoLSDict.keys(): # and key in filesDict.keys():
         	#try:
 		   if(float(debug) >= 20): log.info("mini-EventsEoLS/EventsInput-LS/Stream: {0}, {1}, {2}, {3}".format(eventsEoLSDict[keyEoLS][0], eventsIDict[key][0], fileNameString[1], fileNameString[2]))
-                   if(eventsEoLSDict[keyEoLS][0] == eventsIDict[key][0]):
-	              # merged files
+                   if((eventsEoLSDict[keyEoLS][0] == eventsIDict[key][0]) or (eventsEoLSDict[keyEoLS][0]*triggerMergingThreshold <= eventsIDict[key][0] and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
+		      # merged files
 	              outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + extensionName;
 	              outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" +    outputEndName + ".jsn";
 
@@ -381,6 +386,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		      if fileNameString[2] == "streamError":
                          inputDataFolderModified = path_eol + "/" + fileNameString[0]
 
+                      eventsIDict.update({key:[-1.01*eventsTotalInput]})
                       if nLoops <= nWithPollMax or nWithPollMax < 0:
                          process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
 		      else:
@@ -397,7 +403,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
              else:
 		if(float(debug) >= 20): log.info("macro-EventsTotalInput/EventsInput-LS/Stream: {0}, {1}, {2}, {3}".format(eventsTotalInput,eventsIDict[key][0],fileNameString[1],fileNameString[2]))
-                if(eventsTotalInput > 0 and eventsTotalInput == eventsIDict[key][0]):
+                if((eventsTotalInput == eventsIDict[key][0]) or (eventsTotalInput*triggerMergingThreshold <= eventsIDict[key][0] and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
 	           # merged files
 	           outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + extensionName;
 	           outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + ".jsn";
@@ -408,6 +414,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                    eventsAllEoLS = eventsTotalInput
 		   eventsEoLSDict.update({keyEoLS:[eventsEoLS,filesEoLS,eventsAllEoLS]})
 
+                   eventsIDict.update({key:[-1.01*eventsTotalInput]})
                    if nLoops <= nWithPollMax or nWithPollMax < 0:
                       process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
                    else:
@@ -431,13 +438,14 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	        EoRFileNameDQMOutputFinal  = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR.jsn"
 	        EoRFileNameECALOutput      = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
 	        EoRFileNameECALOutputFinal = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR.jsn"
-	     if(not os.path.exists(EoRFileNameDQMOutputFinal)):
-                if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameDQMOutputFinal))
-		try:
-	          shutil.copy(EoRFileName,EoRFileNameDQMOutput)
-                  shutil.move(EoRFileNameDQMOutput,EoRFileNameDQMOutputFinal)
-                except OSError, e:
-                   log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameDQMOutputFinal))
+	     # DQM guys don't want to receive the EoR file for now
+	     #if(not os.path.exists(EoRFileNameDQMOutputFinal)):
+             #   if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameDQMOutputFinal))
+             #   try:
+	     #     shutil.copy(EoRFileName,EoRFileNameDQMOutput)
+             #     shutil.move(EoRFileNameDQMOutput,EoRFileNameDQMOutputFinal)
+             #   except OSError, e:
+             #      log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameDQMOutputFinal))
 	     if(not os.path.exists(EoRFileNameECALOutputFinal)):
                 if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameECALOutputFinal))
 		try:
@@ -447,7 +455,8 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                    log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameECALOutputFinal))
 
 	     if(doRemoveFiles == "True" and typeMerging == "mini"):
-	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber)
+	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputMergedFolder, outputEndName)
+
           before = after
 
       if nLoops <= nWithPollMax or nWithPollMax < 0:
@@ -455,6 +464,8 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
          thePool.join()
 
 def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, debug):
+
+    triggerMergingThreshold = 0.8
 
     if typeMerging != "mini" and typeMerging != "macro" and typeMerging != "auto":
        msg = "Wrong type of merging: %s" % typeMerging
@@ -497,4 +508,4 @@ def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputSMMe
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMerge))
     
     doTheRecovering(paths_to_watch, debug)
-    doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging)
+    doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold)

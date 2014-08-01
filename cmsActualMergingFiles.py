@@ -39,7 +39,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    inputJsonFolder = os.path.dirname(filesJSON[0])
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
-   if (typeMerging == "macro" and fileNameString[2] != "streamDQMhistograms"):
+   if (typeMerging == "macro" and fileNameString[2] != "streamDQMHistograms"):
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
@@ -55,7 +55,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 
    if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
-   if (fileNameString[2] != "streamDQMhistograms"):
+   if (fileNameString[2] != "streamDQMHistograms"):
       with open(outMergedFileFullPath, 'a') as fout:
          append_files(filenames, fout)
       fout.close()
@@ -65,7 +65,9 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    else:
       msg = "fastHadd add -o %s " % (outMergedFileFullPath)
       for nfile in range(0, len(filenames)):
-         msg = msg + filenames[nfile] + " "
+         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile]))):
+            msg = msg + filenames[nfile] + " "
+      if(float(debug) > 20): log.info("running {0}".format(msg))
       os.system(msg)
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
@@ -115,7 +117,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
-   if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
+   if(fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    endMergingTime = time.time() 
@@ -145,9 +147,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    inputJsonFolder = os.path.dirname(filesJSON[0])
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
+   iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
+   iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
    if typeMerging == "mini":
-      iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
-      iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'a') as fout:
@@ -180,6 +182,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          fcntl.flock(fout, fcntl.LOCK_UN)
       fout.close()
 
+   if typeMerging == "macro" and os.path.exists(iniNameFullPath) and eventsO == 0:
+      fileSize = os.path.getsize(iniNameFullPath)
+   
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
@@ -227,7 +232,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
-      if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
+      if(fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
@@ -267,10 +272,10 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    lockName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + "StorageManager" + ".lock"
    lockNameFullPath = os.path.join(outputSMMergedFolder, lockName)
 
+   iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
+   iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
    if typeMerging == "mini":
       maxSizeMergedFile = 50 * 1024 * 1024 * 1024
-      iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
-      iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
          if (not os.path.exists(outMergedFileFullPath)):
             with open(outMergedFileFullPath, 'w') as fout:
@@ -336,6 +341,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          append_files(filenames, fout)
       fout.close()
 
+   if typeMerging == "macro" and os.path.exists(iniNameFullPath) and eventsO == 0:
+      fileSize = os.path.getsize(iniNameFullPath)
+   
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
@@ -379,6 +387,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          msg = "lock file %s does not exist!\n" % (lockNameFullPath)
 	 raise RuntimeError,msg
 
+      totalSize = 0
       with open(lockNameFullPath, 'r+w') as filelock:
          lockFullString = filelock.readline().split(',')
          totalSize = int(lockFullString[len(lockFullString)-1])
@@ -388,7 +397,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
             os.remove(lockNameFullPath)
 
       with open(outMergedFileFullPath, 'r+w') as fout:
-         fout.truncate(totalSize)
+         fout.truncate(fileSize)
       fout.close()
 
       outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
@@ -399,7 +408,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
-      if fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError":
+      if(fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON

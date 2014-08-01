@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-configfile = "/opt/merger/dataFlowMerger.conf"
+configfile = "/opt/merger/dataFlowCopy.conf"
 pidFile ="/var/run/dfMerger.pid"
 
 import sys, os, socket, signal
@@ -7,19 +7,19 @@ from Daemon import Daemon
 
 from configobj import ConfigObj
 from Logging import getLogger
-import cmsDataFlowMerger
+import cmsDataFlowCopy
 
 log = getLogger()
 
-def getMergeParams(mergeConfigFileName):
+def getMergeParams(copyConfigFileName):
     try:
-        if os.path.isfile(mergeConfigFileName):
-            config = ConfigObj(mergeConfigFileName)
+        if os.path.isfile(copyConfigFileName):
+            config = ConfigObj(copyConfigFileName)
         else:
-            log.error("Configuration file not found: {0}!".format(mergeConfigFileName))
+            log.error("Configuration file not found: {0}!".format(copyConfigFileName))
             sys.exit(1)
     except IOError, e:
-        log.error("Unable to open configuration file: {0}!".format(mergeConfigFileName))
+        log.error("Unable to open configuration file: {0}!".format(copyConfigFileName))
         sys.exit(1)
 
     return config
@@ -31,20 +31,10 @@ def get_params():
         in_path = params['Input']['dataPath']
         out_path = params['Output']['dataPath']
         eol_path = params['Input']['eolPath']
-        merge_type = params['Misc']['mergeType']
-	sm_path = params['Output']['smPath']
-        dqm_path = params['Output']['dqmPath']
-	ecal_path = params['Output']['ecalPath']
-        merge_option = params['Misc']['mergeOption']
     except KeyError, e:
         log.error("At least one non-optional parameter missing from the config file {0}:".format(configFile))
         log.error("{0}".format(e))
         exit(1)
-
-    try:
-        additional_label = params['Output']['outputEndName']
-    except KeyError, e:
-        additional_label = socket.gethostname()
 
     try:
         delete_files = params['Misc']['deleteFiles']
@@ -56,14 +46,10 @@ def get_params():
     except KeyError, e:
         debug_level = 10
 
-    if (merge_option != "optionA"):
-        delete_files = "True"
-
-    return in_path, eol_path, out_path, sm_path, dqm_path, ecal_path, additional_label, merge_type, delete_files, merge_option, debug_level
+    return in_path, eol_path, out_path, additional_label, delete_files, debug_level
 
 
-
-class DataFlowMerger(Daemon):
+class DataFlowCopy(Daemon):
     running = True
 
     def cleanUp(self, sigNum = None, frame = None):
@@ -74,15 +60,15 @@ class DataFlowMerger(Daemon):
 
     def run(self):
 
-        [inPath, eolPath, outPath, smPath, dqmPath, ecalPath, adLabel, mType, delOrigFiles, mergeOption, debugLevel] = get_params()
+        [inPath, eolPath, outPath, delOrigFiles, debugLevel] = get_params()
 
         log.info("delFiles: {0}".format(delOrigFiles))
 
-        cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, smPath, dqmPath, ecalPath, adLabel, delOrigFiles, mergeOption, debugLevel)
+        cmsDataFlowCopy.start_merging(inPath, eolPath, outPath, delOrigFiles, debugLevel)
 
 if __name__ == "__main__":
 
-    daemon = DataFlowMerger(pidFile)
+    daemon = DataFlowCopy(pidFile)
 
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
