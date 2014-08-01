@@ -26,11 +26,26 @@ def doTheTransfers(paths_to_watch, debug):
           added = [f for f in after if not f in before]
           removed = [f for f in before if not f in after]
 
-          isComplete = cmsDataFlowCleanUp.isCompleteRun(debug, inputDataFolder, afterString)
+          #isComplete = cmsDataFlowCleanUp.isCompleteRun(debug, inputDataFolder, afterString)
 
-          if(isComplete == True):
-	     print "run ",inputDataFolder," complete"
-
+          #if(isComplete == True):
+	  #   print "run ",inputDataFolder," complete"
+###
+   	  for nb in range(0, len(afterString)):
+   	     if not afterString[nb].endswith(".jsn"): continue
+   	     if "index" in afterString[nb]: continue
+   	     if "streamError" in afterString[nb]: continue
+   	     if afterString[nb].endswith("recv"): continue
+   	     if "EoLS" in afterString[nb]: continue
+   	     if "BoLS" in afterString[nb]: continue
+      	     inputEoRJsonFile = os.path.join(inputDataFolder, afterString[nb])
+      	     settingsLS_textI = open(inputEoRJsonFile, "r").read()
+      	     settingsLS = json.loads(settingsLS_textI)
+             events = int(settingsLS['data'][1])
+             fileSize = int(settingsLS['data'][4])
+	     if(os.path.getsize(inputEoRJsonFile.replace("jsn","dat")) < fileSize and events != 0):
+	        print os.path.join(inputDataFolder, afterString[nb]),os.path.getsize(inputEoRJsonFile.replace("jsn","dat")),"jsn-info: ",fileSize,events
+###
           before = after
 
 """
