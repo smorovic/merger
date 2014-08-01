@@ -61,7 +61,7 @@ echo "    $(source check_integrity.sh)" | tee -a $SUMMARY_FILE
 ## Estimate the expected performance
 echo "    $(./estimate_expected.py)" | tee -a $SUMMARY_FILE
 ## Estimate the actual performance
-echo "    $(./throughput.py)" | tee -a $SUMMARY_FILE
+echo "    $(source throughput.sh)" | tee -a $SUMMARY_FILE
 
 # git tag netapp$(echo $NAME | sed 's/logs//')
 # git log | head -n 6 > /lustre/$NAME/README

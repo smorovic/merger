@@ -54,12 +54,12 @@ def main():
        lumi_length_sigma = float(options.lumi_length_sigma)
 
     params = configureStreams(options.configFile)
-    filesNb = params['Streams']['number']
+    filesNb = int(params['Streams']['number'])
     lumiSections = int(params['Streams']['ls'])
     runNumber = int(params['Streams']['runnumber'])
 
     contentInputFile = []
-    for i in range(int(filesNb)):
+    for i in range(filesNb):
         sizePerFile = int(params['Streams']['size' + str(i)])
         fileName = "inputFile_" + str(int(sizePerFile)) + "MB.dat"
         fullFileName = os.path.join(theInputPath, fileName)
@@ -72,13 +72,15 @@ def main():
            #contentInputFile.append(theInputfile.read())
         #theInputfile.close()
 
+    init(options, params)
+
     for ls in range(lumiSections):
        processs = []
 
        now = datetime.datetime.now()
 
        print now.strftime("%H:%M:%S"), ": writing ls(%d)" % (ls)
-       for i in range(int(filesNb)):
+       for i in range(filesNb):
           # Produce files every lumi_length_mean seconds with random flutuation
           sleep_time = seconds_to_sleep(ls, lumi_length_mean, lumi_length_sigma)
           streamName =  params['Streams']['name' + str(i)]
@@ -172,6 +174,53 @@ def launch_file_making(streamName, contentInputFile, lumiSections, runNumber,
     createFiles(streamName, contentInputFile, lumiSections, runNumber,
                 theBUId, thePath, theTotalBUs)
 ## launch_file_making
+
+
+#______________________________________________________________________________
+def init(options, params):
+    create_data_dir(options, params)
+    create_mon_dir(options, params)
+    create_ini_files(options, params)
+## init
+
+#______________________________________________________________________________
+def create_ini_files(options, params):
+    path_to_make = thePath = options.Path
+    RUNNumber = int(params['Streams']['runnumber'])
+    filesNb = int(params['Streams']['number'])
+    theBUNumber = options.BUId
+    ## loop over streams
+    for i in range(filesNb):
+        streamName =  params['Streams']['name' + str(i)]
+        fileIntNameFullPath = "%sunmergedDATA/run%d/run%d_ls0000_%s_BU%s.ini" % (path_to_make,RUNNumber,RUNNumber,streamName,theBUNumber)
+        with open(fileIntNameFullPath, 'w') as thefile:
+           thefile.write('0' * 10)
+           thefile.write("\n")
+## create_ini_files
+
+#______________________________________________________________________________
+def create_data_dir(options, params):
+    path_to_make = thePath = options.Path
+    RUNNumber = int(params['Streams']['runnumber'])
+    myDir = "%sunmergedDATA/run%d" % (path_to_make, RUNNumber)
+    if not os.path.exists(myDir):
+        try:
+           os.makedirs(myDir)
+        except OSError, e:
+           print "Looks like the directory " + myDir + " has just been created by someone else..."
+## create_data_dir
+
+#______________________________________________________________________________
+def create_mon_dir(options, params):
+    path_to_make = thePath = options.Path
+    RUNNumber = int(params['Streams']['runnumber'])
+    myDir = "%sunmergedMON/run%d" % (path_to_make, RUNNumber)
+    if not os.path.exists(myDir):
+        try:
+           os.makedirs(myDir)
+        except OSError, e:
+           print "Looks like the directory " + myDir + " has just been created by someone else..."
+## create_mon_dir
 
 
 #______________________________________________________________________________

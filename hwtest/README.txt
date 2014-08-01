@@ -121,6 +121,14 @@ RESULTS
     Max expected throughput: 1934 GB / 250 s = 7.73 GB/s
     Average throughput: 1928 GB / 394 s = 4.89 GB/s
 
-  * v2.9 LUMI_LENGTH_MEAN=6    Total / closed / opened files: 500 / 493 (98%) / 7 (2%)
+  * v2.9 LUMI_LENGTH_MEAN=6
+    Total / closed / opened files: 500 / 493 (98%) / 7 (2%)
     Max expected throughput: 1934 GB / 250 s = 7.73 GB/s
-    
+    Average throughput: 1930 GB / 343 s = 5.63 GB/s
+
+  * v2.10 same as previous to check reproducibility (?)
+    Total / closed / opened files: 500 / 493 (98%) / 7 (2%)
+    LUMI_LENGTH_MEAN = 5.9
+number of producers: 1
+Max expected throughput: 215 GB / 295 s = 0.73 GB/s
+    Average throughput: 1930 GB / 343 s = 5.63 GB/s

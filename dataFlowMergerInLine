@@ -7,7 +7,7 @@ from configobj import ConfigObj
 from Logging import getLogger
 import cmsDataFlowMerger
 
-log = getLogger()
+log = getLogger(configfile)
 
 def getMergeParams(mergeConfigFileName):
     try:
