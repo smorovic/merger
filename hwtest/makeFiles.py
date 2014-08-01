@@ -19,6 +19,27 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
    nOutput = 10
    LSNumber = ls
 
+   myDir = "%sunmergedDATA/run%d" % (path_to_make,RUNNumber)
+   if not os.path.exists(myDir):
+      try:
+   	 os.makedirs(myDir)
+      except OSError, e:
+   	 print "Looks like the directory " + myDir + " has just been created by someone else..."
+
+   myDir = "%sunmergedMON/run%d" % (path_to_make,RUNNumber)
+   if not os.path.exists(myDir):
+      try:
+   	 os.makedirs(myDir)
+      except OSError, e:
+   	 print "Looks like the directory " + myDir + " has just been created by someone else..."
+
+   if ls == 0:
+      fileIntNameFullPath = "%sunmergedDATA/run%d/run%d_ls0000_%s_BU%s.ini" % (path_to_make,RUNNumber,RUNNumber,streamName,theBUNumber)
+      with open(fileIntNameFullPath, 'w') as thefile:
+   	 thefile.write('0' * 10)
+   	 thefile.write("\n")
+      thefile.close()
+
    start = time.time()
    while ((float(timeEnd) < 0.0 or float(time.time() - start) < float(timeEnd)) and (int(LSNumber) == int(ls))):
      time.sleep (float(rate))
@@ -27,27 +48,6 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
      seedsRND = []
      for i in range(0, numberOfSeedsNeeded):
        seedsRND.append(random.randint(0,999999))
-
-     myDir = "%sunmergedDATA/run%d" % (path_to_make,RUNNumber)
-     if not os.path.exists(myDir):
-        try:
-           os.makedirs(myDir)
-        except OSError, e:
-           print "Looks like the directory " + myDir + " has just been created by someone else..."
-
-     myDir = "%sunmergedMON/run%d" % (path_to_make,RUNNumber)
-     if not os.path.exists(myDir):
-        try:
-           os.makedirs(myDir)
-        except OSError, e:
-           print "Looks like the directory " + myDir + " has just been created by someone else..."
-
-     if theNLoop == 1 and ls == 0:
-     	fileIntNameFullPath = "%sunmergedDATA/run%d/run%d_ls0000_%s_BU%s.ini" % (path_to_make,RUNNumber,RUNNumber,streamName,theBUNumber)
-     	with open(fileIntNameFullPath, 'w') as thefile:
-     	   thefile.write('0' * 10)
-     	   thefile.write("\n")
-     	thefile.close()
 
      if theNLoop == 1:
         fileJSONNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
