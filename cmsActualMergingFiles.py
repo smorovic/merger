@@ -429,10 +429,9 @@ def append_files(ifnames, ofile):
     Appends the contents of files given by a list of input file names `ifname'
     to the given output file object `ofile'. Returns None.
     '''
-    iosize = 16 * 1024 # 16 kB, the default of shutil.copyfileobj
     for ifname in ifnames:
         if (os.path.exists(ifname) and (not os.path.isdir(ifname))):
             with open(ifname) as ifile:
-                shutil.copyfileobj(ifile, ofile, iosize)
+                shutil.copyfileobj(ifile, ofile)
             ifile.close()
 # append_files
