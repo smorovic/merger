@@ -185,7 +185,9 @@ def init(options, params):
 
 #______________________________________________________________________________
 def create_ini_files(options, params):
-    path_to_make = thePath = options.Path
+    path_to_make = options.Path
+    if path_to_make == None:
+       path_to_make = ""
     RUNNumber = int(params['Streams']['runnumber'])
     filesNb = int(params['Streams']['number'])
     theBUNumber = options.BUId
@@ -200,7 +202,9 @@ def create_ini_files(options, params):
 
 #______________________________________________________________________________
 def create_data_dir(options, params):
-    path_to_make = thePath = options.Path
+    path_to_make = options.Path
+    if path_to_make == None:
+       path_to_make = ""
     RUNNumber = int(params['Streams']['runnumber'])
     myDir = "%sunmergedDATA/run%d" % (path_to_make, RUNNumber)
     if not os.path.exists(myDir):
@@ -212,7 +216,9 @@ def create_data_dir(options, params):
 
 #______________________________________________________________________________
 def create_mon_dir(options, params):
-    path_to_make = thePath = options.Path
+    path_to_make = options.Path
+    if path_to_make == None:
+       path_to_make = ""
     RUNNumber = int(params['Streams']['runnumber'])
     myDir = "%sunmergedMON/run%d" % (path_to_make, RUNNumber)
     if not os.path.exists(myDir):
