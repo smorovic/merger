@@ -121,12 +121,16 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	    outputDQMMergedFolder = os.path.join(outputDQMMerge, inputDataFolderString[len(inputDataFolderString)-2])
 	    outputECALMergedFolder= os.path.join(outputECALMerge,inputDataFolderString[len(inputDataFolderString)-2])
 	    theRunNumber          = inputDataFolderString[len(inputDataFolderString)-2]
+	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-2], "bad")
+	    outputSMBadFolder     = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-2], "bad")
           else:
 	    outputMergedFolder    = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1], "open")
 	    outputSMMergedFolder  = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1], "open")
 	    outputDQMMergedFolder = os.path.join(outputDQMMerge, inputDataFolderString[len(inputDataFolderString)-1])
 	    outputECALMergedFolder= os.path.join(outputECALMerge,inputDataFolderString[len(inputDataFolderString)-1])
-	    theRunNumber         = inputDataFolderString[len(inputDataFolderString)-1] 
+	    theRunNumber          = inputDataFolderString[len(inputDataFolderString)-1] 
+	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1], "bad")
+	    outputSMBadFolder     = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1], "bad")
 
 	  if not os.path.exists(outputMergedFolder):
              try:
@@ -151,6 +155,18 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                 os.makedirs(outputECALMergedFolder)
              except OSError, e:
                  log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMergedFolder))
+
+	  if not os.path.exists(outputBadFolder):
+             try:
+                os.makedirs(outputBadFolder)
+             except OSError, e:
+                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputBadFolder))
+	  
+	  if not os.path.exists(outputSMBadFolder):
+             try:
+                os.makedirs(outputSMBadFolder)
+             except OSError, e:
+                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMBadFolder))
 
 	  # this folder is used for monitoring purposes
 	  outputMonFolder = os.path.join(inputDataFolder, "mon")
