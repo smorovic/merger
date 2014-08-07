@@ -117,7 +117,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
-   if(fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
+   if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != os.path.getsize(outMergedFileFullPathStable)):
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    endMergingTime = time.time() 
@@ -232,7 +232,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
-      if(fileSize != os.path.getsize(outMergedFileFullPathStable) and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
+      if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != os.path.getsize(outMergedFileFullPathStable)):
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
@@ -392,19 +392,24 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
          lockFullString = filelock.readline().split(',')
          totalSize = int(lockFullString[len(lockFullString)-1])
       filelock.close()
-      if(doRemoveFiles == "True"):
-         if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
-            os.remove(lockNameFullPath)
 
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.truncate(fileSize)
       fout.close()
 
-      if(fileSize != totalSize and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
-         log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
+      if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != totalSize):
+         log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,totalSize))
          outMergedFileFullPathStable = outputSMMergedFolder + "/../bad/" + outMergedFile
+	 
+	 # also want to move the lock file to the bad area
+         lockNameFullPathStable = outputSMMergedFolder + "/../bad/" + lockName
+         shutil.move(lockNameFullPath,lockNameFullPathStable)
+
       else:
          outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
+         if(doRemoveFiles == "True"):
+            if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
+               os.remove(lockNameFullPath)
 
       if ("DQM" in fileNameString[2]):
          outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
@@ -414,7 +419,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
 
-   if(fileSize != totalSize and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
+   if(typeMerging == "macro" and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != totalSize):
       outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
    else:
       outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
