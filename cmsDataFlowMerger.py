@@ -5,6 +5,7 @@ import json
 import glob
 import multiprocessing
 from multiprocessing.pool import ThreadPool
+import logging
 import thread
 import datetime
 import fileinput
@@ -39,6 +40,37 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
       log.error("Wrong option!: {0}".format(optionMerging))
       msg = "Wrong option!: %s" % (optionMerging)
       raise RuntimeError, msg
+
+"""
+Functions to handle errors properly
+"""
+def error(msg, *args):
+    return multiprocessing.get_logger().error(msg, *args)
+
+class LogExceptions(object):
+    def __init__(self, callable):
+        self.__callable = callable
+        return
+
+    def __call__(self, *args, **kwargs):
+        try:
+            result = self.__callable(*args, **kwargs)
+
+        except Exception as e:
+            # Here we add some debugging help. If multiprocessing's
+            # debugging is on, it will arrange to log the traceback
+            error(traceback.format_exc())
+            # Re-raise the original exception so the ThreadPool worker can
+            # clean up
+            raise
+
+        # It was fine, give a normal answer
+        return result
+    pass
+
+class LoggingPool(ThreadPool):
+    def apply_async(self, func, args=(), kwds={}, callback=None):
+        return ThreadPool.apply_async(self, LogExceptions(func), args, kwds, callback)
 
 """
 Do recovering JSON files
@@ -105,7 +137,12 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
    # Number of loops
    nLoops = 0
    while 1:
-      thePool = ThreadPool(nThreadsMax)
+      #obsolete call
+      #thePool = ThreadPool(nThreadsMax)
+      multiprocessing.log_to_stderr()
+      multiprocessing.get_logger().setLevel(logging.ERROR)
+      thePool = LoggingPool(processes=nThreadsMax)
+      
       nLoops = nLoops + 1
       inputDataFolders = glob.glob(paths_to_watch)
       if(float(debug) >= 20): log.info("***************NEW LOOP************** {0}".format(nLoops))
