@@ -228,60 +228,61 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              if(float(debug) >= 50): log.info("Removed: {0}".format(removed))
 
 	  # loop over ini files, needs to be done first of all
-          if typeMerging == "mini" or optionMerging == "optionA":
-             theIniOutputFolder = outputSMMergedFolder
-	     if optionMerging == "optionA":
-                theIniOutputFolder = outputMergedFolder
+	  for i in range(0, len(afterString)):
 
-	     for i in range(0, len(afterString)):
+	     if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
+          	inputName  = os.path.join(inputDataFolder,afterString[i])
+          	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
+          	fileIniString = afterString[i].split('_')
 
-		if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
-                   inputName  = os.path.join(inputDataFolder,afterString[i])
-                   if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
-                   fileIniString = afterString[i].split('_')
-                   if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError" or fileIniString[2] == "streamDQMHistograms")):
-		      # init name: runxxx_ls0000_streamY_HOST.ini
-		      inputNameString = afterString[i].split('_')
-                      # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
-		      outputIniName          = theIniOutputFolder + "/../" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
-                      outputIniNameToCompare = theIniOutputFolder +   "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
-		      inputNameRename  = inputName.replace(".ini","_TEMP.ini")
-                      shutil.move(inputName,inputNameRename)
-                      if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
-	              # getting the ini file, just once per stream
-		      if not os.path.exists(outputIniName) or os.path.getsize(outputIniName) == 0:
-			 try:
-                            with open(outputIniName, 'a', 1) as file_object:
-                               fcntl.flock(file_object, fcntl.LOCK_EX)
-		               shutil.copy(inputNameRename,outputIniName)
-                               fcntl.flock(file_object, fcntl.LOCK_UN)
-			    file_object.close()
-			 except OSError, e:
-		            log.warning("Looks like the outputIniName file {0} has just been created by someone else...".format(outputIniName))
+          	if((typeMerging == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2])):
+          	    theIniOutputFolder = outputSMMergedFolder
+	  	    if((optionMerging == "optionA") or ("DQM" in fileIniString[2])):
+          	       theIniOutputFolder = outputMergedFolder
 
-		      if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
-			 try:
-                            with open(outputIniNameToCompare, 'a', 1) as file_object:
-                               fcntl.flock(file_object, fcntl.LOCK_EX)
-		               shutil.copy(inputNameRename,outputIniNameToCompare)
-                               fcntl.flock(file_object, fcntl.LOCK_UN)
-			    file_object.close()
-			 except OSError, e:
-		            log.warning("Looks like the outputIniNameToCompare file {0} has just been created by someone else...".format(outputIniNameToCompare))
+          	if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError" or fileIniString[2] == "streamDQMHistograms")):
+	     	   # init name: runxxx_ls0000_streamY_HOST.ini
+	     	   inputNameString = afterString[i].split('_')
+          	   # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
+	     	   outputIniName	  = theIniOutputFolder + "/../" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
+          	   outputIniNameToCompare = theIniOutputFolder +   "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
+	     	   inputNameRename  = inputName.replace(".ini","_TEMP.ini")
+          	   shutil.move(inputName,inputNameRename)
+          	   if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
+	  	   # getting the ini file, just once per stream
+	     	   if not os.path.exists(outputIniName) or os.path.getsize(outputIniName) == 0:
+	     	      try:
+          		 with open(outputIniName, 'a', 1) as file_object:
+          		    fcntl.flock(file_object, fcntl.LOCK_EX)
+	     		    shutil.copy(inputNameRename,outputIniName)
+          		    fcntl.flock(file_object, fcntl.LOCK_UN)
+	     		 file_object.close()
+	     	      except OSError, e:
+	     		 log.warning("Looks like the outputIniName file {0} has just been created by someone else...".format(outputIniName))
 
-	              # otherwise, checking if they are identical
-	              else:
-                	 try:
-		            if filecmp.cmp(outputIniNameToCompare,inputNameRename) == False:
-			       log.warning("ini files: {0} and {1} are different!!!".format(outputIniNameToCompare,inputNameRename))
-                	 except IOError, e:
-                               log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
+	     	   if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
+	     	      try:
+          		 with open(outputIniNameToCompare, 'a', 1) as file_object:
+          		    fcntl.flock(file_object, fcntl.LOCK_EX)
+	     		    shutil.copy(inputNameRename,outputIniNameToCompare)
+          		    fcntl.flock(file_object, fcntl.LOCK_UN)
+	     		 file_object.close()
+	     	      except OSError, e:
+	     		 log.warning("Looks like the outputIniNameToCompare file {0} has just been created by someone else...".format(outputIniNameToCompare))
 
-                      if(doRemoveFiles == "True"): 
-                	 os.remove(inputNameRename)
+	  	   # otherwise, checking if they are identical
+	  	   else:
+          	      try:
+	     		 if filecmp.cmp(outputIniNameToCompare,inputNameRename) == False:
+	     		    log.warning("ini files: {0} and {1} are different!!!".format(outputIniNameToCompare,inputNameRename))
+          	      except IOError, e:
+          		    log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
 
-		   else:
-		      log.info("Looks like the file {0} is being copied by someone else...".format(inputName))
+          	   if(doRemoveFiles == "True"): 
+          	      os.remove(inputNameRename)
+
+	     	else:
+	     	   log.info("Looks like the file {0} is being copied by someone else...".format(inputName))
 
 	  # loop over JSON files, which will give the list of files to be merged
 	  for i in range(0, len(afterString)):
