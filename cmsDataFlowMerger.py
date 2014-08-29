@@ -131,14 +131,15 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
    nFilesBUDict   = dict() 
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
    # Maximum number with pool option (< 0 == always)
-   nWithPollMax = 0
+   nWithPollMax = -1
    # Maximum number of threads to be allowed with the pool option
    nThreadsMax  = 50
    # Number of loops
    nLoops = 0
    while 1:
-      #obsolete call
+      # conservative call
       #thePool = ThreadPool(nThreadsMax)
+      # agressive call
       multiprocessing.log_to_stderr()
       multiprocessing.get_logger().setLevel(logging.ERROR)
       thePool = LoggingPool(processes=nThreadsMax)
@@ -300,6 +301,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              # avoid empty files
 	     if(os.path.getsize(inputJsonFile) == 0): continue
 
+             isFailed = False
              # moving the file to avoid issues
 	     inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
              shutil.move(inputJsonFile,inputJsonRenameFile)
@@ -316,9 +318,18 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		   settings = json.loads(settings_textI)
                 except ValueError, e:
                    log.warning("Looks like the file {0} is not available (2nd try)...".format(inputJsonRenameFile))
-	           time.sleep (1.0)
-                   settings_textI = open(inputJsonRenameFile, "r").read()
-		   settings = json.loads(settings_textI)
+	           try:
+	              time.sleep (1.0)
+                      settings_textI = open(inputJsonRenameFile, "r").read()
+		      settings = json.loads(settings_textI)
+                   except ValueError, e:
+                      log.warning("Looks like the file {0} failed for good (3rd try)...".format(inputJsonRenameFile))
+	              inputJsonFailedFile = inputJsonRenameFile.replace("_TEMP.jsn","_FAILED.bad")
+                      shutil.move(inputJsonRenameFile,inputJsonFailedFile)
+                      isFailed = True
+
+             # avoid empty files
+	     if(isFailed == True): continue
 
              fileNameString = afterString[i].split('_')
 

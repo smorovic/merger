@@ -108,12 +108,19 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/open/../."
    outMergedFileFullPathStable = outputMergedFolder + "/../" + outMergedFile
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
+
    if (typeMerging == "macro" and ("DQM" in fileNameString[2])):
-      outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
-      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
+      #outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
+      #outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
+      outMergedFileFullPathStableDQM = os.path.join(outputDQMMergedFolder, outMergedFile)
+      outMergedJSONFullPathStableDQM = os.path.join(outputDQMMergedFolder, outMergedJSON)
+      shutil.copy(outMergedFileFullPath,outMergedFileFullPathStableDQM)
+      shutil.copy(outMergedJSONFullPath,outMergedJSONFullPathStableDQM)
+
    if (typeMerging == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
+
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
