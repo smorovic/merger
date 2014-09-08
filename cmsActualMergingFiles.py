@@ -94,11 +94,10 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    #os.chmod(outMergedJSONFullPath, 0666)
 
    # used for monitoring purposes
-   if typeMerging == "mini":
-      try:
-         shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
+   try:
+      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
+   except OSError, e:
+      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
 
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
@@ -233,11 +232,10 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    #os.chmod(outMergedJSONFullPath, 0666)
 
    # used for monitoring purposes
-   if typeMerging == "mini":
-      try:
-         shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
+   try:
+      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
+   except OSError, e:
+      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
 
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
@@ -496,11 +494,10 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    #os.chmod(outMergedJSONFullPath, 0666)
 
    # used for monitoring purposes
-   if typeMerging == "mini":
-      try:
-         shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
+   try:
+      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
+   except OSError, e:
+      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
 
    if(typeMerging == "macro" and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and (fileSize != totalSize or checkSumFailed == True)):
       outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
