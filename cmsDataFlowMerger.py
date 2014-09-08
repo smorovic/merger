@@ -13,6 +13,7 @@ import socket
 import filecmp
 import cmsActualMergingFiles
 import cmsDataFlowCleanUp
+import zlibextras
 
 from Logging import getLogger
 log = getLogger()
@@ -22,19 +23,19 @@ log = getLogger()
 """
 Do actual merging
 """
-def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug):
+def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug):
 
    # streamDQMHistograms stream uses always with optionA
    fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
 
    if ((optionMerging == "optionA") or ("DQM" in fileNameString[2])):
-      cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug)
+      cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug)
 
    elif (optionMerging == "optionB"):
-      cmsActualMergingFiles.mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug)
+      cmsActualMergingFiles.mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug)
 
    elif (optionMerging == "optionC"):
-      cmsActualMergingFiles.mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug)
+      cmsActualMergingFiles.mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug)
 
    else:
       log.error("Wrong option!: {0}".format(optionMerging))
@@ -129,6 +130,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
    eventsODict    = dict()
    eventsEoLSDict = dict()
    nFilesBUDict   = dict() 
+   checkSumDict   = dict()
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
    # Maximum number with pool option (< 0 == always)
    nWithPollMax = -1
@@ -343,11 +345,13 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     fileSize          = 0
              nFilesBU          = 0
              eventsTotalInput  = 0
+             checkSum          = 0
 	     if typeMerging == "mini":
                 eventsOutputError = int(settings['data'][2])
 		errorCode	  = int(settings['data'][3])
 		file              = str(settings['data'][4])
 		fileSize          = int(settings['data'][5])
+		checkSum          = int(settings['data'][7])
 	        if(float(debug) >= 50): log.info("Info from json file(eventsInput, eventsOutput, eventsOutputError, errorCode, file, fileSize): {0}, {1}, {2}, {3}, {4}, {5}".format(eventsInput, eventsOutput, eventsOutputError, errorCode, file, fileSize))
 	        # processed events == input + error events
 		eventsInput = eventsInput + eventsOutputError
@@ -359,8 +363,9 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		errorCode	 = int(settings['data'][2])
 		file             = str(settings['data'][3])
 		fileSize         = int(settings['data'][4])
-                nFilesBU         = int(settings['data'][5])
-                eventsTotalInput = int(settings['data'][6])
+		checkSum         = int(settings['data'][5])
+                nFilesBU         = int(settings['data'][6])
+                eventsTotalInput = int(settings['data'][7])
 
              key = (fileNameString[0],fileNameString[1],fileNameString[2])
              if key in filesDict.keys():
@@ -382,6 +387,12 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		eventsOutput = eventsODict[key][0] + eventsOutput
 	     	eventsODict[key].remove(eventsODict[key][0])
 	     	eventsODict.update({key:[eventsOutput]})
+
+		# Needs to be computed before the fileSize is updated
+		checkSum = zlibextras.adler32_combine(checkSumDict[key][0],checkSum,fileSize)
+		checkSum = checkSum & 0xffffffff
+	     	checkSumDict[key].remove(checkSumDict[key][0])
+	     	checkSumDict.update({key:[checkSum]})
 
 		fileSize = fileSizeDict[key][0] + fileSize
 	     	fileSizeDict[key].remove(fileSizeDict[key][0])
@@ -407,11 +418,13 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
 	     	eventsODict.update({key:[eventsOutput]})
 
+	     	checkSumDict.update({key:[checkSum]})
+
 	     	fileSizeDict.update({key:[fileSize]})
 
 	     	nFilesBUDict.update({key:[nFilesBU]})
 
-             if(float(debug) >= 50): log.info("filesDict: {0}\njsonsDict: {1}\n, eventsIDict: {2}, eventsODict: {3}, fileSizeDict: {4}, nFilesBUDict: {5}, errorCodeDict: {6}".format(filesDict, jsonsDict, eventsIDict, eventsODict, fileSizeDict, nFilesBUDict, errorCodeDict))
+             if(float(debug) >= 50): log.info("filesDict: {0}\njsonsDict: {1}\n, eventsIDict: {2}, eventsODict: {3}, checkSumDict: {4} fileSizeDict: {5}, nFilesBUDict: {6}, errorCodeDict: {7}".format(filesDict, jsonsDict, eventsIDict, eventsODict, checkSumDict, fileSizeDict, nFilesBUDict, errorCodeDict))
 
              theOutputEndName = outputEndName
 	     if optionMerging != "optionA":
@@ -453,10 +466,10 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
                       eventsIDict.update({key:[-1.01*eventsTotalInput]})
                       if nLoops <= nWithPollMax or nWithPollMax < 0:
-                         process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
+                         process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
 		      else:
-                         #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug) )
-                         process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
+                         #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug) )
+                         process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
                          process.start()
                    else:
                       if (float(debug) >= 20):
@@ -481,10 +494,10 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 
                    eventsIDict.update({key:[-1.01*eventsTotalInput]})
                    if nLoops <= nWithPollMax or nWithPollMax < 0:
-                      process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
+                      process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
                    else:
-                      #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug) )
-                      process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
+                      #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug) )
+                      process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsEoLSDict[keyEoLS], eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug])
                       process.start()
                 else:
                    if (float(debug) >= 20):
@@ -520,7 +533,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                    log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameECALOutputFinal))
 
 	     if(doRemoveFiles == "True" and typeMerging == "mini"):
-	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputMergedFolder, outputEndName)
+	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName)
 
           before = after
 

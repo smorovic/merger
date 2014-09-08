@@ -45,7 +45,7 @@ def main():
        msg = "BIG PROBLEM, file does not exists!: %s" % str(theInputPath)
        raise RuntimeError, msg
 
-    lumi_length_mean = 20.
+    lumi_length_mean = 1.
     if (options.lumi_length_mean != None):
        lumi_length_mean = float(options.lumi_length_mean)
     

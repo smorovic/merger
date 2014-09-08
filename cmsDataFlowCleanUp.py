@@ -10,7 +10,7 @@ log = getLogger()
 """
 clean up run folder if some conditions are met
 """
-def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputMergedFolder, outputEndName):
+def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName):
    
    settingsEoR = ""
    try:
@@ -69,7 +69,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       
       if(numberBoLSFiles == 0):
          # This is needed to cleanUp the macroMerger later
-	 EoRFileNameMacroOutput = outputMergedFolder + "/../" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn"
+	 EoRFileNameMacroOutput = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn"
 	 if(not os.path.exists(EoRFileNameMacroOutput)):
 	    try:
 	      shutil.copy(EoRFileName,EoRFileNameMacroOutput)

@@ -5,6 +5,7 @@ import random
 import json
 import shutil
 import fileinput
+import zlib
 
 """
 Do actual files
@@ -28,51 +29,64 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
 
    start = time.time()
    while ((float(timeEnd) < 0.0 or float(time.time() - start) < float(timeEnd)) and (int(LSNumber) == int(ls))):
-     time.sleep (float(rate))
-     # just in case we need more than one seed
-     numberOfSeedsNeeded = 1
-     seedsRND = []
-     for i in range(0, numberOfSeedsNeeded):
-       seedsRND.append(random.randint(0,999999))
+      time.sleep (float(rate))
+      # just in case we need more than one seed
+      numberOfSeedsNeeded = 1
+      seedsRND = []
+      for i in range(0, numberOfSeedsNeeded):
+	seedsRND.append(random.randint(0,999999))
 
-     if theNLoop == 1:
-        fileJSONNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
-        if not os.path.exists(fileJSONNameFullPath):
-           try:
-              with open(fileJSONNameFullPath, 'w') as theFileJSONName:
-                 fcntl.flock(theFileJSONName, fcntl.LOCK_EX)
-                 theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
-                 fcntl.flock(theFileJSONName, fcntl.LOCK_UN)
-              theFileJSONName.close()
-              ###os.chmod(fileJSONNameFullPath, 0666)
-           except OSError, e:
-              print "Looks like the file " + fileJSONNameFullPath + " has just been created by someone else..."
-        fileBoLSFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName)
-	msg = "touch %s" % fileBoLSFullPath
-	os.system(msg)
-	
-     fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
-     fileOutputName =                              "run%d_ls%d_%s_%d.BU%s.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
+      if theNLoop == 1:
+         fileJSONNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
+         if not os.path.exists(fileJSONNameFullPath):
+            try:
+               with open(fileJSONNameFullPath, 'w') as theFileJSONName:
+                  fcntl.flock(theFileJSONName, fcntl.LOCK_EX)
+                  theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
+                  fcntl.flock(theFileJSONName, fcntl.LOCK_UN)
+               theFileJSONName.close()
+               ###os.chmod(fileJSONNameFullPath, 0666)
+            except OSError, e:
+               print "Looks like the file " + fileJSONNameFullPath + " has just been created by someone else..."
+         fileBoLSFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName)
+	 msg = "touch %s" % fileBoLSFullPath
+	 os.system(msg)
 
-     # making a symbolic link (sysadmins don't like it)
-     msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
-     os.system(msg)
-     # creating/copying the file (default)
-     #with open(fileOutputNameFullPath, 'w') as thefile:
-     	#thefile.write(contentInputFile)
-     #thefile.close()
+      fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
+      fileOutputName =                              "run%d_ls%d_%s_%d.BU%s.dat" % (                       RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
 
-     fileSize = os.path.getsize(fileOutputNameFullPath)
-     outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
-     with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
-        theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName, fileSize)}))
-     theMergedJSONfile.close()
-     ###os.chmod(outMergedJSONFullPath, 0666)
+      # making a symbolic link (sysadmins don't like it)
+      msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
+      os.system(msg)
+      # creating/copying the file (default)
+      #with open(fileOutputNameFullPath, 'w') as thefile:
+     	 #thefile.write(contentInputFile)
+      #thefile.close()
 
-     if(theNLoop%NumberOfFilesPerLS == 0):
-        LSNumber += 1
+      fileSize = os.path.getsize(fileOutputNameFullPath)
+      adler32c=1
+      #calculate checksum on the fly
+      with open(fileOutputNameFullPath, 'r') as fsrc:
+         length=16*1024
+         while 1:
+            buf = fsrc.read(length)
+            if not buf:
+               break
+            adler32c=zlib.adler32(buf,adler32c)
+      # need to make it unsigned
+      adler32c = adler32c & 0xffffffff
 
-     theNLoop += 1
+      emptyString = ""
+      outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,seedsRND[0],theBUNumber)
+      with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
+         theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName, fileSize, emptyString, adler32c)}))
+      theMergedJSONfile.close()
+      ###os.chmod(outMergedJSONFullPath, 0666)
+
+      if(theNLoop%NumberOfFilesPerLS == 0):
+         LSNumber += 1
+
+      theNLoop += 1
 
    return 0
 

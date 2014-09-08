@@ -11,6 +11,8 @@ import datetime
 import fileinput
 import socket
 import filecmp
+import zlib
+import zlibextras
 
 from Logging import getLogger
 log = getLogger()
@@ -18,9 +20,9 @@ log = getLogger()
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
-   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
+   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
    outMergedFileFullPath = os.path.join(outputMergedFolder, outMergedFile)
    outMergedJSONFullPath = os.path.join(outputMergedFolder, outMergedJSON)
@@ -43,6 +45,20 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
+
+         checkSumIni=1
+         with open(iniNameFullPath, 'r') as fsrc:
+            length=16*1024
+      	    while 1:
+   	       buf = fsrc.read(length)
+   	       if not buf:
+   	    	  break
+   	       checkSumIni=zlib.adler32(buf,checkSumIni)
+
+         checkSumIni = checkSumIni & 0xffffffff
+         checkSum = zlibextras.adler32_combine(checkSumIni,checkSum,fileSize)
+         checkSum = checkSum & 0xffffffff
+
          fileSize = os.path.getsize(iniNameFullPath) + fileSize
          filenames = [iniNameFullPath]
          with open(outMergedFileFullPath, 'w') as fout:
@@ -73,7 +89,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
@@ -121,6 +137,23 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
 
+   # checkSum checking
+   if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
+      adler32c=1
+      with open(outMergedFileFullPath, 'r') as fsrc:
+         length=16*1024
+         while 1:
+            buf = fsrc.read(length)
+            if not buf:
+               break
+            adler32c=zlib.adler32(buf,adler32c)
+
+      adler32c = adler32c & 0xffffffff
+      if(adler32c != checkSum):
+         log.error("BIG PROBLEM, checkSum failed != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,adler32c,checkSum))
+         outMergedFileFullPathStable = outputMergedFolder + "/../bad/" + outMergedFile
+         outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
+
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
@@ -134,9 +167,9 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
-   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
+   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
    # we will merge file at the BU level only!
    outMergedFileFullPath = os.path.join(outputSMMergedFolder, outMergedFile)
@@ -195,7 +228,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2])}))
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
@@ -256,9 +289,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
-   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, fileSize, filesJSON, errorCode))
+   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    # we will merge file at the BU level only!
    outMergedFileFullPath = os.path.join(outputSMMergedFolder, outMergedFile)
@@ -296,13 +329,24 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
 
    	       with open(lockNameFullPath, 'w') as filelock:
    	          fcntl.flock(filelock, fcntl.LOCK_EX)
-   	          filelock.write("%d" %(os.path.getsize(iniNameFullPath)))
+
+                  checkSumIni=1
+                  with open(iniNameFullPath, 'r') as fsrc:
+                     length=16*1024
+      	             while 1:
+   	             	buf = fsrc.read(length)
+                     	if not buf:
+                     	   break
+                     	checkSumIni=zlib.adler32(buf,checkSumIni)
+
+		  checkSumIni = checkSumIni & 0xffffffff
+		  filelock.write("%d:%d" %(os.path.getsize(iniNameFullPath),checkSumIni))
+
    	          filelock.flush()
    	          #os.fdatasync(filelock)
 		  #os.chmod(lockNameFullPath, 0666)
    	          fcntl.flock(filelock, fcntl.LOCK_UN)
    	       filelock.close()
-
                fcntl.flock(fout, fcntl.LOCK_UN)
             fout.close()
       else:
@@ -335,8 +379,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       with open(lockNameFullPath, 'r+w') as filelock:
          fcntl.flock(filelock, fcntl.LOCK_EX)
          lockFullString = filelock.readline().split(',')
-         ini = int(lockFullString[len(lockFullString)-1])
-         filelock.write(",%d" % (ini+sum))
+         ini = int(lockFullString[len(lockFullString)-1].split(':')[0])
+         filelock.write(",%d:%d" %(ini+sum,checkSum))
          filelock.flush()
          if(float(debug) >= 10): log.info("Writing in lock file ({0}): {1}".format(lockNameFullPath,(ini+sum)))
          #os.fdatasync(filelock)
@@ -350,20 +394,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
 
    if typeMerging == "macro" and os.path.exists(iniNameFullPath) and eventsO == 0:
       fileSize = os.path.getsize(iniNameFullPath)
-   
-   # input events in that file, all input events, file name, output events in that files, number of merged files
-   # only the first three are important
-   theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2])}))
-   theMergedJSONfile.close()
-   #os.chmod(outMergedJSONFullPath, 0666)
-
-   # used for monitoring purposes
-   if typeMerging == "mini":
-      try:
-         shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
 
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
@@ -397,24 +427,57 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
 
       with open(lockNameFullPath, 'r+w') as filelock:
          lockFullString = filelock.readline().split(',')
-         totalSize = int(lockFullString[len(lockFullString)-1])
+         totalSize = int(lockFullString[len(lockFullString)-1].split(':')[0])
       filelock.close()
 
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.truncate(fileSize)
       fout.close()
+      
+      checkSumFailed = False
 
       if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != totalSize):
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,totalSize))
          outMergedFileFullPathStable = outputSMMergedFolder + "/../bad/" + outMergedFile
-	 
+
 	 # also want to move the lock file to the bad area
          lockNameFullPathStable = outputSMMergedFolder + "/../bad/" + lockName
          shutil.move(lockNameFullPath,lockNameFullPathStable)
 
       else:
          outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
-         if(doRemoveFiles == "True"):
+         if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
+            # observed checksum
+            adler32c=1
+            with open(outMergedFileFullPath, 'r') as fsrc:
+               length=16*1024
+               while 1:
+                  buf = fsrc.read(length)
+                  if not buf:
+                     break
+                  adler32c=zlib.adler32(buf,adler32c)
+
+	    adler32c = adler32c & 0xffffffff
+	    # expected checksum
+            with open(lockNameFullPath, 'r+w') as filelock:
+               lockFullString = filelock.readline().split(',')
+	    checkSum = int(lockFullString[0].split(':')[1])
+	    for nf in range(1, len(lockFullString)):
+               fileSizeAux = int(lockFullString[nf].split(':')[0])-int(lockFullString[nf-1].split(':')[0])
+               checkSumAux = int(lockFullString[nf].split(':')[1])
+	       checkSum = zlibextras.adler32_combine(checkSum,checkSumAux,fileSizeAux)
+               checkSum = checkSum & 0xffffffff
+
+            if(adler32c != checkSum):
+	       checkSumFailed = True
+               log.error("BIG PROBLEM, checkSum failed != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,adler32c,checkSum))
+               outMergedFileFullPathStable = outputSMMergedFolder + "/../bad/" + outMergedFile
+
+	       # also want to move the lock file to the bad area
+               lockNameFullPathStable = outputSMMergedFolder + "/../bad/" + lockName
+               shutil.move(lockNameFullPath,lockNameFullPathStable)
+
+	 if(doRemoveFiles == "True" and checkSumFailed == False):
             if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
                os.remove(lockNameFullPath)
 
@@ -425,8 +488,21 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
+   # input events in that file, all input events, file name, output events in that files, number of merged files
+   # only the first three are important
+   theMergedJSONfile = open(outMergedJSONFullPath, 'w')
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2])}))
+   theMergedJSONfile.close()
+   #os.chmod(outMergedJSONFullPath, 0666)
 
-   if(typeMerging == "macro" and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != totalSize):
+   # used for monitoring purposes
+   if typeMerging == "mini":
+      try:
+         shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
+
+   if(typeMerging == "macro" and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and (fileSize != totalSize or checkSumFailed == True)):
       outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
    else:
       outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
