@@ -351,7 +351,10 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		errorCode	  = int(settings['data'][3])
 		file              = str(settings['data'][4])
 		fileSize          = int(settings['data'][5])
-		checkSum          = int(settings['data'][7])
+		if(len(settings['data']) > 7):
+		   checkSum       = int(settings['data'][7])
+                #else:
+                #   log.warning("wrong format for checksum: {0}".format(afterString[i]))
 	        if(float(debug) >= 50): log.info("Info from json file(eventsInput, eventsOutput, eventsOutputError, errorCode, file, fileSize): {0}, {1}, {2}, {3}, {4}, {5}".format(eventsInput, eventsOutput, eventsOutputError, errorCode, file, fileSize))
 	        # processed events == input + error events
 		eventsInput = eventsInput + eventsOutputError
@@ -363,9 +366,15 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		errorCode	 = int(settings['data'][2])
 		file             = str(settings['data'][3])
 		fileSize         = int(settings['data'][4])
-		checkSum         = int(settings['data'][5])
-                nFilesBU         = int(settings['data'][6])
-                eventsTotalInput = int(settings['data'][7])
+		if(len(settings['data']) > 7):
+		   checkSum         = int(settings['data'][5])
+                   nFilesBU         = int(settings['data'][6])
+                   eventsTotalInput = int(settings['data'][7])
+                else:
+		   checkSum         = 0
+                   nFilesBU         = int(settings['data'][5])
+                   eventsTotalInput = int(settings['data'][6])
+                   #log.warning("wrong format for checksum: {0}".format(afterString[i]))
 
              key = (fileNameString[0],fileNameString[1],fileNameString[2])
              if key in filesDict.keys():
