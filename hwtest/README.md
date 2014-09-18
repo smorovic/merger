@@ -82,7 +82,7 @@ Update the config files.
     END_OF_HERE_DOC
 
 
-Update the hard-coded paths of config files in the merger code
+Update the hard-coded paths of config and log files in the merger code
 so that the code works in your custom location.
 Some of the absolute paths to the config files may not be necessary if
 you launch the scripts from the directory containing the code
