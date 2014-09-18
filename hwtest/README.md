@@ -11,11 +11,13 @@ for a single machine only.
 
 ## Configure
 
-    ## Create a new temporary folder.
-    ## We will put everything related to the test in this folder.
+Create a new temporary folder. We will put everything related to the test in
+this folder.
+
     TEST_BASE=$(mktemp -d -p /tmp/$(whoami))
 
-    ## Define other directories used in the test. These can be customized.
+Define other directories used in the test. These can be customized.
+
     ## Will contain the merger code
     MERGER_BASE=$TEST_BASE/merger
     ## Will contain the inputs for the generation of the unmerged data
@@ -28,8 +30,16 @@ for a single machine only.
     MERGED2_BASE=$TEST_BASE/data/mergeMacro_TEST
 
 ## Setup
-    ## Get the code from github.com
+Get the code from github.com. The https method should always work but you
+may not have write access to the remote origin. You may need a Github account
+with your ssh key uploaded for the ssh method to work.
+
+    ## The https method
     git clone https://github.com/cmsdaq/merger $MERGER_BASE
+    ## The ssh method
+    # git clone git@github.com:cmsdaq/merger.git $MERGER_BASE
+
+Update the config files.
 
     ## Update the mini-merger config
     cat > $MERGER_BASE/dataFlowMergerMini.conf <<END_OF_HERE_DOC
@@ -71,7 +81,13 @@ for a single machine only.
     mergeOption   = "optionC"
     END_OF_HERE_DOC
 
-    ## Update the merger code so that it works in this custom location
+
+Update the hard-coded paths of config files in the merger code
+so that the code works in your custom location.
+Some of the absolute paths to the config files may not be necessary if
+you launch the scripts from the directory containing the code
+but are useful so that you can launch the scripts from any location.
+
     OLD=/opt/merger/dataFlowMerger.conf
     NEW=$MERGER_BASE/dataFlowMergerMini.conf
     sed -i "s|$OLD|$NEW|" $MERGER_BASE/Logging.py
@@ -110,3 +126,6 @@ for a single machine only.
     ##+ Hit Ctrl-C to kill it after it finished merging all 15 files
     $MERGER_BASE/dataFlowMacroMergerInLine
 
+## Clean Up
+
+    cd && rm -rf $TEST_BASE
