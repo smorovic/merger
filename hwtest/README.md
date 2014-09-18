@@ -94,7 +94,7 @@ but are useful so that you can launch the scripts from any location.
 
     OLD=/var/log/merger.log
     NEW=$MERGER_BASE/merger.log
-    sed -i "s|$OLD_LOG|$NEW_LOG|" $MERGER_BASE/logFormat.conf
+    sed -i "s|$OLD|$NEW|" $MERGER_BASE/logFormat.conf
 
     OLD=dataFlowMergerMini.conf
     NEW=$MERGER_BASE/dataFlowMergerMini.conf
