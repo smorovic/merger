@@ -1,6 +1,6 @@
 # Merger Test Recipe
 This describes how to run a simple test of the merger. It is currently setup
-for a single machine only.
+for a single machine only. For Python versioning reasons this is only confirmed to work on CMSSW_7_0_0 and up.
 
 ## Login
 
