@@ -137,7 +137,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
 
    # checkSum checking
-   if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
+   if(fileNameString[2] != "streamError" and "streamDQMHistograms" not in fileNameString[2]):
       adler32c=1
       with open(outMergedFileFullPath, 'r') as fsrc:
          length=16*1024
@@ -156,7 +156,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
-   if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != os.path.getsize(outMergedFileFullPathStable)):
+   if(fileNameString[2] != "streamError" and "streamDQMHistograms" not in fileNameString[2] and fileSize != os.path.getsize(outMergedFileFullPathStable)):
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    endMergingTime = time.time() 
