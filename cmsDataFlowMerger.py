@@ -343,7 +343,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                       shutil.move(inputJsonRenameFile,inputJsonFailedFile)
                       isFailed = True
 
-             # avoid empty files
+             # avoid corrupted files
 	     if(isFailed == True): continue
 
              fileNameString = afterString[i].split('_')
