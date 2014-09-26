@@ -171,7 +171,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	  if inputDataFolderString[len(inputDataFolderString)-1] == '':
 	    outputMergedFolder    = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-2], "open")
 	    outputSMMergedFolder  = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-2], "open")
-	    outputDQMMergedFolder = os.path.join(outputDQMMerge, inputDataFolderString[len(inputDataFolderString)-2])
+	    outputDQMMergedFolder = os.path.join(outputDQMMerge, inputDataFolderString[len(inputDataFolderString)-2], "open")
 	    outputECALMergedFolder= os.path.join(outputECALMerge,inputDataFolderString[len(inputDataFolderString)-2])
 	    theRunNumber          = inputDataFolderString[len(inputDataFolderString)-2]
 	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-2], "bad")
@@ -179,7 +179,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
           else:
 	    outputMergedFolder    = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1], "open")
 	    outputSMMergedFolder  = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1], "open")
-	    outputDQMMergedFolder = os.path.join(outputDQMMerge, inputDataFolderString[len(inputDataFolderString)-1])
+	    outputDQMMergedFolder = os.path.join(outputDQMMerge, inputDataFolderString[len(inputDataFolderString)-1], "open")
 	    outputECALMergedFolder= os.path.join(outputECALMerge,inputDataFolderString[len(inputDataFolderString)-1])
 	    theRunNumber          = inputDataFolderString[len(inputDataFolderString)-1] 
 	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1], "bad")

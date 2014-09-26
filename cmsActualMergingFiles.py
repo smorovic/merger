@@ -159,6 +159,12 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    if(fileNameString[2] != "streamError" and "streamDQMHistograms" not in fileNameString[2] and fileSize != os.path.getsize(outMergedFileFullPathStable)):
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
+   if (typeMerging == "macro" and ("DQM" in fileNameString[2])):
+      outMergedFileFullPathStableFinal = outputDQMMergedFolder + "/../" + outMergedFile
+      outMergedJSONFullPathStableFinal = outputDQMMergedFolder + "/../" + outMergedJSON
+      shutil.move(outMergedFileFullPathStable,outMergedFileFullPathStableFinal)
+      shutil.move(outMergedJSONFullPathStable,outMergedJSONFullPathStableFinal)
+
    endMergingTime = time.time() 
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
