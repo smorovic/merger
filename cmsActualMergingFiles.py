@@ -125,12 +125,12 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
 
    if (typeMerging == "macro" and ("DQM" in fileNameString[2])):
-      #outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
-      #outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
-      outMergedFileFullPathStableDQM = os.path.join(outputDQMMergedFolder, outMergedFile)
-      outMergedJSONFullPathStableDQM = os.path.join(outputDQMMergedFolder, outMergedJSON)
-      shutil.copy(outMergedFileFullPath,outMergedFileFullPathStableDQM)
-      shutil.copy(outMergedJSONFullPath,outMergedJSONFullPathStableDQM)
+      outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
+      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
+      #outMergedFileFullPathStableDQM = os.path.join(outputDQMMergedFolder, outMergedFile)
+      #outMergedJSONFullPathStableDQM = os.path.join(outputDQMMergedFolder, outMergedJSON)
+      #shutil.copy(outMergedFileFullPath,outMergedFileFullPathStableDQM)
+      #shutil.copy(outMergedJSONFullPath,outMergedJSONFullPathStableDQM)
 
    if (typeMerging == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
