@@ -172,7 +172,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
@@ -268,20 +268,16 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/open/../."
    if typeMerging == "macro":
       outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
-      if ("DQM" in fileNameString[2]):
-         outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
       if (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2])):
          outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
 
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
-      if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != os.path.getsize(outMergedFileFullPathStable)):
+      if(fileNameString[2] != "streamError" and fileSize != os.path.getsize(outMergedFileFullPathStable)):
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
-   if (typeMerging == "macro" and ("DQM" in fileNameString[2])):
-      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
    if (typeMerging == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
@@ -293,7 +289,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
@@ -440,7 +436,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
       
       checkSumFailed = False
 
-      if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and fileSize != totalSize):
+      if(fileNameString[2] != "streamError" and fileSize != totalSize):
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,totalSize))
          outMergedFileFullPathStable = outputSMMergedFolder + "/../bad/" + outMergedFile
 
@@ -450,7 +446,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
 
       else:
          outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
-         if(fileNameString[2] != "streamError" and "DQM" not in fileNameString[2]):
+         if(fileNameString[2] != "streamError"):
             # observed checksum
             adler32c=1
             with open(outMergedFileFullPath, 'r') as fsrc:
@@ -485,8 +481,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
             if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
                os.remove(lockNameFullPath)
 
-      if ("DQM" in fileNameString[2]):
-         outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
       if (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2])):
          outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
@@ -505,13 +499,11 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder,
    except OSError, e:
       log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
 
-   if(typeMerging == "macro" and fileNameString[2] != "streamError" and "DQM" not in fileNameString[2] and (fileSize != totalSize or checkSumFailed == True)):
+   if(typeMerging == "macro" and fileNameString[2] != "streamError" and (fileSize != totalSize or checkSumFailed == True)):
       outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
    else:
       outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
 
-   if (typeMerging == "macro" and ("DQM" in fileNameString[2])):
-      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
    if (typeMerging == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
