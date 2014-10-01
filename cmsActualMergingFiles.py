@@ -30,16 +30,17 @@ def elasticMonitor(mergeMonitorData,typeMerging,esServerUrl,esIndexName,maxConne
       try:
   #requests.post(esServerUrl+'/_bulk','{"index": {"_parent": '+str(self.runnumber)+', "_type": "macromerge", "_index": "'+esIndexName+'"}}\n'+json.dumps(mergeMonitorDict)+'\n')
          documentType=typeMerging+'merge'
-         log.info("About to try to insert into ES with the following info:")
-         log.info('Server: "' + esServerUrl+'/'+esIndexName+'/'+documentType+'/' + '"')
-         log.info("Data: '"+json.dumps(mergeMonitorDict)+"'")
+         if(float(debug) >= 10):
+            log.info("About to try to insert into ES with the following info:")
+            log.info('Server: "' + esServerUrl+'/'+esIndexName+'/'+documentType+'/' + '"')
+            log.info("Data: '"+json.dumps(mergeMonitorDict)+"'")
          monitorResponse=requests.post(esServerUrl+'/'+esIndexName+'/'+documentType+'/',data=json.dumps(mergeMonitorDict))
-         log.info('Successfully inserted record into ES')
+         if(float(debug) >= 10): log.info('Successfully inserted record into ES')
          #if(float(debug) > 0): log.info("{0}: Merger monitor produced response: {1}".format(now.strftime("%H:%M:%S"), monitorResponse.text))
          break
       except (requests.exceptions.ConnectionError,requests.exceptions.Timeout) as e:
-         log.info(monitorResponse.status_code + ' status code')
-         log.info(monitorResponse.raise_for_status())
+         log.error('elasticMonitor threw connection error: HTTP ' + monitorResponse.status_code)
+         log.error(monitorResponse.raise_for_status())
          if connectionAttempts > maxConnectionAttempts:
             log.error('connection error: elasticMonitor failed to record '+documentType+' after '+ str(maxConnectionAttempts)+'attempts')
             break
@@ -277,12 +278,11 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
    #monitor the merger by inserting record into elastic search database:
    if not (esServerUrl=='' or esIndexName==''):
-    ls=fileNameString[1][2:]
-       stream=fileNameString[2]
-       mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPath), ls, stream]
-       elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
-   
-   
+      ls=fileNameString[1][2:]
+      stream=fileNameString[2]
+      mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPath), ls, stream]
+      elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+      
    # used for monitoring purposes
    try:
       shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)

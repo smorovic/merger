@@ -31,10 +31,10 @@ def esMonitorMapping(esServerUrl,esIndexName,debug):
    try:
       checkIndexResponse=requests.get(esServerUrl+'/'+esIndexName+'/_stats/_shards/')
       if '_shards' in json.loads(checkIndexResponse.text):
-         print 'found index '+esIndexName+' containing '+str(json.loads(checkIndexResponse.text)['_shards']['total'])+' total shards'
+         if(float(debug) >= 10): log.info('found index '+esIndexName+' containing '+str(json.loads(checkIndexResponse.text)['_shards']['total'])+' total shards')
          indexExists=True
       else:
-         print 'did not find existing index '+esIndexName+', attempting to create it now...'
+         if(float(debug) >= 10): log.info('did not find existing index '+esIndexName+', attempting to create it now...')
          indexExists=False 
    except requests.exceptions.ConnectionError as e:
       log.error('esMonitorMapping: Could not connect to ElasticSearch database!')
