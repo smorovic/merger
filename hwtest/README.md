@@ -2,6 +2,10 @@
 This describes how to run a simple test of the merger. It is currently setup
 for a single machine only. For Python versioning reasons this is only confirmed to work on CMSSW_7_0_0 and up.
 
+In order to test monitoring please edit config files and put in the details of the server URL and ES index:
+dataFlowMergerMini.conf
+dataFlowMergerMacro.conf
+
 ## Login
 
     ## Login to LXPLUS
@@ -59,6 +63,8 @@ Update the config files.
     debugLevel    = "1"
     logConfigFile = "$MERGER_BASE/logFormat.conf"
     mergeOption   = "optionC"
+    esServerUrl   = ""
+    esIndexName   = ""
     END_OF_HERE_DOC
 
     ## Update the macro-merger config
@@ -79,6 +85,8 @@ Update the config files.
     debugLevel    = "1"
     logConfigFile = "$MERGER_BASE/logFormat.conf"
     mergeOption   = "optionC"
+    esServerUrl   = ""
+    esIndexName   = ""
     END_OF_HERE_DOC
 
 
