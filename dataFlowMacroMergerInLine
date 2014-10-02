@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #configfile = "/opt/merger/dataFlowMerger.conf"
 #configfile = "dataFlowMergerMini.conf"
-configfile = "/home/dhsu/daq/merger/dataFlowMergerMacro.conf"
+configfile = "dataFlowMergerMini.conf"
 
 import sys, os, socket, signal
 
@@ -38,6 +38,8 @@ def get_params():
         merge_option = params['Misc']['mergeOption']
         es_server_url = params['Misc']['esServerUrl']
         es_index_name = params['Misc']['esIndexName']
+        number_of_shards = params['Misc']['numberOfShards']
+        number_of_replicas = params['Misc']['numberOfReplicas']
     except KeyError, e:
         log.error("At least one non-optional parameter missing from the config file {0}:".format(configfile))
         log.error("{0}".format(e))
@@ -61,17 +63,17 @@ def get_params():
     if (merge_option != "optionA"):
         delete_files = "True"
 
-    return in_path, eol_path, out_path, sm_path, dqm_path, ecal_path, additional_label, merge_type, delete_files, merge_option, es_server_url, es_index_name, debug_level
+    return in_path, eol_path, out_path, sm_path, dqm_path, ecal_path, additional_label, merge_type, delete_files, merge_option, es_server_url, es_index_name, number_of_shards, number_of_replicas, debug_level
 
 
 
 def DataFlowMerger():
 
-  [inPath, eolPath, outPath, smPath, dqmPath, ecalPath, adLabel, mType, delOrigFiles, mergeOption, esServerUrl, esIndexName, debugLevel] = get_params()
+  [inPath, eolPath, outPath, smPath, dqmPath, ecalPath, adLabel, mType, delOrigFiles, mergeOption, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debugLevel] = get_params()
 
   log.info("delFiles: {0}".format(delOrigFiles))
 
-  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, smPath, dqmPath, ecalPath, adLabel, delOrigFiles, mergeOption, esServerUrl, esIndexName, debugLevel)
+  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, outPath, smPath, dqmPath, ecalPath, adLabel, delOrigFiles, mergeOption, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debugLevel)
 
 if __name__ == "__main__":
 

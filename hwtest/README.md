@@ -65,6 +65,8 @@ Update the config files.
     mergeOption   = "optionC"
     esServerUrl   = ""
     esIndexName   = ""
+    numberOfShards = "1"
+    numberOfReplicas = "0"
     END_OF_HERE_DOC
 
     ## Update the macro-merger config
@@ -87,6 +89,8 @@ Update the config files.
     mergeOption   = "optionC"
     esServerUrl   = ""
     esIndexName   = ""
+    numberOfShards = "1"
+    numberOfReplicas = "0"
     END_OF_HERE_DOC
 
 

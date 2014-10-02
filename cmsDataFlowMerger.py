@@ -25,7 +25,7 @@ log = getLogger()
 Do actual merging
 """
 
-def esMonitorMapping(esServerUrl,esIndexName,debug):
+def esMonitorMapping(esServerUrl,esIndexName,debug,numberOfShards,numberOfReplicas):
 # subroutine which creates index and mappings in elastic search database
    # check if the index exists:
    try:
@@ -56,8 +56,8 @@ def esMonitorMapping(esServerUrl,esIndexName,debug):
             }
          },
          "index":{
-            'number_of_shards' : 1,
-            'number_of_replicas' : 0
+            'number_of_shards' : numberOfShards,
+            'number_of_replicas' : numberOfReplicas
          },
       }
       mapping = {
@@ -678,7 +678,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
          thePool.close()
          thePool.join()
 
-def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, debug):
+def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
     triggerMergingThreshold = 0.8
 
@@ -723,7 +723,7 @@ def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputSMMe
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMerge))
    
     if not (esServerUrl == '' or esIndexName==''):
-        esMonitorMapping(esServerUrl,esIndexName,debug)
+        esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,debug)
 
     doTheRecovering(paths_to_watch, debug)
     doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold,esServerUrl, esIndexName)
