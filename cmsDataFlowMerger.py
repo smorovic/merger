@@ -25,7 +25,7 @@ log = getLogger()
 Do actual merging
 """
 
-def esMonitorMapping(esServerUrl,esIndexName,debug,numberOfShards,numberOfReplicas):
+def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,debug):
 # subroutine which creates index and mappings in elastic search database
    # check if the index exists:
    try:
@@ -94,7 +94,7 @@ def esMonitorMapping(esServerUrl,esIndexName,debug,numberOfShards,numberOfReplic
                'store'   : 'yes'
                }
          },
-         'micromerge' : {
+         'minimerge' : {
             '_id'        :{'path':'id'},
             '_parent'    :{'type':'run'},
             'properties' : {
