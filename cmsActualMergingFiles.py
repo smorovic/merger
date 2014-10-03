@@ -13,14 +13,46 @@ import socket
 import filecmp
 import zlib
 import zlibextras
+import requests
 
 from Logging import getLogger
 log = getLogger()
 
+def elasticMonitor(mergeMonitorData,typeMerging,esServerUrl,esIndexName,maxConnectionAttempts,debug):
+   # here the merge action is monitored by inserting a record into Elastic Search database
+   connectionAttempts=0 #initialize
+
+   # make dictionary to be JSON-ified and inserted into the Elastic Search DB as a document
+   keys = ["processed","accepted","errorEvents","fname","size","eolField1","eolField2","fm_date","ls","stream"]
+   values = [int(f) if str(f).isdigit() else str(f) for f in mergeMonitorData]
+   mergeMonitorDict=dict(zip(keys,values))
+   while True:
+      try:
+  #requests.post(esServerUrl+'/_bulk','{"index": {"_parent": '+str(self.runnumber)+', "_type": "macromerge", "_index": "'+esIndexName+'"}}\n'+json.dumps(mergeMonitorDict)+'\n')
+         documentType=typeMerging+'merge'
+         if(float(debug) >= 10):
+            log.info("About to try to insert into ES with the following info:")
+            log.info('Server: "' + esServerUrl+'/'+esIndexName+'/'+documentType+'/' + '"')
+            log.info("Data: '"+json.dumps(mergeMonitorDict)+"'")
+         monitorResponse=requests.post(esServerUrl+'/'+esIndexName+'/'+documentType+'/',data=json.dumps(mergeMonitorDict))
+         if(float(debug) >= 10): log.info('Successfully inserted record into ES')
+         #if(float(debug) > 0): log.info("{0}: Merger monitor produced response: {1}".format(now.strftime("%H:%M:%S"), monitorResponse.text))
+         break
+      except (requests.exceptions.ConnectionError,requests.exceptions.Timeout) as e:
+         log.error('elasticMonitor threw connection error: HTTP ' + monitorResponse.status_code)
+         log.error(monitorResponse.raise_for_status())
+         if connectionAttempts > maxConnectionAttempts:
+            log.error('connection error: elasticMonitor failed to record '+documentType+' after '+ str(maxConnectionAttempts)+'attempts')
+            break
+         else:
+            connectionAttempts+=1
+            time.sleep(0.4)
+         continue
+ 
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
@@ -93,12 +125,6 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
-   # used for monitoring purposes
-   try:
-      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-   except OSError, e:
-      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
-
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
       for nfile in range(0, len(files)):
@@ -164,6 +190,22 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       outMergedJSONFullPathStableFinal = outputDQMMergedFolder + "/../" + outMergedJSON
       shutil.move(outMergedFileFullPathStable,outMergedFileFullPathStableFinal)
       shutil.move(outMergedJSONFullPathStable,outMergedJSONFullPathStableFinal)
+      outMergedFileFullPathStable = outMergedFileFullPathStableFinal
+      outMergedJSONFullPathStable = outMergedJSONFullPathStableFinal
+
+   if(os.path.exists(outMergedJSONFullPathStable)):
+      #monitor the merger by inserting record into elastic search database:
+      if not (esServerUrl=='' or esIndexName==''):
+         ls=fileNameString[1][2:]
+         stream=fileNameString[2]
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+
+      # used for monitoring purposes
+      try:
+         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -172,7 +214,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
@@ -237,12 +279,6 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
-   # used for monitoring purposes
-   try:
-      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-   except OSError, e:
-      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
-
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
       if typeMerging == "mini":
@@ -282,6 +318,20 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
+   if(os.path.exists(outMergedJSONFullPathStable)):
+      #monitor the merger by inserting record into elastic search database:
+      if not (esServerUrl=='' or esIndexName==''):
+         ls=fileNameString[1][2:]
+         stream=fileNameString[2]
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+
+      # used for monitoring purposes
+      try:
+         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+
    endMergingTime = time.time() 
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
@@ -289,7 +339,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
@@ -493,12 +543,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
-   # used for monitoring purposes
-   try:
-      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-   except OSError, e:
-      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
-
    if(typeMerging == "macro" and fileNameString[2] != "streamError" and (fileSize != totalSize or checkSumFailed == True)):
       outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
    else:
@@ -507,6 +551,20 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    if (typeMerging == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
+
+   if(os.path.exists(outMergedJSONFullPathStable)):
+      #monitor the merger by inserting record into elastic search database:
+      if not (esServerUrl=='' or esIndexName==''):
+         ls=fileNameString[1][2:]
+         stream=fileNameString[2]
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+
+      # used for monitoring purposes
+      try:
+         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
