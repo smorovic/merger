@@ -18,14 +18,14 @@ import requests
 from Logging import getLogger
 log = getLogger()
 
-def elasticMonitor(mergeMonitorData,typeMerging,esServerUrl,esIndexName,maxConnectionAttempts,debug):
+def elasticMonitor(mergeMonitorData,runnumber,typeMerging,esServerUrl,esIndexName,maxConnectionAttempts,debug):
    # here the merge action is monitored by inserting a record into Elastic Search database
    connectionAttempts=0 #initialize
-
    # make dictionary to be JSON-ified and inserted into the Elastic Search DB as a document
    keys = ["processed","accepted","errorEvents","fname","size","eolField1","eolField2","fm_date","ls","stream"]
    values = [int(f) if str(f).isdigit() else str(f) for f in mergeMonitorData]
    mergeMonitorDict=dict(zip(keys,values))
+   mergeMonitorDict['fm_date']=float(mergeMonitorDict['fm_date'])
    while True:
       try:
   #requests.post(esServerUrl+'/_bulk','{"index": {"_parent": '+str(self.runnumber)+', "_type": "macromerge", "_index": "'+esIndexName+'"}}\n'+json.dumps(mergeMonitorDict)+'\n')
@@ -34,7 +34,8 @@ def elasticMonitor(mergeMonitorData,typeMerging,esServerUrl,esIndexName,maxConne
             log.info("About to try to insert into ES with the following info:")
             log.info('Server: "' + esServerUrl+'/'+esIndexName+'/'+documentType+'/' + '"')
             log.info("Data: '"+json.dumps(mergeMonitorDict)+"'")
-         monitorResponse=requests.post(esServerUrl+'/'+esIndexName+'/'+documentType+'/',data=json.dumps(mergeMonitorDict))
+         #attempt to record the merge, 400ms timeout!
+         monitorResponse=requests.post(esServerUrl+'/'+esIndexName+'/'+documentType+'?parent='+runnumber,data=json.dumps(mergeMonitorDict),timeout=0.4)
          if(float(debug) >= 10): log.info('Successfully inserted record into ES')
          #if(float(debug) > 0): log.info("{0}: Merger monitor produced response: {1}".format(now.strftime("%H:%M:%S"), monitorResponse.text))
          break
@@ -46,7 +47,7 @@ def elasticMonitor(mergeMonitorData,typeMerging,esServerUrl,esIndexName,maxConne
             break
          else:
             connectionAttempts+=1
-            time.sleep(0.4)
+            time.sleep(0.1)
          continue
  
 """
@@ -198,8 +199,9 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       if not (esServerUrl=='' or esIndexName==''):
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
+         runnumber=fileNameString[0][3:]
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
-         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+         elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
       # used for monitoring purposes
       try:
@@ -323,8 +325,9 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       if not (esServerUrl=='' or esIndexName==''):
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
+         runnumber=fileNameString[0][3:]
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
-         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+         elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
       # used for monitoring purposes
       try:
@@ -557,8 +560,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       if not (esServerUrl=='' or esIndexName==''):
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
+         runnumber=fileNameString[0][3:]
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
-         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+         elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
       # used for monitoring purposes
       try:
