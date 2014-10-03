@@ -46,7 +46,7 @@ def elasticMonitor(mergeMonitorData,typeMerging,esServerUrl,esIndexName,maxConne
             break
          else:
             connectionAttempts+=1
-            time.sleep(1)
+            time.sleep(0.4)
          continue
  
 """
@@ -125,19 +125,6 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
-   #monitor the merger by inserting record into elastic search database:
-   if not (esServerUrl=='' or esIndexName==''):
-       ls=fileNameString[1][2:]
-       stream=fileNameString[2]
-       mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPath), ls, stream]
-       elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
-
-   # used for monitoring purposes
-   try:
-      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-   except OSError, e:
-      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
-
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
       for nfile in range(0, len(files)):
@@ -203,6 +190,22 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       outMergedJSONFullPathStableFinal = outputDQMMergedFolder + "/../" + outMergedJSON
       shutil.move(outMergedFileFullPathStable,outMergedFileFullPathStableFinal)
       shutil.move(outMergedJSONFullPathStable,outMergedJSONFullPathStableFinal)
+      outMergedFileFullPathStable = outMergedFileFullPathStableFinal
+      outMergedJSONFullPathStable = outMergedJSONFullPathStableFinal
+
+   if(os.path.exists(outMergedJSONFullPathStable)):
+      #monitor the merger by inserting record into elastic search database:
+      if not (esServerUrl=='' or esIndexName==''):
+         ls=fileNameString[1][2:]
+         stream=fileNameString[2]
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+
+      # used for monitoring purposes
+      try:
+         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -276,19 +279,6 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
-   #monitor the merger by inserting record into elastic search database:
-   if not (esServerUrl=='' or esIndexName==''):
-      ls=fileNameString[1][2:]
-      stream=fileNameString[2]
-      mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPath), ls, stream]
-      elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
-      
-   # used for monitoring purposes
-   try:
-      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-   except OSError, e:
-      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
-
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):
       if typeMerging == "mini":
@@ -327,6 +317,20 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    if (typeMerging == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
+
+   if(os.path.exists(outMergedJSONFullPathStable)):
+      #monitor the merger by inserting record into elastic search database:
+      if not (esServerUrl=='' or esIndexName==''):
+         ls=fileNameString[1][2:]
+         stream=fileNameString[2]
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+
+      # used for monitoring purposes
+      try:
+         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -539,19 +543,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
-   #monitor the merger by inserting record into elastic search database:
-   if not (esServerUrl=='' or esIndexName==''):
-       ls=fileNameString[1][2:]
-       stream=fileNameString[2]
-       mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPath), ls, stream]
-       elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
-
-   # used for monitoring purposes
-   try:
-      shutil.copy(outMergedJSONFullPath,outMonJSONFullPath)
-   except OSError, e:
-      log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPath,outMonJSONFullPath))
-
    if(typeMerging == "macro" and fileNameString[2] != "streamError" and (fileSize != totalSize or checkSumFailed == True)):
       outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
    else:
@@ -560,6 +551,20 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    if (typeMerging == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
+
+   if(os.path.exists(outMergedJSONFullPathStable)):
+      #monitor the merger by inserting record into elastic search database:
+      if not (esServerUrl=='' or esIndexName==''):
+         ls=fileNameString[1][2:]
+         stream=fileNameString[2]
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         elasticMonitor(mergeMonitorData,typeMerging, esServerUrl,esIndexName,5,debug)
+
+      # used for monitoring purposes
+      try:
+         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      except OSError, e:
+         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()

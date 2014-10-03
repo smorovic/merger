@@ -69,7 +69,6 @@ def get_params():
 
 def DataFlowMerger():
 
-
   [inPath, eolPath, outPath, smPath, dqmPath, ecalPath, adLabel, mType, delOrigFiles, mergeOption, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debugLevel] = get_params()
 
   log.info("delFiles: {0}".format(delOrigFiles))

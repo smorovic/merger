@@ -4,7 +4,7 @@ import logging.config
 import inspect
 from configobj import ConfigObj
 
-mergeConfigFileName = "/home/dhsu/daq/merger/dataFlowMergerMini.conf"
+mergeConfigFileName = "/opt/merger/dataFlowMerger.conf"
 try:
     if os.path.isfile(mergeConfigFileName):
         config = ConfigObj(mergeConfigFileName)
