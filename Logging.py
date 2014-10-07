@@ -22,6 +22,7 @@ def getLogger():
     frm = inspect.stack()[1]
     mod = inspect.getfile(frm[0])
     dotPosition = mod.rfind('.')
+    logging.getLogger("requests").setLevel(logging.WARNING)
     logger = logging.getLogger('Merger.' + mod[mod.rfind('/')+1:dotPosition if dotPosition != -1 else len(mod)])
     return logger
 
