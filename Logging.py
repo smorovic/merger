@@ -4,7 +4,7 @@ import logging.config
 import inspect
 from configobj import ConfigObj
 
-mergeConfigFileName = "/home/dhsu/daq/merger/dataFlowMergerMini.conf"
+mergeConfigFileName = "/opt/merger/dataFlowMerger.conf"
 try:
     if os.path.isfile(mergeConfigFileName):
         config = ConfigObj(mergeConfigFileName)
@@ -24,7 +24,6 @@ def getLogger():
     dotPosition = mod.rfind('.')
     logging.getLogger("requests").setLevel(logging.WARNING)
     logger = logging.getLogger('Merger.' + mod[mod.rfind('/')+1:dotPosition if dotPosition != -1 else len(mod)])
-    
     return logger
 
 log = getLogger()
