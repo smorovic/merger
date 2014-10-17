@@ -38,8 +38,87 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
          indexExists=False 
    except requests.exceptions.ConnectionError as e:
       log.error('esMonitorMapping: Could not connect to ElasticSearch database!')
-   if not indexExists:
-      #if the index/mappings don't exist, we must create them. the json follows:
+   if indexExists:
+      # if the index already exists, we put the mapping in the index for redundancy purposes:
+      # JSON follows:
+      run_mapping = {
+         'run' : {
+            '_routing' :{
+               'required' : True,
+               'path'     : 'runNumber'
+            },
+            '_id' : {
+               'path' : 'runNumber'
+            },
+            'properties' : {
+               'runNumber':{
+                  'type':'integer'
+                  },
+               'startTimeRC':{
+                  'type':'date'
+                  },
+               'stopTimeRC':{
+                  'type':'date'
+                  },
+               'startTime':{
+                  'type':'date'
+                  },
+               'endTime':{
+                  'type':'date'
+                  },
+               'completedTime' : {
+                  'type':'date'
+                  }
+            },
+            '_timestamp' : {
+               'enabled' : True,
+               'store'   : 'yes'
+               }
+         }
+      }
+      minimerge_mapping = {
+         'minimerge' : {
+            '_id'        :{'path':'id'},
+            '_parent'    :{'type':'run'},
+            'properties' : {
+               'fm_date'       :{'type':'date'},
+               'id'            :{'type':'string'}, #run+appliance+stream+ls
+               'appliance'     :{'type':'string'},
+               'stream'        :{'type':'string','index' : 'not_analyzed'},
+               'ls'            :{'type':'integer'},
+               'processed'     :{'type':'integer'},
+               'accepted'      :{'type':'integer'},
+               'errorEvents'   :{'type':'integer'},
+               'size'          :{'type':'integer'},
+            }
+         }
+      }
+      macromerge_mapping = {
+         'macromerge' : {
+            '_id'        :{'path':'id'},
+            '_parent'    :{'type':'run'},
+            'properties' : {
+               'fm_date'       :{'type':'date'},
+               'id'            :{'type':'string'}, #run+appliance+stream+ls
+               'appliance'     :{'type':'string'},
+               'stream'        :{'type':'string','index' : 'not_analyzed'},
+               'ls'            :{'type':'integer'},
+               'processed'     :{'type':'integer'},
+               'accepted'      :{'type':'integer'},
+               'errorEvents'   :{'type':'integer'},
+               'size'          :{'type':'integer'},
+            }
+         }
+      }
+      try:
+         putMappingResponse=requests.put(esServerUrl+'/'+esIndexName+'/_mapping/run',data=json.dumps(run_mapping))
+         putMappingResponse=requests.put(esServerUrl+'/'+esIndexName+'/_mapping/minimerge',data=json.dumps(minimerge_mapping))
+         putMappingResponse=requests.put(esServerUrl+'/'+esIndexName+'/_mapping/macromerge',data=json.dumps(macromerge_mapping))
+      except requests.exceptions.ConnectionError as e:
+         log.error('esMonitorMapping: Could not connect to ElasticSearch database!')
+   else:   
+      # if the index/mappings don't exist, we must create them both:
+      # JSON data for index settings, and merge document mappings
       settings = {
          "analysis":{
             "analyzer": {
