@@ -204,11 +204,11 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
-      # used for monitoring purposes
-      try:
-         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+      # used for monitoring purposes (deprecated)
+      #try:
+      #   shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      #except OSError, e:
+      #   log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -331,11 +331,11 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
-      # used for monitoring purposes
-      try:
-         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+      # used for monitoring purposes (deprecated)
+      #try:
+      #   shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      #except OSError, e:
+      #   log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -567,11 +567,11 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
-      # used for monitoring purposes
-      try:
-         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+      # used for monitoring purposes (deprecated)
+      #try:
+      #   shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      #except OSError, e:
+      #   log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
