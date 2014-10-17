@@ -205,10 +205,10 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
       # used for monitoring purposes
-      try:
-         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+      # try:
+      #    shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      # except OSError, e:
+      #    log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -332,10 +332,10 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
       # used for monitoring purposes
-      try:
-         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+      # try:
+      #    shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      # except OSError, e:
+      #    log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -568,10 +568,10 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
       # used for monitoring purposes
-      try:
-         shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      except OSError, e:
-         log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+      #try:
+      #   shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      #except OSError, e:
+      #   log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
