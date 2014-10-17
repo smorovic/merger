@@ -22,7 +22,7 @@ def elasticMonitor(mergeMonitorData,runnumber,typeMerging,esServerUrl,esIndexNam
    # here the merge action is monitored by inserting a record into Elastic Search database
    connectionAttempts=0 #initialize
    # make dictionary to be JSON-ified and inserted into the Elastic Search DB as a document
-   keys = ["processed","accepted","errorEvents","fname","size","eolField1","eolField2","fm_date","ls","stream"]
+   keys = ["processed","accepted","errorEvents","fname","size","eolField1","eolField2","fm_date","ls","stream","id"]
    values = [int(f) if str(f).isdigit() else str(f) for f in mergeMonitorData]
    mergeMonitorDict=dict(zip(keys,values))
    mergeMonitorDict['fm_date']=float(mergeMonitorDict['fm_date'])
@@ -200,14 +200,15 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
          runnumber=fileNameString[0][3:]
-         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         id='_'.join(fileNameString)
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
-      # used for monitoring purposes (deprecated)
-      #try:
-      #   shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      #except OSError, e:
-      #   log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+      # used for monitoring purposes
+      # try:
+      #    shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      # except OSError, e:
+      #    log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -326,14 +327,15 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
          runnumber=fileNameString[0][3:]
-         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         id='_'.join(fileNameString)
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
-      # used for monitoring purposes (deprecated)
-      #try:
-      #   shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      #except OSError, e:
-      #   log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
+      # used for monitoring purposes
+      # try:
+      #    shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
+      # except OSError, e:
+      #    log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
@@ -561,10 +563,11 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
          runnumber=fileNameString[0][3:]
-         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream]
+         id='_'.join(fileNameString)
+         mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
-      # used for monitoring purposes (deprecated)
+      # used for monitoring purposes
       #try:
       #   shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
       #except OSError, e:
