@@ -200,7 +200,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
          runnumber=fileNameString[0][3:]
-         id='_'.join(fileNameString)
+         id=outMergedJSON.replace(".jsn","")
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
@@ -327,7 +327,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
          runnumber=fileNameString[0][3:]
-         id='_'.join(fileNameString)
+         id=outMergedJSON.replace(".jsn","")
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
@@ -563,7 +563,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          ls=fileNameString[1][2:]
          stream=fileNameString[2]
          runnumber=fileNameString[0][3:]
-         id='_'.join(fileNameString)
+         id=outMergedJSON.replace(".jsn","")
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData,runnumber,typeMerging, esServerUrl,esIndexName,5,debug)
 
