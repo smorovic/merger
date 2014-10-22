@@ -209,7 +209,7 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
       except requests.exceptions.ConnectionError as e:
          log.error('esMonitorMapping: Could not connect to ElasticSearch database!')
 
-def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, filesDyn, checkSum, fileSize, filesJSONDyn, errorCode, typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug):
+def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, filesDyn, checkSum, fileSize, filesJSONDyn, errorCode, mergeType, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug):
 
    # making them local
    files     = [word_in_list for word_in_list in filesDyn]
@@ -220,19 +220,19 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
 
    if ((optionMerging == "optionA") or ("DQM" in fileNameString[2])):
       try:
-         cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug)
+         cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug)
       except OSError, e:
          log.error("cmsActualMergingFilesA crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    elif (optionMerging == "optionB"):
       try:
-         cmsActualMergingFiles.mergeFilesB(outputMergedFolder, outputSMMergedFolder,                        outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug)
+         cmsActualMergingFiles.mergeFilesB(outputMergedFolder, outputSMMergedFolder,                        outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug)
       except OSError, e:
          log.error("cmsActualMergingFilesB crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    elif (optionMerging == "optionC"):
       try:
-         cmsActualMergingFiles.mergeFilesC(outputMergedFolder, outputSMMergedFolder,                        outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, typeMerging, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug)
+         cmsActualMergingFiles.mergeFilesC(outputMergedFolder, outputSMMergedFolder,                        outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug)
       except OSError, e:
          log.error("cmsActualMergingFilesC crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
@@ -275,7 +275,7 @@ class LoggingPool(ThreadPool):
 """
 Do recovering JSON files
 """
-def doTheRecovering(paths_to_watch, debug):
+def doTheRecovering(paths_to_watch, debug, streamType):
    inputDataFolders = glob.glob(paths_to_watch)
    log.info("Recovering: inputDataFolders: {0}".format(inputDataFolders))
    if(float(debug) >= 10): log.info("**************recovering JSON files***************")
@@ -290,11 +290,16 @@ def doTheRecovering(paths_to_watch, debug):
 
       # loop over JSON files, which will give the list of files to be recovered
       for i in range(0, len(afterString)):
-         if "_TEMP.jsn" in afterString[i]:
+         if(streamType != "0" and (afterString[i].endswith(".jsn") or afterString[i].endswith(".ini"))):
+            fileString = afterString[i].split('_')
+            if  (streamType == "1" and fileString[2] != "StreamA"): continue
+            elif(streamType == "2" and fileString[2] == "StreamA"): continue
+      
+         if afterString[i].endswith("_TEMP.jsn"):
             inputJsonFile = os.path.join(inputDataFolder, afterString[i])
             inputJsonRenameFile = inputJsonFile.replace("_TEMP.jsn",".jsn")
             shutil.move(inputJsonFile,inputJsonRenameFile)
-         if "_TEMP.ini" in afterString[i]:
+         if afterString[i].endswith("_TEMP.ini"):
             inputIniFile = os.path.join(inputDataFolder, afterString[i])
             inputIniRenameFile = inputIniFile.replace("_TEMP.ini",".ini")
             shutil.move(inputIniFile,inputIniRenameFile)
@@ -320,7 +325,7 @@ def is_completed(filepath):
 """
 Do loops
 """
-def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, esServerUrl, esIndexName):
+def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, esServerUrl, esIndexName):
    filesDict      = dict() 
    fileSizeDict   = dict() 
    errorCodeDict  = dict()    
@@ -383,13 +388,13 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              except OSError, e:
                  log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMMergedFolder))
 
-	  if not os.path.exists(outputDQMMergedFolder) and typeMerging == "macro":
+	  if not os.path.exists(outputDQMMergedFolder) and mergeType == "macro":
              try:
                 os.makedirs(outputDQMMergedFolder)
              except OSError, e:
                  log.warning("Looks like the directory {0} has just been created by someone else...".format(outputDQMMergedFolder))
 
-	  if not os.path.exists(outputECALMergedFolder) and typeMerging == "macro":
+	  if not os.path.exists(outputECALMergedFolder) and mergeType == "macro":
              try:
                 os.makedirs(outputECALMergedFolder)
              except OSError, e:
@@ -435,9 +440,12 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
           	inputName  = os.path.join(inputDataFolder,afterString[i])
           	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
-          	fileIniString = afterString[i].split('_')
 
-          	if((typeMerging == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2])):
+                fileIniString = afterString[i].split('_')
+                if  (streamType == "1" and fileIniString[2] != "StreamA"): continue
+                elif(streamType == "2" and fileIniString[2] == "StreamA"): continue
+
+          	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2])):
           	    theIniOutputFolder = outputSMMergedFolder
 	  	    if((optionMerging == "optionA") or ("DQM" in fileIniString[2])):
           	       theIniOutputFolder = outputMergedFolder
@@ -495,6 +503,11 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     if "BoLS" in afterString[i]: continue
 	     if "EoR" in afterString[i]: continue
 	     if "TEMP" in afterString[i]: continue
+
+             fileNameString = afterString[i].split('_')
+             if  (streamType == "1" and fileNameString[2] != "StreamA"): continue
+             elif(streamType == "2" and fileNameString[2] == "StreamA"): continue
+
 	     if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
@@ -532,8 +545,6 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              # avoid corrupted files
 	     if(isFailed == True): continue
 
-             fileNameString = afterString[i].split('_')
-
              # this is the number of input and output events, and the name of the dat file, something critical
 	     # eventsOutput is actually the total number of events to merge in the macromerged stage
              eventsInput       = int(settings['data'][0])
@@ -545,7 +556,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              nFilesBU          = 0
              eventsTotalInput  = 0
              checkSum          = 0
-	     if typeMerging == "mini":
+	     if mergeType == "mini":
                 eventsOutputError = int(settings['data'][2])
 		errorCode	  = int(settings['data'][3])
 		file              = str(settings['data'][4])
@@ -644,7 +655,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
              elif fileNameString[2] == "streamDQMHistograms":
                 extensionName = ".pb"
 
-	     if typeMerging == "mini": 
+	     if mergeType == "mini": 
         	keyEoLS = (fileNameString[0],fileNameString[1])
 		if keyEoLS not in eventsEoLSDict.keys():
 	           EoLSName = path_eol + "/" + fileNameString[0] + "/" + fileNameString[0] + "_" + fileNameString[1] + "_EoLS.jsn"
@@ -678,10 +689,10 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		      eventsInputReal.append(eventsEoLSDict[keyEoLS][2])
                       eventsIDict.update({key:[-1.01*eventsTotalInput]})
                       if nLoops <= nWithPollMax or nWithPollMax < 0:
-                         process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug])
+                         process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug])
 		      else:
-                         #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug) )
-                         process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug])
+                         #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug) )
+                         process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug])
                          process.start()
                    else:
                       if (float(debug) >= 20):
@@ -710,10 +721,10 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 		   eventsInputReal.append(eventsEoLSDict[keyEoLS][2])
                    eventsIDict.update({key:[-1.01*eventsTotalInput]})
                    if nLoops <= nWithPollMax or nWithPollMax < 0:
-                      process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug])
+                      process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug])
                    else:
-                      #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug) )
-                      process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], typeMerging, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug])
+                      #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, debug) )
+                      process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, outputMonFolder, esServerUrl, esIndexName, debug])
                       process.start()
                 else:
                    if (float(debug) >= 20):
@@ -727,7 +738,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
 	     EoRFileNameDQMOutputFinal  = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
 	     EoRFileNameECALOutput      = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
 	     EoRFileNameECALOutputFinal = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
-	     if(typeMerging == "macro"):
+	     if(mergeType == "macro"):
 	        EoRFileNameDQMOutput       = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
 	        EoRFileNameDQMOutputFinal  = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR.jsn"
 	        EoRFileNameECALOutput      = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
@@ -748,7 +759,7 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
                 except OSError, e:
                    log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameECALOutputFinal))
 
-	     if(doRemoveFiles == "True" and typeMerging == "mini"):
+	     if(doRemoveFiles == "True" and mergeType == "mini"):
 	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName)
 
           before = after
@@ -757,22 +768,22 @@ def doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outp
          thePool.close()
          thePool.join()
 
-def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
+def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
     triggerMergingThreshold = 0.8
 
-    if typeMerging != "mini" and typeMerging != "macro" and typeMerging != "auto":
-       msg = "Wrong type of merging: %s" % typeMerging
+    if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
+       msg = "Wrong type of merging: %s" % mergeType
        raise RuntimeError, msg
     
-    if typeMerging == "auto":
+    if mergeType == "auto":
        theHost = socket.gethostname()
        if "bu" in theHost.lower():
-          typeMerging = "mini"
+          mergeType = "mini"
        else:
-          typeMerging = "macro"
+          mergeType = "macro"
     
-    if typeMerging == "mini":
+    if mergeType == "mini":
        if not os.path.exists(path_eol):
           msg = "End of Lumi folder Not Found: %s" % path_eol
           raise RuntimeError, msg
@@ -789,13 +800,13 @@ def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputSMMe
        except OSError, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMMerge))
     
-    if not os.path.exists(outputDQMMerge) and typeMerging == "macro":
+    if not os.path.exists(outputDQMMerge) and mergeType == "macro":
        try:
           os.makedirs(outputDQMMerge)
        except OSError, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputDQMMerge))
     
-    if not os.path.exists(outputECALMerge) and typeMerging == "macro":
+    if not os.path.exists(outputECALMerge) and mergeType == "macro":
        try:
           os.makedirs(outputECALMerge)
        except OSError, e:
@@ -804,5 +815,5 @@ def start_merging(paths_to_watch, path_eol, typeMerging, outputMerge, outputSMMe
     if not (esServerUrl == '' or esIndexName==''):
         esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,debug)
 
-    doTheRecovering(paths_to_watch, debug)
-    doTheMerging(paths_to_watch, path_eol, typeMerging, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold,esServerUrl, esIndexName)
+    doTheRecovering(paths_to_watch, streamType, debug)
+    doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold,esServerUrl, esIndexName)
