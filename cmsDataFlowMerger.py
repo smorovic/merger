@@ -292,8 +292,8 @@ def doTheRecovering(paths_to_watch, debug, streamType):
       for i in range(0, len(afterString)):
          if(streamType != "0" and (afterString[i].endswith(".jsn") or afterString[i].endswith(".ini"))):
             fileString = afterString[i].split('_')
-            if  (streamType == "1" and fileString[2] != "StreamA"): continue
-            elif(streamType == "2" and fileString[2] == "StreamA"): continue
+            if  (streamType == "onlyStreamA" and fileString[2] != "StreamA"): continue
+            elif(streamType == "noStreamA"   and fileString[2] == "StreamA"): continue
       
          if afterString[i].endswith("_TEMP.jsn"):
             inputJsonFile = os.path.join(inputDataFolder, afterString[i])
@@ -442,8 +442,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
 
                 fileIniString = afterString[i].split('_')
-                if  (streamType == "1" and fileIniString[2] != "StreamA"): continue
-                elif(streamType == "2" and fileIniString[2] == "StreamA"): continue
+                if  (streamType == "onlyStreamA" and fileIniString[2] != "StreamA"): continue
+                elif(streamType == "noStreamA"   and fileIniString[2] == "StreamA"): continue
 
           	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2])):
           	    theIniOutputFolder = outputSMMergedFolder
@@ -505,8 +505,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     if "TEMP" in afterString[i]: continue
 
              fileNameString = afterString[i].split('_')
-             if  (streamType == "1" and fileNameString[2] != "StreamA"): continue
-             elif(streamType == "2" and fileNameString[2] == "StreamA"): continue
+             if  (streamType == "onlyStreamA" and fileNameString[2] != "StreamA"): continue
+             elif(streamType == "noStreamA"   and fileNameString[2] == "StreamA"): continue
 
 	     if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
