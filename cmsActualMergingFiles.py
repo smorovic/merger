@@ -198,7 +198,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       #monitor the merger by inserting record into elastic search database:
       if not (esServerUrl=='' or esIndexName==''):
          ls=fileNameString[1][2:]
-         stream=fileNameString[2]
+         stream=fileNameString[2][6:]
          runnumber=fileNameString[0][3:]
          id=outMergedJSON.replace(".jsn","")
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
@@ -325,7 +325,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       #monitor the merger by inserting record into elastic search database:
       if not (esServerUrl=='' or esIndexName==''):
          ls=fileNameString[1][2:]
-         stream=fileNameString[2]
+         stream=fileNameString[2][6:]
          runnumber=fileNameString[0][3:]
          id=outMergedJSON.replace(".jsn","")
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
@@ -561,7 +561,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       #monitor the merger by inserting record into elastic search database:
       if not (esServerUrl=='' or esIndexName==''):
          ls=fileNameString[1][2:]
-         stream=fileNameString[2]
+         stream=fileNameString[2][6:]
          runnumber=fileNameString[0][3:]
          id=outMergedJSON.replace(".jsn","")
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
