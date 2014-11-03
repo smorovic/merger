@@ -64,6 +64,8 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       numberBoLSFiles = 0
       for nb in range(0, len(afterString)):
    	 if not afterString[nb].endswith("_BoLS.jsn"): continue
+         if "DQM" in afterString[nb]: continue
+         if "streamError" in afterString[nb]: continue
    	 numberBoLSFiles = numberBoLSFiles + 1
       if(float(debug) >= 50): log.info("numberBoLSFiles: {0}".format(numberBoLSFiles))
       
