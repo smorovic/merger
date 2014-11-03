@@ -218,7 +218,7 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
    # streamDQMHistograms stream uses always with optionA
    fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
 
-   if ((optionMerging == "optionA") or ("DQM" in fileNameString[2])):
+   if ((optionMerging == "optionA") or ("DQM" in fileNameString[2]) or ("streamError" in fileNameString[2])):
       try:
          cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug)
       except OSError, e:
@@ -445,9 +445,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 if  (streamType == "onlyStreamA" and fileIniString[2] != "StreamA"): continue
                 elif(streamType == "noStreamA"   and fileIniString[2] == "StreamA"): continue
 
-          	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2])):
+          	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2])):
           	    theIniOutputFolder = outputSMMergedFolder
-	  	    if((optionMerging == "optionA") or ("DQM" in fileIniString[2])):
+	  	    if((optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2])):
           	       theIniOutputFolder = outputMergedFolder
 
           	if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError" or fileIniString[2] == "streamDQMHistograms")):
@@ -646,7 +646,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              if(float(debug) >= 50): log.info("filesDict: {0}\njsonsDict: {1}\n, eventsIDict: {2}, eventsODict: {3}, checkSumDict: {4} fileSizeDict: {5}, nFilesBUDict: {6}, errorCodeDict: {7}".format(filesDict, jsonsDict, eventsIDict, eventsODict, checkSumDict, fileSizeDict, nFilesBUDict, errorCodeDict))
 
              theOutputEndName = outputEndName
-	     if (optionMerging != "optionA" and ("DQM" not in fileNameString[2])):
+	     if (optionMerging != "optionA" and ("DQM" not in fileNameString[2]) and ("streamError" not in fileNameString[2])):
                 theOutputEndName = "StorageManager"
 
              extensionName = ".dat"
