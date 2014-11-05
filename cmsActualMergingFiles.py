@@ -74,7 +74,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    inputJsonFolder = os.path.dirname(filesJSON[0])
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
-   if (mergeType == "macro" and fileNameString[2] != "streamDQMHistograms"):
+   if (mergeType == "macro" and fileNameString[2] != "streamDQMHistograms" and fileNameString[2] != "streamHLTRates" and fileNameString[2] != "streamL1Rates"):
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
@@ -104,13 +104,22 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 
    if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
-   if (fileNameString[2] != "streamDQMHistograms"):
+   if (fileNameString[2] != "streamDQMHistograms" and fileNameString[2] != "streamHLTRates" and fileNameString[2] != "streamL1Rates"):
       with open(outMergedFileFullPath, 'a') as fout:
          append_files(filenames, fout)
       fout.close()
       if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
       #os.chmod(outMergedFileFullPath, 0666)
    
+   elif (fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
+      msg = "jsonMerger %s " % (outMergedFileFullPath)
+      for nfile in range(0, len(filenames)):
+         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile]))):
+            msg = msg + filenames[nfile] + " "
+      if(float(debug) > 20): log.info("running {0}".format(msg))
+      log.info("running {0}".format(msg))
+      #os.system(msg)
+
    else:
       msg = "fastHadd add -o %s " % (outMergedFileFullPath)
       for nfile in range(0, len(filenames)):

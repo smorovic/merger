@@ -218,7 +218,7 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
    # streamDQMHistograms stream uses always with optionA
    fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
 
-   if ((optionMerging == "optionA") or ("DQM" in fileNameString[2]) or ("streamError" in fileNameString[2])):
+   if ((optionMerging == "optionA") or ("DQM" in fileNameString[2]) or ("streamError" in fileNameString[2]) or ("streamHLTRates" in fileNameString[2]) or ("streamL1Rates" in fileNameString[2])):
       try:
          cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug)
       except OSError, e:
@@ -445,9 +445,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 if  (streamType == "onlyStreamA" and fileIniString[2] != "StreamA"): continue
                 elif(streamType == "noStreamA"   and fileIniString[2] == "StreamA"): continue
 
-          	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2])):
+          	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2]) or ("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
           	    theIniOutputFolder = outputSMMergedFolder
-	  	    if((optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2])):
+	  	    if((optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2]) or ("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
           	       theIniOutputFolder = outputMergedFolder
 
           	if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError" or fileIniString[2] == "streamDQMHistograms")):
@@ -490,6 +490,49 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
           	   if(doRemoveFiles == "True"): 
           	      os.remove(inputNameRename)
+
+                   # only for streamHLTRates and streamL1Rates, need another file
+                   if(("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
+		      inputName  = inputDataFolder + "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + ".jsd"
+	     	      inputNameString = afterString[i].split('_')
+          	      # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
+	     	      outputIniName          = theIniOutputFolder + "/../" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".jsd"
+          	      outputIniNameToCompare = theIniOutputFolder +   "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".jsd"
+	     	      inputNameRename  = inputName.replace(".jsd","_TEMP.jsd")
+          	      shutil.move(inputName,inputNameRename)
+          	      if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
+	  	      # getting the ini file, just once per stream
+	     	      if not os.path.exists(outputIniName) or os.path.getsize(outputIniName) == 0:
+	     		 try:
+          		    with open(outputIniName, 'a', 1) as file_object:
+          		       fcntl.flock(file_object, fcntl.LOCK_EX)
+	     		       shutil.copy(inputNameRename,outputIniName)
+          		       fcntl.flock(file_object, fcntl.LOCK_UN)
+	     		    file_object.close()
+	     		 except OSError, e:
+	     		    log.warning("Looks like the outputIniName-Rates file {0} has just been created by someone else...".format(outputIniName))
+
+	     	      if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
+	     		 try:
+          		    with open(outputIniNameToCompare, 'a', 1) as file_object:
+          		       fcntl.flock(file_object, fcntl.LOCK_EX)
+	     		       shutil.copy(inputNameRename,outputIniNameToCompare)
+          		       fcntl.flock(file_object, fcntl.LOCK_UN)
+	     		    file_object.close()
+	     		 except OSError, e:
+	     		    log.warning("Looks like the outputIniNameToCompare-Rates file {0} has just been created by someone else...".format(outputIniNameToCompare))
+
+	  	      # otherwise, checking if they are identical
+	  	      else:
+          		 try:
+	     		    if filecmp.cmp(outputIniNameToCompare,inputNameRename) == False:
+	     		       log.warning("ini files: {0} and {1} are different!!!".format(outputIniNameToCompare,inputNameRename))
+          		 except IOError, e:
+          		       log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
+
+          	      if(doRemoveFiles == "True"): 
+          		 os.remove(inputNameRename)
+
 
 	     	else:
 	     	   log.info("Looks like the file {0} is being copied by someone else...".format(inputName))
@@ -646,7 +689,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              if(float(debug) >= 50): log.info("filesDict: {0}\njsonsDict: {1}\n, eventsIDict: {2}, eventsODict: {3}, checkSumDict: {4} fileSizeDict: {5}, nFilesBUDict: {6}, errorCodeDict: {7}".format(filesDict, jsonsDict, eventsIDict, eventsODict, checkSumDict, fileSizeDict, nFilesBUDict, errorCodeDict))
 
              theOutputEndName = outputEndName
-	     if (optionMerging != "optionA" and ("DQM" not in fileNameString[2]) and ("streamError" not in fileNameString[2])):
+	     if (optionMerging != "optionA" and ("DQM" not in fileNameString[2]) and ("streamError" not in fileNameString[2]) and ("streamHLTRates" not in fileNameString[2]) and ("streamL1Rates" not in fileNameString[2])):
                 theOutputEndName = "StorageManager"
 
              extensionName = ".dat"
@@ -654,6 +697,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 extensionName = ".raw"
              elif fileNameString[2] == "streamDQMHistograms":
                 extensionName = ".pb"
+             elif (fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
+                extensionName = ".jsndata"
 
 	     if mergeType == "mini": 
         	keyEoLS = (fileNameString[0],fileNameString[1])
