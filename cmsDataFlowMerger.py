@@ -764,9 +764,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
           before = after
 
-      if nLoops <= nWithPollMax or nWithPollMax < 0:
-         thePool.close()
-         thePool.join()
+      #if nLoops <= nWithPollMax or nWithPollMax < 0:
+      #   thePool.close()
+      #   thePool.join()
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 

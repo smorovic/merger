@@ -430,6 +430,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          nCount = nCount + 1
          if(nCount%60 == 1): log.info("Waiting for the file to unlock: {0}".format(lockNameFullPath))
          time.sleep(1)
+	 if(nCount == 180):
+	    log.info("Not possible to unlock file after 3 minutes!!!: {0}".format(lockNameFullPath))
+            return
 
       with open(lockNameFullPath, 'r+w') as filelock:
          fcntl.flock(filelock, fcntl.LOCK_EX)
