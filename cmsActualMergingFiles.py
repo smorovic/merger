@@ -74,7 +74,11 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    inputJsonFolder = os.path.dirname(filesJSON[0])
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
-   if (mergeType == "macro" and fileNameString[2] != "streamDQMHistograms" and fileNameString[2] != "streamHLTRates" and fileNameString[2] != "streamL1Rates"):
+   specialStreams = False
+   if(fileNameString[2] == "streamDQMHistograms" or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
+      specialStreams = True
+
+   if (mergeType == "macro" and specialStreams == False):
       iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, iniName)
       if os.path.exists(iniNameFullPath):
@@ -104,7 +108,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 
    if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
-   if (fileNameString[2] != "streamDQMHistograms" and fileNameString[2] != "streamHLTRates" and fileNameString[2] != "streamL1Rates"):
+   if (specialStreams == False):
       with open(outMergedFileFullPath, 'a') as fout:
          append_files(filenames, fout)
       fout.close()
@@ -172,7 +176,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
 
    # checkSum checking
-   if(fileNameString[2] != "streamError" and "streamDQMHistograms" not in fileNameString[2] and fileNameString[2] != "streamHLTRates" and fileNameString[2] != "streamL1Rates"):
+   if(fileNameString[2] != "streamError" and specialStreams == False):
       adler32c=1
       with open(outMergedFileFullPath, 'r') as fsrc:
          length=16*1024
@@ -191,7 +195,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
-   if(fileNameString[2] != "streamError" and "streamDQMHistograms" not in fileNameString[2] and fileNameString[2] != "streamHLTRates" and fileNameString[2] != "streamL1Rates" and fileSize != os.path.getsize(outMergedFileFullPathStable)):
+   if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPathStable)):
       log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    if (mergeType == "macro" and ("DQM" in fileNameString[2])):
