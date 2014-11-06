@@ -10,7 +10,7 @@ log = getLogger()
 """
 clean up run folder if some conditions are met
 """
-def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName):
+def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold):
    
    settingsEoR = ""
    try:
@@ -60,7 +60,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       eventsInputFU = eventsInputFU + int(settingsLS['data'][0])
    
    if(float(debug) >= 50): log.info("eventsTotalEoR vs. eventsInputFU: {0} vs. {1}".format(eventsTotalEoR,eventsInputFU))
-   if (eventsTotalEoR == eventsInputFU):
+   if (eventsTotalEoR*completeMergingThreshold <= eventsInputFU):
       numberBoLSFiles = 0
       for nb in range(0, len(afterString)):
    	 if not afterString[nb].endswith("_BoLS.jsn"): continue
@@ -69,35 +69,42 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 numberBoLSFiles = numberBoLSFiles + 1
       if(float(debug) >= 50): log.info("numberBoLSFiles: {0}".format(numberBoLSFiles))
       
-      if(numberBoLSFiles == 0):
-         # This is needed to cleanUp the macroMerger later
-	 EoRFileNameMacroOutput = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn"
-	 if(not os.path.exists(EoRFileNameMacroOutput)):
-	    try:
-	      shutil.copy(EoRFileName,EoRFileNameMacroOutput)
-            except OSError, e:
-               log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameMacroOutput))
+      # This is needed to cleanUp the macroMerger later
+      EoRFileNameMiniOutput	  = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + outputEndName + ".jsn_TEMP"
+      EoRFileNameMiniOutputStable = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + outputEndName + ".jsn"
 
+      theEoRFileMiniOutput = open(EoRFileNameMiniOutput, 'w')
+      theEoRFileMiniOutput.write(json.dumps({'eventsTotalEoR':  eventsTotalEoR, 
+                                             'eventsInputFU':   eventsInputFU, 
+					     'numberBoLSFiles': numberBoLSFiles}))
+      theEoRFileMiniOutput.close()
+      
+      shutil.move(EoRFileNameMiniOutput, EoRFileNameMiniOutputStable)
+
+      if(numberBoLSFiles == 0 and eventsTotalEoR == eventsInputFU):
          EoLSFolder = os.path.join(path_eol, theRunNumber)
          log.info("Run folder deletion is triggered!: {0} and {1}".format(inputDataFolder,EoLSFolder))
          shutil.rmtree(inputDataFolder)
          time.sleep(10)
          shutil.rmtree(EoLSFolder)
 
-def isCompleteRun(debug, inputDataFolder, afterString):
+def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThreshold, theRunNumber, outputEndName):
 
-   eventsInputEoRs = 0
-   eventsIDict     = dict()
-   for nb in range(0, len(afterString)):
-      if not afterString[nb].endswith(".jsn"): continue
-      if "index" in afterString[nb]: continue
-      if afterString[nb].endswith("recv"): continue
-      if "EoLS" in afterString[nb]: continue
-      if "BoLS" in afterString[nb]: continue
+   eventsInputEoRs     = 0
+   eventsProcessedEoRs = 0
+   numberBoLSFiles     = 0
+   eventsIDict         = dict()
+   for nb in range(0, len(afterStringSM)):
+      if not afterStringSM[nb].endswith(".jsn"): continue
+      if "index" in afterStringSM[nb]: continue
+      if afterStringSM[nb].endswith("recv"): continue
+      if "EoLS" in afterStringSM[nb]: continue
+      if "BoLS" in afterStringSM[nb]: continue
+      if "MacroEoR" in afterStringSM[nb]: continue
 
-      inputEoRJsonFile = os.path.join(inputDataFolder, afterString[nb])
+      inputEoRJsonFile = os.path.join(theInputDataFolder, afterStringSM[nb])
+      settingsLS = ""
       if(os.path.getsize(inputEoRJsonFile) > 0):
-         settingsLS = ""
          try:
             settingsLS_textI = open(inputEoRJsonFile, "r").read()
             settingsLS = json.loads(settingsLS_textI)
@@ -113,14 +120,16 @@ def isCompleteRun(debug, inputDataFolder, afterString):
                settingsLS_textI = open(inputEoRJsonFile, "r").read()
                settingsLS = json.loads(settingsLS_textI)
 
-      eventsInput = int(settingsLS['data'][0])
+      eventsInput = int(settingsLS["eventsTotalEoR"])
 
-      if ("MacroEoR" in afterString[nb]):
-         eventsInputEoRs = eventsInputEoRs + eventsInput
+      if ("MiniEoR" in afterStringSM[nb]):
+         eventsInputEoRs     = eventsInputEoRs     + eventsInput
+	 eventsProcessedEoRs = eventsProcessedEoRs + int(settingsLS["eventsInputFU"])
+	 numberBoLSFiles     = numberBoLSFiles     + int(settingsLS["numberBoLSFiles"])
 
       else:
          # 0: run, 1: ls, 2: stream
-         fileNameString = afterString[nb].split('_')
+         fileNameString = afterStringSM[nb].split('_')
          key = (fileNameString[2])
          if key in eventsIDict.keys():
 
@@ -129,15 +138,25 @@ def isCompleteRun(debug, inputDataFolder, afterString):
 	    eventsIDict.update({key:[eventsInput]})
 
 	 else:
-	    eventsIDict.update({key:[eventsInput]})
+	    eventsIDict.update({key:[eventsInput]})	    
 
    isComplete = True
    for streamName in eventsIDict:
       if "DQM" in streamName: continue
       if "streamError" in streamName: continue
-      if(eventsIDict[streamName][0] != eventsInputEoRs):
+      if(eventsIDict[streamName][0] < eventsInputEoRs*completeMergingThreshold):
          isComplete = False
 
-   if(float(debug) >= 10): print "run/events/completion: ",inputDataFolder,eventsInputEoRs,isComplete
+   if(float(debug) >= 10): print "run/events/completion: ",theInputDataFolder,eventsInputEoRs,eventsProcessedEoRs,numberBoLSFiles,isComplete
 
-   return isComplete
+   EoRFileNameMacroOutput	= theInputDataFolder + "/" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn_TEMP"
+   EoRFileNameMacroOutputStable = theInputDataFolder + "/" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn"
+
+   theEoRFileMacroOutput = open(EoRFileNameMacroOutput, 'w')
+   theEoRFileMacroOutput.write(json.dumps({'eventsInputEoRs':     eventsInputEoRs, 
+   					   'eventsProcessedEoRs': eventsProcessedEoRs, 
+     					   'numberBoLSFiles':     numberBoLSFiles,
+					   'isComplete':          isComplete}))
+   theEoRFileMacroOutput.close()
+   
+   shutil.move(EoRFileNameMacroOutput, EoRFileNameMacroOutputStable)

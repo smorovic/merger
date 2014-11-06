@@ -325,7 +325,7 @@ def is_completed(filepath):
 """
 Do loops
 """
-def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, esServerUrl, esIndexName):
+def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, completeMergingThreshold, esServerUrl, esIndexName):
    filesDict      = dict() 
    fileSizeDict   = dict() 
    errorCodeDict  = dict()    
@@ -805,7 +805,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameECALOutputFinal))
 
 	     if(doRemoveFiles == "True" and mergeType == "mini"):
-	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName)
+	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
 
           before = after
 
@@ -816,6 +816,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
     triggerMergingThreshold = 0.8
+    completeMergingThreshold = 1.0
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
        msg = "Wrong type of merging: %s" % mergeType
@@ -861,4 +862,4 @@ def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, 
         esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,debug)
 
     doTheRecovering(paths_to_watch, streamType, debug)
-    doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold,esServerUrl, esIndexName)
+    doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, completeMergingThreshold, esServerUrl, esIndexName)
