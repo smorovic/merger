@@ -494,45 +494,50 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    # only for streamHLTRates and streamL1Rates, need another file
                    if(("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
 		      inputName  = inputDataFolder + "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + ".jsd"
+		      if(mergeType == "macro"):
+		         inputName = os.path.join(inputDataFolder,afterString[i]).replace(".ini",".jsd")
 	     	      inputNameString = afterString[i].split('_')
-          	      # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
-	     	      outputIniName          = theIniOutputFolder + "/../" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".jsd"
-          	      outputIniNameToCompare = theIniOutputFolder +   "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".jsd"
-	     	      inputNameRename  = inputName.replace(".jsd","_TEMP.jsd")
-          	      shutil.move(inputName,inputNameRename)
-          	      if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
-	  	      # getting the ini file, just once per stream
-	     	      if not os.path.exists(outputIniName) or os.path.getsize(outputIniName) == 0:
-	     		 try:
-          		    with open(outputIniName, 'a', 1) as file_object:
-          		       fcntl.flock(file_object, fcntl.LOCK_EX)
-	     		       shutil.copy(inputNameRename,outputIniName)
-          		       fcntl.flock(file_object, fcntl.LOCK_UN)
-	     		    file_object.close()
-	     		 except OSError, e:
-	     		    log.warning("Looks like the outputIniName-Rates file {0} has just been created by someone else...".format(outputIniName))
+		      if(os.path.exists(inputName)):
+          		 # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
+	     		 outputIniName          = theIniOutputFolder + "/../" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".jsd"
+          		 outputIniNameToCompare = theIniOutputFolder +   "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".jsd"
+	     		 inputNameRename  = inputName.replace(".jsd","_TEMP.jsd")
+          		 shutil.move(inputName,inputNameRename)
+          		 if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
+	  		 # getting the ini file, just once per stream
+	     		 if not os.path.exists(outputIniName) or os.path.getsize(outputIniName) == 0:
+	     		    try:
+          		       with open(outputIniName, 'a', 1) as file_object:
+          			  fcntl.flock(file_object, fcntl.LOCK_EX)
+	     			  shutil.copy(inputNameRename,outputIniName)
+          			  fcntl.flock(file_object, fcntl.LOCK_UN)
+	     		       file_object.close()
+	     		    except OSError, e:
+	     		       log.warning("Looks like the outputIniName-Rates file {0} has just been created by someone else...".format(outputIniName))
 
-	     	      if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
-	     		 try:
-          		    with open(outputIniNameToCompare, 'a', 1) as file_object:
-          		       fcntl.flock(file_object, fcntl.LOCK_EX)
-	     		       shutil.copy(inputNameRename,outputIniNameToCompare)
-          		       fcntl.flock(file_object, fcntl.LOCK_UN)
-	     		    file_object.close()
-	     		 except OSError, e:
-	     		    log.warning("Looks like the outputIniNameToCompare-Rates file {0} has just been created by someone else...".format(outputIniNameToCompare))
+	     		 if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
+	     		    try:
+          		       with open(outputIniNameToCompare, 'a', 1) as file_object:
+          			  fcntl.flock(file_object, fcntl.LOCK_EX)
+	     			  shutil.copy(inputNameRename,outputIniNameToCompare)
+          			  fcntl.flock(file_object, fcntl.LOCK_UN)
+	     		       file_object.close()
+	     		    except OSError, e:
+	     		       log.warning("Looks like the outputIniNameToCompare-Rates file {0} has just been created by someone else...".format(outputIniNameToCompare))
 
-	  	      # otherwise, checking if they are identical
-	  	      else:
-          		 try:
-	     		    if filecmp.cmp(outputIniNameToCompare,inputNameRename) == False:
-	     		       log.warning("ini files: {0} and {1} are different!!!".format(outputIniNameToCompare,inputNameRename))
-          		 except IOError, e:
-          		       log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
+	  		 # otherwise, checking if they are identical
+	  		 else:
+          		    try:
+	     		       if filecmp.cmp(outputIniNameToCompare,inputNameRename) == False:
+	     			  log.warning("ini files: {0} and {1} are different!!!".format(outputIniNameToCompare,inputNameRename))
+          		    except IOError, e:
+          			  log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
 
-          	      if(doRemoveFiles == "True"): 
-          		 os.remove(inputNameRename)
+          		 if(doRemoveFiles == "True"): 
+          		    os.remove(inputNameRename)
 
+                      else:
+                         log.error("jsd file does not exists!: {0}".format(inputName))
 
 	     	else:
 	     	   log.info("Looks like the file {0} is being copied by someone else...".format(inputName))
