@@ -120,14 +120,13 @@ def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThres
                settingsLS_textI = open(inputEoRJsonFile, "r").read()
                settingsLS = json.loads(settingsLS_textI)
 
-      eventsInput = int(settingsLS["eventsTotalEoR"])
-
       if ("MiniEoR" in afterStringSM[nb]):
-         eventsInputEoRs     = eventsInputEoRs     + eventsInput
+         eventsInputEoRs     = eventsInputEoRs     + int(settingsLS["eventsTotalEoR"])
 	 eventsProcessedEoRs = eventsProcessedEoRs + int(settingsLS["eventsInputFU"])
 	 numberBoLSFiles     = numberBoLSFiles     + int(settingsLS["numberBoLSFiles"])
 
       else:
+         eventsInput = int(settingsLS["data"][0])
          # 0: run, 1: ls, 2: stream
          fileNameString = afterStringSM[nb].split('_')
          key = (fileNameString[2])
@@ -155,6 +154,7 @@ def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThres
    theEoRFileMacroOutput = open(EoRFileNameMacroOutput, 'w')
    theEoRFileMacroOutput.write(json.dumps({'eventsInputEoRs':     eventsInputEoRs, 
    					   'eventsProcessedEoRs': eventsProcessedEoRs, 
+   					   'eventsStreamInput':   eventsIDict, 
      					   'numberBoLSFiles':     numberBoLSFiles,
 					   'isComplete':          isComplete}))
    theEoRFileMacroOutput.close()
