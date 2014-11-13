@@ -53,13 +53,12 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug):
+def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
    outMergedFileFullPath = os.path.join(outputMergedFolder, outMergedFile)
    outMergedJSONFullPath = os.path.join(outputMergedFolder, outMergedJSON)
-   outMonJSONFullPath    = os.path.join(outputMonFolder,    outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
    initMergingTime = time.time()
@@ -216,12 +215,6 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, 5, debug)
 
-      # used for monitoring purposes
-      # try:
-      #    shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      # except OSError, e:
-      #    log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
-
    endMergingTime = time.time() 
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
@@ -229,14 +222,13 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
    # we will merge file at the BU level only!
    outMergedFileFullPath = os.path.join(outputSMMergedFolder, outMergedFile)
    outMergedJSONFullPath = os.path.join(outputMergedFolder,   outMergedJSON)
-   outMonJSONFullPath    = os.path.join(outputMonFolder,      outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
    initMergingTime = time.time()
@@ -343,12 +335,6 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, 5, debug)
 
-      # used for monitoring purposes
-      # try:
-      #    shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      # except OSError, e:
-      #    log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
-
    endMergingTime = time.time() 
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
@@ -356,14 +342,13 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, outputMonFolder, esServerUrl, esIndexName, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    # we will merge file at the BU level only!
    outMergedFileFullPath = os.path.join(outputSMMergedFolder, outMergedFile)
    outMergedJSONFullPath = os.path.join(outputMergedFolder,   outMergedJSON)
-   outMonJSONFullPath    = os.path.join(outputMonFolder,      outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
    initMergingTime = time.time()
@@ -384,38 +369,42 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    if mergeType == "mini":
       maxSizeMergedFile = 50 * 1024 * 1024 * 1024
       if os.path.exists(iniNameFullPath):
+         outLockedFileSize = 0
+	 if(os.path.exists(lockNameFullPath)):
+	    outLockedFileSize = os.path.getsize(lockNameFullPath)
+         if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}) {3}".format(now.strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, outMergedJSONFullPath))
          if (not os.path.exists(outMergedFileFullPath)):
-            with open(outMergedFileFullPath, 'w') as fout:
-               fcntl.flock(fout, fcntl.LOCK_EX)
-               fileSize = os.path.getsize(iniNameFullPath) + fileSize
-               fout.truncate(maxSizeMergedFile)
-               fout.seek(0)
-               #os.chmod(outMergedFileFullPath, 0666)
-               filenames = [iniNameFullPath]
-               append_files(filenames, fout)
+   	    with open(lockNameFullPath, 'w') as filelock:
+   	       fcntl.flock(filelock, fcntl.LOCK_EX)
 
-   	       with open(lockNameFullPath, 'w') as filelock:
-   	          fcntl.flock(filelock, fcntl.LOCK_EX)
+               with open(outMergedFileFullPath, 'w') as fout:
+                  fcntl.flock(fout, fcntl.LOCK_EX)
+                  fileSize = os.path.getsize(iniNameFullPath) + fileSize
+                  fout.truncate(maxSizeMergedFile)
+                  fout.seek(0)
+                  #os.chmod(outMergedFileFullPath, 0666)
+                  filenames = [iniNameFullPath]
+                  append_files(filenames, fout)
+                  fcntl.flock(fout, fcntl.LOCK_UN)
+               fout.close()
 
-                  checkSumIni=1
-                  with open(iniNameFullPath, 'r') as fsrc:
-                     length=16*1024
-      	             while 1:
-   	             	buf = fsrc.read(length)
-                     	if not buf:
-                     	   break
-                     	checkSumIni=zlib.adler32(buf,checkSumIni)
+               checkSumIni=1
+               with open(iniNameFullPath, 'r') as fsrc:
+                  length=16*1024
+      	          while 1:
+   	             buf = fsrc.read(length)
+                     if not buf:
+                	break
+                     checkSumIni=zlib.adler32(buf,checkSumIni)
 
-		  checkSumIni = checkSumIni & 0xffffffff
-		  filelock.write("%d:%d" %(os.path.getsize(iniNameFullPath),checkSumIni))
+	       checkSumIni = checkSumIni & 0xffffffff
+	       filelock.write("%d:%d" %(os.path.getsize(iniNameFullPath),checkSumIni))
 
-   	          filelock.flush()
-   	          #os.fdatasync(filelock)
-		  #os.chmod(lockNameFullPath, 0666)
-   	          fcntl.flock(filelock, fcntl.LOCK_UN)
-   	       filelock.close()
-               fcntl.flock(fout, fcntl.LOCK_UN)
-            fout.close()
+   	       filelock.flush()
+   	       #os.fdatasync(filelock)
+	       #os.chmod(lockNameFullPath, 0666)
+   	       fcntl.flock(filelock, fcntl.LOCK_UN)
+   	    filelock.close()
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
 	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
@@ -437,15 +426,19 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          if os.path.exists(filenames[nFile]) and os.path.isfile(filenames[nFile]):
    	    sum = sum + os.path.getsize(filenames[nFile])
 
+      if(float(debug) > 0): log.info("{0}: Waiting to lock file {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
       nCount = 0
-      while not os.path.exists(lockNameFullPath):
+      lockFileExist = os.path.exists(lockNameFullPath)
+      while ((lockFileExist == False) or (lockFileExist == True and os.path.getsize(lockNameFullPath) == 0)):
          nCount = nCount + 1
          if(nCount%60 == 1): log.info("Waiting for the file to unlock: {0}".format(lockNameFullPath))
          time.sleep(1)
+	 lockFileExist = os.path.exists(lockNameFullPath)
 	 if(nCount == 180):
 	    log.info("Not possible to unlock file after 3 minutes!!!: {0}".format(lockNameFullPath))
             return
 
+      if(float(debug) > 0): log.info("{0}: Locking file {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
       with open(lockNameFullPath, 'r+w') as filelock:
          fcntl.flock(filelock, fcntl.LOCK_EX)
          lockFullString = filelock.readline().split(',')
@@ -456,11 +449,13 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          #os.fdatasync(filelock)
          fcntl.flock(filelock, fcntl.LOCK_UN)
       filelock.close()
+      if(float(debug) > 0): log.info("{0}: Unlocking file {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
 
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.seek(ini)
          append_files(filenames, fout)
       fout.close()
+      if(float(debug) > 0): log.info("{0}: Actual merging of {1} happened".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
 
    if mergeType == "macro" and os.path.exists(iniNameFullPath) and eventsO == 0:
       fileSize = os.path.getsize(iniNameFullPath)
@@ -469,7 +464,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    if(doRemoveFiles == "True"):
       if mergeType == "mini":
          for nfile in range(0, len(files)):
-            if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
+            if(float(debug) > 0): log.info("removing file: {0}".format(files[nfile]))
    	    inputFileToRemove = os.path.join(inputDataFolder, files[nfile])
             if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	       os.remove(inputFileToRemove)
@@ -581,12 +576,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          id=outMergedJSON.replace(".jsn","")
          mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], os.path.getmtime(outMergedJSONFullPathStable), ls, stream, id]
          elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, 5, debug)
-
-      # used for monitoring purposes
-      #try:
-      #   shutil.copy(outMergedJSONFullPathStable,outMonJSONFullPath)
-      #except OSError, e:
-      #   log.warning("failed copy from {0} to {1}...".format(outMergedJSONFullPathStable,outMonJSONFullPath))
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
