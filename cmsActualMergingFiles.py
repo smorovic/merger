@@ -398,7 +398,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                      checkSumIni=zlib.adler32(buf,checkSumIni)
 
 	       checkSumIni = checkSumIni & 0xffffffff
-	       filelock.write("%d:%d" %(os.path.getsize(iniNameFullPath),checkSumIni))
+	       filelock.write("%s=%d:%d" %(socket.gethostname(),os.path.getsize(iniNameFullPath),checkSumIni))
 
    	       filelock.flush()
    	       #os.fdatasync(filelock)
@@ -442,8 +442,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       with open(lockNameFullPath, 'r+w') as filelock:
          fcntl.flock(filelock, fcntl.LOCK_EX)
          lockFullString = filelock.readline().split(',')
-         ini = int(lockFullString[len(lockFullString)-1].split(':')[0])
-         filelock.write(",%d:%d" %(ini+sum,checkSum))
+         ini = int(lockFullString[len(lockFullString)-1].split(':')[0].split('=')[1])
+         filelock.write(",%s=%d:%d" %(socket.gethostname(),ini+sum,checkSum))
          filelock.flush()
          if(float(debug) >= 10): log.info("Writing in lock file ({0}): {1}".format(lockNameFullPath,(ini+sum)))
          #os.fdatasync(filelock)
@@ -492,7 +492,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
       with open(lockNameFullPath, 'r+w') as filelock:
          lockFullString = filelock.readline().split(',')
-         totalSize = int(lockFullString[len(lockFullString)-1].split(':')[0])
+         totalSize = int(lockFullString[len(lockFullString)-1].split(':')[0].split('=')[1])
       filelock.close()
 
       with open(outMergedFileFullPath, 'r+w') as fout:
@@ -528,7 +528,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                lockFullString = filelock.readline().split(',')
 	    checkSum = int(lockFullString[0].split(':')[1])
 	    for nf in range(1, len(lockFullString)):
-               fileSizeAux = int(lockFullString[nf].split(':')[0])-int(lockFullString[nf-1].split(':')[0])
+               fileSizeAux = int(lockFullString[nf].split(':')[0].split('=')[1])-int(lockFullString[nf-1].split(':')[0].split('=')[1])
                checkSumAux = int(lockFullString[nf].split(':')[1])
 	       checkSum = zlibextras.adler32_combine(checkSum,checkSumAux,fileSizeAux)
                checkSum = checkSum & 0xffffffff
