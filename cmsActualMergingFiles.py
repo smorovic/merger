@@ -383,6 +383,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                   fout.truncate(maxSizeMergedFile)
                   fout.seek(0)
                   #os.chmod(outMergedFileFullPath, 0666)
+                  if(float(debug) > 0): log.info("outMergedFile {0} being produced".format(outMergedFileFullPath))
                   filenames = [iniNameFullPath]
                   append_files(filenames, fout)
                   fcntl.flock(fout, fcntl.LOCK_UN)
