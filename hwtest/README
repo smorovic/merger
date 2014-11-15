@@ -24,10 +24,10 @@ rm -rf unmergedDATA unmergedAUX unmergedMON merged mergeOut.txt *.pyc
 # manageStreams.py, mergeConfig, makeFiles.py, configobj.py
 
 #(A) only a few lumis and one stream
-./manageStreams.py --config mergeConfigTest    --bu 30 -i frozen_storage
+./manageStreams.py --config mergeConfigTest    --bu 30 -i frozen_storage -p "$PWD/"
 
 #(B) 50 lumi ssections, 10 streams with different sizes
-./manageStreams.py --config mergeConfigForReal --bu 30 -i frozen_storage
+./manageStreams.py --config mergeConfigForReal --bu 30 -i frozen_storage -p "$PWD/"
 
 ################################################################################
 # needed files for merging:
