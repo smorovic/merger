@@ -372,7 +372,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          outLockedFileSize = 0
 	 if(os.path.exists(lockNameFullPath)):
 	    outLockedFileSize = os.path.getsize(lockNameFullPath)
-         if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}) {3}".format(now.strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, outMergedJSONFullPath))
+         if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}-{3}) {4}".format(now.strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, eventsO, outMergedJSONFullPath))
          if (not os.path.exists(outMergedFileFullPath)):
    	    with open(lockNameFullPath, 'w') as filelock:
    	       fcntl.flock(filelock, fcntl.LOCK_EX)
