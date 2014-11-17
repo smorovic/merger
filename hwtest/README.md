@@ -59,6 +59,7 @@ Update the config files.
 
     [Misc]
     mergeType     = "mini"
+    streamType    = "0"
     deleteFiles   = "True"
     debugLevel    = "1"
     logConfigFile = "$MERGER_BASE/logFormat.conf"
@@ -83,6 +84,7 @@ Update the config files.
 
     [Misc]
     mergeType     = "macro"
+    streamType    = "0"
     deleteFiles   = "True"
     debugLevel    = "1"
     logConfigFile = "$MERGER_BASE/logFormat.conf"
