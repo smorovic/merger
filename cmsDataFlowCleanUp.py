@@ -90,11 +90,21 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
 
 def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThreshold, theRunNumber, outputEndName):
 
+   numberMiniEoRFiles  = 0
    eventsInputEoRs     = 0
    eventsProcessedEoRs = 0
    numberBoLSFiles     = 0
    eventsIDict         = dict()
+   iniIDict            = dict()
    for nb in range(0, len(afterStringSM)):
+      if afterStringSM[nb].endswith(".ini"):
+         fileIniString = afterStringSM[nb].split('_')
+         key = (fileIniString[2])
+         if key in iniIDict.keys():
+	    iniIDict[key].append(fileIniString[3].split('.ini')[0])
+	 else:
+	    iniIDict.update({key:[fileIniString[3].split('.ini')[0]]})
+
       if not afterStringSM[nb].endswith(".jsn"): continue
       if "index" in afterStringSM[nb]: continue
       if afterStringSM[nb].endswith("recv"): continue
@@ -121,6 +131,7 @@ def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThres
                settingsLS = json.loads(settingsLS_textI)
 
       if ("MiniEoR" in afterStringSM[nb]):
+         numberMiniEoRFiles += 1
          eventsInputEoRs     = eventsInputEoRs     + int(settingsLS["eventsTotalEoR"])
 	 eventsProcessedEoRs = eventsProcessedEoRs + int(settingsLS["eventsInputFU"])
 	 numberBoLSFiles     = numberBoLSFiles     + int(settingsLS["numberBoLSFiles"])
@@ -147,6 +158,7 @@ def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThres
          isComplete = False
 
    if(float(debug) >= 10): print "run/events/completion: ",theInputDataFolder,eventsInputEoRs,eventsProcessedEoRs,numberBoLSFiles,isComplete
+   if(float(debug) >= 10 and 'streamA' in iniIDict.keys()): print "numberMiniEoRFiles/streamAfile: ",numberMiniEoRFiles,len(iniIDict["streamA"])
 
    EoRFileNameMacroOutput	= theInputDataFolder + "/" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn_TEMP"
    EoRFileNameMacroOutputStable = theInputDataFolder + "/" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn"
@@ -158,5 +170,5 @@ def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThres
      					   'numberBoLSFiles':     numberBoLSFiles,
 					   'isComplete':          isComplete}))
    theEoRFileMacroOutput.close()
-   
+
    shutil.move(EoRFileNameMacroOutput, EoRFileNameMacroOutputStable)
