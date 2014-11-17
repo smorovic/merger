@@ -69,6 +69,13 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 numberBoLSFiles = numberBoLSFiles + 1
       if(float(debug) >= 50): log.info("numberBoLSFiles: {0}".format(numberBoLSFiles))
       
+      EoLSFolder    = os.path.join(path_eol, theRunNumber)
+      eventsEoLS    = [0, 0]
+      doSumEoLS(EoLSFolder, eventsEoLS)
+
+      if(eventsEoLS[0] != eventsTotalEoR):
+         log.info("PROBLEM eventsEoLS != eventsTotalEoR: {0} vs. {1}".format(eventsEoLS[0],eventsTotalEoR))
+
       # This is needed to cleanUp the macroMerger later
       EoRFileNameMiniOutput	  = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + outputEndName + ".jsn_TEMP"
       EoRFileNameMiniOutputStable = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + outputEndName + ".jsn"
@@ -76,7 +83,8 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       theEoRFileMiniOutput = open(EoRFileNameMiniOutput, 'w')
       theEoRFileMiniOutput.write(json.dumps({'eventsTotalEoR':  eventsTotalEoR, 
                                              'eventsInputFU':   eventsInputFU, 
-					     'numberBoLSFiles': numberBoLSFiles}))
+					     'numberBoLSFiles': numberBoLSFiles,
+					     'eventsTotalRun':  eventsEoLS[1]}))
       theEoRFileMiniOutput.close()
       
       shutil.move(EoRFileNameMiniOutput, EoRFileNameMiniOutputStable)
@@ -172,3 +180,23 @@ def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThres
    theEoRFileMacroOutput.close()
 
    shutil.move(EoRFileNameMacroOutput, EoRFileNameMacroOutputStable)
+
+def doSumEoLS(inputDataFolder, eventsEoLS):
+
+   after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
+   afterString = [f for f in after]
+
+   # total number of processed events in a given BU
+   eventsEoLS[0] = 0
+   # total number of processed events in all BUs
+   eventsEoLS[1] = 0
+   for nb in range(0, len(afterString)):
+      if not afterString[nb].endswith("EoLS.jsn"): continue
+
+      EoLSFileName = os.path.join(inputDataFolder, afterString[nb])
+
+      if os.path.exists(EoLSFileName) and os.path.getsize(EoLSFileName) > 0:
+         inputEoLSName = open(EoLSFileName, "r").read()
+         settingsEoLS  = json.loads(inputEoLSName)
+         eventsEoLS[0] += int(settingsEoLS['data'][0])
+         eventsEoLS[1] += int(settingsEoLS['data'][2])
