@@ -374,11 +374,11 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 	    outLockedFileSize = os.path.getsize(lockNameFullPath)
          if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}-{3}) {4}".format(now.strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, eventsO, outMergedJSONFullPath))
          if (not os.path.exists(outMergedFileFullPath)):
-   	    with open(lockNameFullPath, 'a') as filelock:
+   	    with open(lockNameFullPath, 'w') as filelock:
    	       fcntl.flock(filelock, fcntl.LOCK_EX)
 
                if(float(debug) > 0): log.info("lockFile {0} being generated".format(lockNameFullPath))
-               with open(outMergedFileFullPath, 'a') as fout:
+               with open(outMergedFileFullPath, 'w') as fout:
                   fcntl.flock(fout, fcntl.LOCK_EX)
                   fileSize = os.path.getsize(iniNameFullPath) + fileSize
                   fout.truncate(maxSizeMergedFile)
@@ -400,7 +400,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                      checkSumIni=zlib.adler32(buf,checkSumIni)
 
 	       checkSumIni = checkSumIni & 0xffffffff
-	       filelock.write("%s=%d:%d" %(socket.gethostname(),os.path.getsize(iniNameFullPath),checkSumIni))
+               filelock.write("%s=%d:%d" %(socket.gethostname(),os.path.getsize(iniNameFullPath),checkSumIni))
 
    	       filelock.flush()
    	       #os.fdatasync(filelock)
