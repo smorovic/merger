@@ -28,7 +28,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 time.sleep (1.0)
    	 settingsEoR_textI = open(EoRFileName, "r").read()
          settingsEoR = json.loads(settingsEoR_textI)
-   eventsTotalEoR = int(settingsEoR['data'][0])
+   eventsInputBU = int(settingsEoR['data'][0])
 
    eventsInputFU = 0
    for nb in range(0, len(afterString)):
@@ -59,8 +59,8 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
 
       eventsInputFU = eventsInputFU + int(settingsLS['data'][0])
    
-   if(float(debug) >= 50): log.info("eventsTotalEoR vs. eventsInputFU: {0} vs. {1}".format(eventsTotalEoR,eventsInputFU))
-   if (eventsTotalEoR*completeMergingThreshold <= eventsInputFU):
+   if(float(debug) >= 50): log.info("eventsInputBU vs. eventsInputFU: {0} vs. {1}".format(eventsInputBU,eventsInputFU))
+   if (eventsInputBU*completeMergingThreshold <= eventsInputFU):
       numberBoLSFiles = 0
       for nb in range(0, len(afterString)):
    	 if not afterString[nb].endswith("_BoLS.jsn"): continue
@@ -73,37 +73,54 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       eventsEoLS    = [0, 0]
       doSumEoLS(EoLSFolder, eventsEoLS)
 
-      if(eventsEoLS[0] != eventsTotalEoR):
-         log.info("PROBLEM eventsEoLS != eventsTotalEoR: {0} vs. {1}".format(eventsEoLS[0],eventsTotalEoR))
+      if(eventsEoLS[0] != eventsInputBU):
+         log.info("PROBLEM eventsEoLS != eventsInputBU: {0} vs. {1}".format(eventsEoLS[0],eventsInputBU))
 
       # This is needed to cleanUp the macroMerger later
       EoRFileNameMiniOutput	  = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + outputEndName + ".jsn_TEMP"
       EoRFileNameMiniOutputStable = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + outputEndName + ".jsn"
 
       theEoRFileMiniOutput = open(EoRFileNameMiniOutput, 'w')
-      theEoRFileMiniOutput.write(json.dumps({'eventsTotalEoR':  eventsTotalEoR, 
+      theEoRFileMiniOutput.write(json.dumps({'eventsInputBU':   eventsInputBU, 
                                              'eventsInputFU':   eventsInputFU, 
 					     'numberBoLSFiles': numberBoLSFiles,
 					     'eventsTotalRun':  eventsEoLS[1]}))
       theEoRFileMiniOutput.close()
-      
+
       shutil.move(EoRFileNameMiniOutput, EoRFileNameMiniOutputStable)
 
-      if(numberBoLSFiles == 0 and eventsTotalEoR == eventsInputFU):
+      if(numberBoLSFiles == 0 and eventsInputBU == eventsInputFU):
          EoLSFolder = os.path.join(path_eol, theRunNumber)
          log.info("Run folder deletion is triggered!: {0} and {1}".format(inputDataFolder,EoLSFolder))
          shutil.rmtree(inputDataFolder)
          time.sleep(10)
          shutil.rmtree(EoLSFolder)
 
-def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThreshold, theRunNumber, outputEndName):
+def isCompleteRun(debug, theInputDataFolder, completeMergingThreshold, outputEndName):
+
+   if(outputEndName == ""):
+      outputEndName = socket.gethostname()
+
+   theRunNumber  = ""
+
+   inputDataFolderString = theInputDataFolder.split('/')	   
+   if inputDataFolderString[len(inputDataFolderString)-1] == '':
+     theRunNumber = inputDataFolderString[len(inputDataFolderString)-2]
+   else:
+     theRunNumber = inputDataFolderString[len(inputDataFolderString)-1] 
+
+   # reading the list of files in the given folder
+   after = dict ([(f, None) for f in os.listdir (theInputDataFolder)])
+   afterStringSM = [f for f in after]
 
    numberMiniEoRFiles  = 0
-   eventsInputEoRs     = 0
-   eventsProcessedEoRs = 0
+   eventsInputBUs      = 0
+   eventsInputFUs      = 0
    numberBoLSFiles     = 0
+   eventsTotalRun      = 0
    eventsIDict         = dict()
    iniIDict            = dict()
+
    for nb in range(0, len(afterStringSM)):
       if afterStringSM[nb].endswith(".ini"):
          fileIniString = afterStringSM[nb].split('_')
@@ -140,9 +157,10 @@ def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThres
 
       if ("MiniEoR" in afterStringSM[nb]):
          numberMiniEoRFiles += 1
-         eventsInputEoRs     = eventsInputEoRs     + int(settingsLS["eventsTotalEoR"])
-	 eventsProcessedEoRs = eventsProcessedEoRs + int(settingsLS["eventsInputFU"])
-	 numberBoLSFiles     = numberBoLSFiles     + int(settingsLS["numberBoLSFiles"])
+         eventsInputBUs      = eventsInputBUs  + int(settingsLS["eventsInputBU"])
+	 eventsInputFUs      = eventsInputFUs  + int(settingsLS["eventsInputFU"])
+	 numberBoLSFiles     = numberBoLSFiles + int(settingsLS["numberBoLSFiles"])
+         eventsTotalRun      =                   int(settingsLS["eventsTotalRun"])
 
       else:
          eventsInput = int(settingsLS["data"][0])
@@ -162,20 +180,21 @@ def isCompleteRun(debug, theInputDataFolder, afterStringSM, completeMergingThres
    for streamName in eventsIDict:
       if "DQM" in streamName: continue
       if "streamError" in streamName: continue
-      if(eventsIDict[streamName][0] < eventsInputEoRs*completeMergingThreshold):
+      if(eventsIDict[streamName][0] < eventsInputBUs*completeMergingThreshold):
          isComplete = False
 
-   if(float(debug) >= 10): print "run/events/completion: ",theInputDataFolder,eventsInputEoRs,eventsProcessedEoRs,numberBoLSFiles,isComplete
+   if(float(debug) >= 10): print "run/events/completion: ",theInputDataFolder,eventsInputBUs,eventsInputFUs,numberBoLSFiles,isComplete
    if(float(debug) >= 10 and 'streamA' in iniIDict.keys()): print "numberMiniEoRFiles/streamAfile: ",numberMiniEoRFiles,len(iniIDict["streamA"])
 
    EoRFileNameMacroOutput	= theInputDataFolder + "/" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn_TEMP"
    EoRFileNameMacroOutputStable = theInputDataFolder + "/" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn"
 
    theEoRFileMacroOutput = open(EoRFileNameMacroOutput, 'w')
-   theEoRFileMacroOutput.write(json.dumps({'eventsInputEoRs':     eventsInputEoRs, 
-   					   'eventsProcessedEoRs': eventsProcessedEoRs, 
+   theEoRFileMacroOutput.write(json.dumps({'eventsInputBUs':      eventsInputBUs, 
+   					   'eventsInputFUs':      eventsInputFUs, 
    					   'eventsStreamInput':   eventsIDict, 
      					   'numberBoLSFiles':     numberBoLSFiles,
+					   'eventsTotalRun':      eventsTotalRun,
 					   'isComplete':          isComplete}))
    theEoRFileMacroOutput.close()
 
