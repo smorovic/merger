@@ -160,7 +160,8 @@ def isCompleteRun(debug, theInputDataFolder, completeMergingThreshold, outputEnd
          eventsInputBUs      = eventsInputBUs  + int(settingsLS["eventsInputBU"])
 	 eventsInputFUs      = eventsInputFUs  + int(settingsLS["eventsInputFU"])
 	 numberBoLSFiles     = numberBoLSFiles + int(settingsLS["numberBoLSFiles"])
-         eventsTotalRun      =                   int(settingsLS["eventsTotalRun"])
+	 if(eventsTotalRun < int(settingsLS["eventsTotalRun"])):
+            eventsTotalRun = int(settingsLS["eventsTotalRun"])
 
       else:
          eventsInput = int(settingsLS["data"][0])

@@ -805,8 +805,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
-    triggerMergingThreshold = 0.8
-    completeMergingThreshold = 1.0
+    triggerMergingThreshold = 0.80
+    completeMergingThreshold = 0.99
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
        msg = "Wrong type of merging: %s" % mergeType
