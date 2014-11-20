@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os, time, sys, getopt, fcntl
+import os, time, sys, getopt, fcntl, random
 import shutil
 import json
 import glob
@@ -369,44 +369,46 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
   if mergeType == "mini":
       maxSizeMergedFile = 50 * 1024 * 1024 * 1024
       if os.path.exists(iniNameFullPath):
-        outLockedFileSize = 0
-        if(os.path.exists(lockNameFullPath)):
-            outLockedFileSize = os.path.getsize(lockNameFullPath)
-        if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}-{3}) {4}".format(now.strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, eventsO, outMergedJSONFullPath))
-        if (not os.path.exists(outMergedFileFullPath)):
-            with open(lockNameFullPath, 'w') as filelock:
-              fcntl.flock(filelock, fcntl.LOCK_EX)
+         outLockedFileSize = 0
+	 if(os.path.exists(lockNameFullPath)):
+	    outLockedFileSize = os.path.getsize(lockNameFullPath)
+         if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}-{3}) {4}".format(now.strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, eventsO, outMergedJSONFullPath))
+         if (not os.path.exists(outMergedFileFullPath)):
+            time.sleep(random.random()*0.1)
+         if (not os.path.exists(outMergedFileFullPath)):
 
-              if(float(debug) > 0): log.info("lockFile {0} being generated".format(lockNameFullPath))
-              with open(outMergedFileFullPath, 'w') as fout:
-                  fcntl.flock(fout, fcntl.LOCK_EX)
-                  fileSize = os.path.getsize(iniNameFullPath) + fileSize
-                  fout.truncate(maxSizeMergedFile)
-                  fout.seek(0)
-                  #os.chmod(outMergedFileFullPath, 0666)
-                  if(float(debug) > 0): log.info("outMergedFile {0} being generated".format(outMergedFileFullPath))
-                  filenames = [iniNameFullPath]
-                  append_files(filenames, fout)
-                  fcntl.flock(fout, fcntl.LOCK_UN)
-              fout.close()
+            # file is generated, but do not fill it
+            with open(outMergedFileFullPath, 'w') as fout:
+               fcntl.flock(fout, fcntl.LOCK_EX)
+               fout.truncate(maxSizeMergedFile)
+               fout.seek(0)
+               if(float(debug) > 0): log.info("outMergedFile {0} being generated".format(outMergedFileFullPath))
+               fcntl.flock(fout, fcntl.LOCK_UN)
+            fout.close()
 
-              checkSumIni=1
-              with open(iniNameFullPath, 'r') as fsrc:
-                  length=16*1024
-                  while 1:
-                    buf = fsrc.read(length)
-                    if not buf:
-                        break
-                    checkSumIni=zlib.adler32(buf,checkSumIni)
+            checkSumIni=1
+            with open(iniNameFullPath, 'r') as fsrc:
+               length=16*1024
+      	       while 1:
+   	    	  buf = fsrc.read(length)
+            	  if not buf:
+            	     break
+            	  checkSumIni=zlib.adler32(buf,checkSumIni)
 
-              checkSumIni = checkSumIni & 0xffffffff
-              filelock.write("%s=%d:%d" %(socket.gethostname(),os.path.getsize(iniNameFullPath),checkSumIni))
+	    checkSumIni = checkSumIni & 0xffffffff
 
-              filelock.flush()
-              #os.fdatasync(filelock)
-              #os.chmod(lockNameFullPath, 0666)
-              fcntl.flock(filelock, fcntl.LOCK_UN)
-            filelock.close()
+            if (not os.path.exists(lockNameFullPath)):
+   	       with open(lockNameFullPath, 'w') as filelock:
+   	          fcntl.flock(filelock, fcntl.LOCK_EX)
+
+                  if(float(debug) > 0): log.info("lockFile {0} being generated".format(lockNameFullPath))
+                  filelock.write("%s=%d:%d" %(socket.gethostname(),os.path.getsize(iniNameFullPath),checkSumIni))
+
+   	          #filelock.flush()
+   	          #os.fdatasync(filelock)
+	          #os.chmod(lockNameFullPath, 0666)
+   	          fcntl.flock(filelock, fcntl.LOCK_UN)
+   	       filelock.close()
       else:
         log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
         msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
@@ -448,7 +450,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
             lockFullString = filelock.readline().split(',')
             ini = int(lockFullString[len(lockFullString)-1].split(':')[0].split('=')[1])
             filelock.write(",%s=%d:%d" %(socket.gethostname(),ini+sum,checkSum))
-            filelock.flush()
+            #filelock.flush()
             if(float(debug) >= 10): log.info("Writing in lock file ({0}): {1}".format(lockNameFullPath,(ini+sum)))
             #os.fdatasync(filelock)
             fcntl.flock(filelock, fcntl.LOCK_UN)
@@ -461,8 +463,15 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
         fout.close()
         if(float(debug) > 0): log.info("{0}: Actual merging of {1} happened".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
 
-  if mergeType == "macro" and os.path.exists(iniNameFullPath) and eventsO == 0:
-      fileSize = os.path.getsize(iniNameFullPath)
+   if mergeType == "macro" and os.path.exists(iniNameFullPath):
+      with open(outMergedFileFullPath, 'r+w') as fout:
+         fout.seek(0)
+         filenameIni = [iniNameFullPath]
+         append_files(filenameIni, fout)
+      fout.close()
+      fileSize = fileSize + os.path.getsize(iniNameFullPath)
+      if eventsO == 0:
+         fileSize = os.path.getsize(iniNameFullPath)
 
   # remove already merged files, if wished
   if(doRemoveFiles == "True"):
