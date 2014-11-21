@@ -4,7 +4,12 @@ import logging.config
 import inspect
 from configobj import ConfigObj
 
-mergeConfigFileName = "/opt/merger/dataFlowMerger.conf"
+# mergeConfigFileName = /opt/merger/dataFlowMerger.conf
+## Use the config file from the directory containing this module
+_thisdir = os.path.dirname(os.path.abspath(__file__))
+mergeConfigFileName = os.path.join(_thisdir, "dataFlowMerger.conf")
+logging.info("Using config file `%s'" % mergeConfigFileName)
+
 try:
     if os.path.isfile(mergeConfigFileName):
         config = ConfigObj(mergeConfigFileName)

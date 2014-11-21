@@ -22,10 +22,8 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 export MERGER_BASE="$( dirname $DIR )"
 echo "Using MERGER_BASE=$MERGER_BASE for the merger sources."
 
-echo "Adding $MERGER_BASE to PATH ..."
-export PATH=${PATH}:$MERGER_BASE
-
-export TEST_BASE=${1:-"$( dirname $MERGER_BASE )"}
+mkdir -p /tmp/hwtest
+export TEST_BASE=${1:-"/tmp/hwtest"}
 echo "Using TEST_BASE=$TEST_BASE for data."
 
 ## Will contain the inputs for the generation of the unmerged data
@@ -87,20 +85,10 @@ numberOfShards = "1"
 numberOfReplicas = "0"
 END_OF_HERE_DOC
 
-OLD=/opt/merger/dataFlowMerger.conf
-NEW=$MERGER_BASE/dataFlowMergerMini.conf
-echo "Changing $OLD to $NEW in Logging.py ..."
-sed -i "s|$OLD|$NEW|" $MERGER_BASE/Logging.py
-
 OLD=/var/log/merger.log
 NEW=$MERGER_BASE/merger.log
 echo "Changing $OLD to $NEW in logFormat.conf ..."
 sed -i "s|$OLD|$NEW|" $MERGER_BASE/logFormat.conf
-
-OLD=dataFlowMergerMini.conf
-NEW=$MERGER_BASE/dataFlowMergerMini.conf
-echo "Changing $OLD to $NEW in dataFlowMiniMergerInLine ..."
-sed -i "s|$OLD|$NEW|" $MERGER_BASE/dataFlowMiniMergerInLine
 
 OLD=dataFlowMergerMacro.conf
 NEW=$MERGER_BASE/dataFlowMergerMacro.conf
@@ -118,6 +106,14 @@ $MERGER_BASE/hwtest/manageStreams.py \
     --bu 30 \
     -i $FROZEN_BASE \
     -p "$UNMERGED_BASE/"
+
+case ":$PATH:" in
+    *":$MERGER_BASE:"*)
+        echo "$MERGER_BASE is already in you \$PATH ..." ;; # already there
+    *)
+        echo "Adding $MERGER_BASE to your \$PATH ..."
+        export PATH=${PATH}:$MERGER_BASE ;;
+esac
 
 echo "Do dataFlowMiniMergerInLine to run the mini-merger (Ctrl-C to exit)."
 echo "Do dataFlowMacroMergerInLine to run the macro-merger (Ctrl-C to exit)."
