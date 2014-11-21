@@ -242,6 +242,8 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
    iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
+   if mergeType == "macro":
+      iniName = fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + "StorageManager" + ".ini"
    iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
    if mergeType == "mini":
       if os.path.exists(iniNameFullPath):
@@ -365,6 +367,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    lockNameFullPath = os.path.join(outputSMMergedFolder, lockName)
 
    iniName = "../" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
+   if mergeType == "macro":
+      iniName = fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + "StorageManager" + ".ini"
    iniNameFullPath = os.path.join(outputSMMergedFolder, iniName)
    if mergeType == "mini":
       maxSizeMergedFile = 50 * 1024 * 1024 * 1024
@@ -463,7 +467,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 	 fout.close()
 	 if(float(debug) > 0): log.info("{0}: Actual merging of {1} happened".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
 
-   if mergeType == "macro" and os.path.exists(iniNameFullPath):
+   if(mergeType == "macro" and os.path.exists(iniNameFullPath)):
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.seek(0)
          filenameIni = [iniNameFullPath]
@@ -472,6 +476,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       fileSize = fileSize + os.path.getsize(iniNameFullPath)
       if eventsO == 0:
          fileSize = os.path.getsize(iniNameFullPath)
+
+   elif(mergeType == "macro"):
+      log.error("BIG PROBLEM, iniNameFullPath {0} does not exist".format(iniNameFullPath))
 
    # remove already merged files, if wished
    if(doRemoveFiles == "True"):

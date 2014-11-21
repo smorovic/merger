@@ -446,8 +446,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	   # init name: runxxx_ls0000_streamY_HOST.ini
 	     	   inputNameString = afterString[i].split('_')
           	   # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
-	     	   outputIniName	  = theIniOutputFolder + "/../" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
-          	   outputIniNameToCompare = theIniOutputFolder +   "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName + ".ini"
+	     	   outputIniName	  = theIniOutputFolder + "/../" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + outputEndName    + ".ini"
+          	   outputIniNameToCompare = theIniOutputFolder +   "/"  + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + "StorageManager" + ".ini"
 	     	   inputNameRename  = inputName.replace(".ini","_TEMP.ini")
           	   shutil.move(inputName,inputNameRename)
           	   if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
