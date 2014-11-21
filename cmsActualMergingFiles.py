@@ -37,7 +37,7 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
          #attempt to record the merge, 400ms timeout!
          monitorResponse=requests.post(esServerUrl+'/'+esIndexName+'/'+documentType+'?parent='+runnumber,data=json.dumps(mergeMonitorDict),timeout=0.4)
          if(float(debug) >= 10): log.info('Successfully inserted record into ES')
-         #if(float(debug) > 0): log.info("{0}: Merger monitor produced response: {1}".format(now.strftime("%H:%M:%S"), monitorResponse.text))
+         #if(float(debug) > 0): log.info("{0}: Merger monitor produced response: {1}".format(datetime.datetime.now().strftime("%H:%M:%S"), monitorResponse.text))
          break
       except (requests.exceptions.ConnectionError,requests.exceptions.Timeout) as e:
          log.error('elasticMonitor threw connection error: HTTP ' + monitorResponse.status_code)
@@ -376,7 +376,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          outLockedFileSize = 0
 	 if(os.path.exists(lockNameFullPath)):
 	    outLockedFileSize = os.path.getsize(lockNameFullPath)
-         if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}-{3}) {4}".format(now.strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, eventsO, outMergedJSONFullPath))
+         if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}-{3}) {4}".format(datetime.datetime.now().strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, eventsO, outMergedJSONFullPath))
          if (not os.path.exists(outMergedFileFullPath)):
             time.sleep(random.random()*0.1)
          if (not os.path.exists(outMergedFileFullPath)):
@@ -436,7 +436,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
       # no point to add information and merge files is there are no output events
       if(eventsO != 0):
-	 if(float(debug) > 0): log.info("{0}: Waiting to lock file {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
+	 if(float(debug) > 0): log.info("{0}: Waiting to lock file {1}".format(datetime.datetime.now().strftime("%H:%M:%S"), outMergedJSONFullPath))
 	 nCount = 0
 	 lockFileExist = os.path.exists(lockNameFullPath)
 	 while ((lockFileExist == False) or (lockFileExist == True and os.path.getsize(lockNameFullPath) == 0)):
@@ -448,7 +448,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 	       log.info("Not possible to unlock file after 3 minutes!!!: {0}".format(lockNameFullPath))
                return
 
-	 if(float(debug) > 0): log.info("{0}: Locking file {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
+	 if(float(debug) > 0): log.info("{0}: Locking file {1}".format(datetime.datetime.now().strftime("%H:%M:%S"), outMergedJSONFullPath))
 	 with open(lockNameFullPath, 'r+w') as filelock:
             fcntl.flock(filelock, fcntl.LOCK_EX)
             lockFullString = filelock.readline().split(',')
@@ -459,13 +459,13 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
             #os.fdatasync(filelock)
             fcntl.flock(filelock, fcntl.LOCK_UN)
 	 filelock.close()
-	 if(float(debug) > 0): log.info("{0}: Unlocking file {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
+	 if(float(debug) > 0): log.info("{0}: Unlocking file {1}".format(datetime.datetime.now().strftime("%H:%M:%S"), outMergedJSONFullPath))
 
 	 with open(outMergedFileFullPath, 'r+w') as fout:
             fout.seek(ini)
             append_files(filenames, fout)
 	 fout.close()
-	 if(float(debug) > 0): log.info("{0}: Actual merging of {1} happened".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
+	 if(float(debug) > 0): log.info("{0}: Actual merging of {1} happened".format(datetime.datetime.now().strftime("%H:%M:%S"), outMergedJSONFullPath))
 
    if(mergeType == "macro" and os.path.exists(iniNameFullPath)):
       with open(outMergedFileFullPath, 'r+w') as fout:
