@@ -90,11 +90,6 @@ NEW=$MERGER_BASE/merger.log
 echo "Changing $OLD to $NEW in logFormat.conf ..."
 sed -i "s|$OLD|$NEW|" $MERGER_BASE/logFormat.conf
 
-OLD=dataFlowMergerMacro.conf
-NEW=$MERGER_BASE/dataFlowMergerMacro.conf
-echo "Changing $OLD to $NEW in dataFlowMacroMergerInLine ..."
-sed -i "s|$OLD|$NEW|" $MERGER_BASE/dataFlowMacroMergerInLine
-
 echo "Creating input files for the mini-merger input generation ..."
 COMMAND="$MERGER_BASE/hwtest/makeInputFiles.py -p $FROZEN_BASE"
 echo $COMMAND
