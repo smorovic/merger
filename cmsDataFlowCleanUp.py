@@ -226,7 +226,10 @@ def isCompleteRun(debug, theInputDataFolder, completeMergingThreshold, outputEnd
    for streamName in eventsIDict:
       if "DQM" in streamName: continue
       if "streamError" in streamName: continue
-      if(eventsIDict[streamName][0] < eventsInputBUs*completeMergingThreshold):
+      sumEvents = eventsIDict[streamName][0]
+      if streamName in eventsBadDict:
+         sumEvents = sumEvents + eventsBadDict[streamName][0]
+      if(sumEvents < eventsInputBUs*completeMergingThreshold):
          isComplete = False
 
    if(float(debug) >= 10): print "run/events/completion: ",theInputDataFolder,eventsInputBUs,eventsInputFUs,numberBoLSFiles,isComplete
