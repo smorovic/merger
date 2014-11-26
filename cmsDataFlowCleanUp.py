@@ -177,11 +177,59 @@ def isCompleteRun(debug, theInputDataFolder, completeMergingThreshold, outputEnd
 	 else:
 	    eventsIDict.update({key:[eventsInput]})	    
 
+
+   # Analyzing bad area
+   theInputDataBadFolder = theInputDataFolder + "/bad"
+   # reading the list of files in the given folder
+   afterBad = dict ([(f, None) for f in os.listdir (theInputDataBadFolder)])
+   afterStringBad = [f for f in afterBad]
+
+   eventsBadDict = dict()
+
+   for nb in range(0, len(afterStringBad)):
+      if not afterStringBad[nb].endswith(".jsn"): continue
+
+      inputBadJsonFile = os.path.join(theInputDataBadFolder, afterStringBad[nb])
+      settingsLS = ""
+      if(os.path.getsize(inputBadJsonFile) > 0):
+         try:
+            settingsLS_textI = open(inputBadJsonFile, "r").read()
+            settingsLS = json.loads(settingsLS_textI)
+         except ValueError, e:
+            log.warning("Looks like the file {0} is not available, I'll try again...".format(inputBadJsonFile))
+            try:
+               time.sleep (0.1)
+               settingsLS_textI = open(inputBadJsonFile, "r").read()
+               settingsLS = json.loads(settingsLS_textI)
+            except ValueError, e:
+               log.warning("Looks like the file {0} is not available (2nd try)...".format(inputBadJsonFile))
+               time.sleep (1.0)
+               settingsLS_textI = open(inputBadJsonFile, "r").read()
+               settingsLS = json.loads(settingsLS_textI)
+
+         eventsInput = int(settingsLS["data"][0])
+         # 0: run, 1: ls, 2: stream
+         fileNameString = afterStringBad[nb].split('_')
+         key = (fileNameString[2])
+         if key in eventsBadDict.keys():
+
+	    eventsInput = eventsBadDict[key][0] + eventsInput
+	    eventsBadDict[key].remove(eventsBadDict[key][0])
+	    eventsBadDict.update({key:[eventsInput]})
+
+	 else:
+	    eventsBadDict.update({key:[eventsInput]})	    
+
+
+   # Analyzing the information
    isComplete = True
    for streamName in eventsIDict:
       if "DQM" in streamName: continue
       if "streamError" in streamName: continue
-      if(eventsIDict[streamName][0] < eventsInputBUs*completeMergingThreshold):
+      sumEvents = eventsIDict[streamName][0]
+      if streamName in eventsBadDict:
+         sumEvents = sumEvents + eventsBadDict[streamName][0]
+      if(sumEvents < eventsInputBUs*completeMergingThreshold):
          isComplete = False
 
    if(float(debug) >= 10): print "run/events/completion: ",theInputDataFolder,eventsInputBUs,eventsInputFUs,numberBoLSFiles,isComplete
@@ -191,12 +239,13 @@ def isCompleteRun(debug, theInputDataFolder, completeMergingThreshold, outputEnd
    EoRFileNameMacroOutputStable = theInputDataFolder + "/" + theRunNumber + "_ls0000_MacroEoR_" + outputEndName + ".jsn"
 
    theEoRFileMacroOutput = open(EoRFileNameMacroOutput, 'w')
-   theEoRFileMacroOutput.write(json.dumps({'eventsInputBUs':      eventsInputBUs, 
-   					   'eventsInputFUs':      eventsInputFUs, 
-   					   'eventsStreamInput':   eventsIDict, 
-     					   'numberBoLSFiles':     numberBoLSFiles,
-					   'eventsTotalRun':      eventsTotalRun,
-					   'isComplete':          isComplete}))
+   theEoRFileMacroOutput.write(json.dumps({'eventsInputBUs':       eventsInputBUs, 
+   					   'eventsInputFUs':       eventsInputFUs, 
+   					   'eventsStreamInput':    eventsIDict, 
+   					   'eventsStreamBadInput': eventsBadDict, 
+     					   'numberBoLSFiles':      numberBoLSFiles,
+					   'eventsTotalRun':       eventsTotalRun,
+					   'isComplete':           isComplete}))
    theEoRFileMacroOutput.close()
 
    shutil.move(EoRFileNameMacroOutput, EoRFileNameMacroOutputStable)

@@ -31,7 +31,7 @@ def doCompleteRun(paths_to_watch, completeMergingThreshold, debug):
 
 	  cmsDataFlowCleanUp.isCompleteRun(debug, inputDataFolder, completeMergingThreshold, outputEndName)
 
-paths_to_watch = "/store/lustre/mergeMacro_TEST/run220013"
+paths_to_watch = "/store/lustre/mergeMacro/run230509"
 completeMergingThreshold = 1.0
 debug = 10
 
