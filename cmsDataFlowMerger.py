@@ -349,7 +349,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
       multiprocessing.log_to_stderr()
       multiprocessing.get_logger().setLevel(logging.ERROR)
       thePool = LoggingPool(processes=nThreadsMax)
-      
+
       nLoops = nLoops + 1
       inputDataFolders = glob.glob(paths_to_watch)
       if(float(debug) >= 20): log.info("***************NEW LOOP************** {0}".format(nLoops))
@@ -799,9 +799,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
           before = after
 
-      #if nLoops <= nWithPollMax or nWithPollMax < 0:
-      #   thePool.close()
-      #   thePool.join()
+      if nLoops <= nWithPollMax or nWithPollMax < 0:
+         thePool.close()
+         thePool.join()
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
