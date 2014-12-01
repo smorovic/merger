@@ -52,7 +52,7 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
@@ -174,7 +174,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
 
    # checkSum checking
-   if(fileNameString[2] != "streamError" and specialStreams == False):
+   if(doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False):
       adler32c=1
       with open(outMergedFileFullPath, 'r') as fsrc:
          length=16*1024
@@ -220,7 +220,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
@@ -341,7 +341,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
 
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
@@ -528,6 +528,37 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
       else:
          outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
+         if(doCheckSum == "True" and fileNameString[2] != "streamError"):
+            # observed checksum
+            adler32c=1
+            with open(outMergedFileFullPath, 'r') as fsrc:
+               length=16*1024
+               while 1:
+                  buf = fsrc.read(length)
+                  if not buf:
+                     break
+                  adler32c=zlib.adler32(buf,adler32c)
+
+	    adler32c = adler32c & 0xffffffff
+	    # expected checksum
+            with open(lockNameFullPath, 'r+w') as filelock:
+               lockFullString = filelock.readline().split(',')
+	    checkSum = int(lockFullString[0].split(':')[1])
+	    for nf in range(1, len(lockFullString)):
+               fileSizeAux = int(lockFullString[nf].split(':')[0].split('=')[1])-int(lockFullString[nf-1].split(':')[0].split('=')[1])
+               checkSumAux = int(lockFullString[nf].split(':')[1])
+	       checkSum = zlibextras.adler32_combine(checkSum,checkSumAux,fileSizeAux)
+               checkSum = checkSum & 0xffffffff
+
+            if(adler32c != checkSum):
+	       checkSumFailed = True
+               log.error("BIG PROBLEM, checkSum failed != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,adler32c,checkSum))
+               outMergedFileFullPathStable = outputSMMergedFolder + "/../bad/" + outMergedFile
+
+	       # also want to move the lock file to the bad area
+               lockNameFullPathStable = outputSMMergedFolder + "/../bad/" + lockName
+               shutil.move(lockNameFullPath,lockNameFullPathStable)
+
 	 if(doRemoveFiles == "True" and checkSumFailed == False):
             if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
                os.remove(lockNameFullPath)
