@@ -12,7 +12,7 @@ Do actual files
 """
 def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls = 5, theBUNumber = "AAA", theTotalBUs = 1):
 
-   NumberOfFilesPerLS = 11
+   NumberOfFilesPerLS = 50
 
    random.seed(int(seeds))
    theNLoop = 1
@@ -94,7 +94,7 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
 Main
 """
 
-def createFiles(streamName = "StreamA", contentInputFile = "", ls = 10, RUNNumber = 100, theBUNumber = "AAA", path_to_make = "", theTotalBUs = 1, rate = 0.0, seeds = 999, timeEnd = -1):
+def createFiles(streamName = "streamA", contentInputFile = "", ls = 10, RUNNumber = 100, theBUNumber = "AAA", path_to_make = "", theTotalBUs = 1, rate = 0.0, seeds = 999, timeEnd = -1):
    
    now = datetime.datetime.now()
 
