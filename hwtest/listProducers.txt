@@ -1,9 +1,7 @@
-#server06
-#server07
-#server08
-server20
-#server21
-#server22
-#server23
-#server24
-#server25
+bu-c2d38-27-01
+bu-c2d38-29-01
+bu-c2d38-31-01
+bu-c2d38-35-01
+bu-c2d38-37-01
+bu-c2d38-39-01
+bu-c2d38-41-01

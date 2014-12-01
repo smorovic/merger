@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-#configfile = "/opt/merger/dataFlowMerger.conf"
-configfile = "dataFlowMergerMini.conf"
+configfile = "dataFlowMerger.conf"
+#configfile = "dataFlowMergerMini.conf"
 #configfile = "dataFlowMergerMacro.conf"
 
 import sys, os, socket, signal
@@ -42,7 +42,7 @@ def get_params():
         number_of_shards = params['Misc']['numberOfShards']
         number_of_replicas = params['Misc']['numberOfReplicas']
     except KeyError, e:
-        log.error("At least one non-optional parameter missing from the config file {0}:".format(configFile))
+        log.error("At least one non-optional parameter missing from the config file {0}:".format(configfile))
         log.error("{0}".format(e))
         exit(1)
 
@@ -64,18 +64,17 @@ def get_params():
     if (merge_option != "optionA"):
         delete_files = "True"
 
-    return in_path, eol_path, out_path, sm_path, dqm_path, ecal_path, additional_label, merge_type, stream_type, delete_files, merge_option, debug_level
+    return in_path, eol_path, out_path, sm_path, dqm_path, ecal_path, additional_label, merge_type, stream_type, delete_files, merge_option, es_server_url, es_index_name, number_of_shards, number_of_replicas, debug_level
 
 
 
 def DataFlowMerger():
 
-
-  [inPath, eolPath, outPath, smPath, dqmPath, ecalPath, adLabel, mType, sType, delOrigFiles, mergeOption, debugLevel] = get_params()
+  [inPath, eolPath, outPath, smPath, dqmPath, ecalPath, adLabel, mType, sType, delOrigFiles, mergeOption, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debugLevel] = get_params()
 
   log.info("delFiles: {0}".format(delOrigFiles))
 
-  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, sType, outPath, smPath, dqmPath, ecalPath, adLabel, delOrigFiles, mergeOption, debugLevel)
+  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, sType, outPath, smPath, dqmPath, ecalPath, adLabel, delOrigFiles, mergeOption, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debugLevel)
 
 if __name__ == "__main__":
 

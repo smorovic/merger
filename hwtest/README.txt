@@ -132,3 +132,45 @@ RESULTS
 number of producers: 1
 Max expected throughput: 215 GB / 295 s = 0.73 GB/s
     Average throughput: 1930 GB / 343 s = 5.63 GB/s
+  * v1.0 
+    Total / closed / opened files: 100 / 100 (100%) / 0 (0%)
+    
+    
+  * v1.1 ls=50
+
+    Total / closed / opened files: 500 / 500 (100%) / 0 (0%)
+    LUMI_LENGTH_MEAN = 5.0
+    number of producers: 7
+    Max expected throughput: 219 GB / 50 s = 4.38 GB/s
+    Average throughput: 1094 GB / 347 s = 3.15 GB/s
+
+  * v1.2 ls=100 
+    Total / closed / opened files: 646 / 99 (15%) / 547 (85%)
+    LUMI_LENGTH_MEAN = 3.0
+    number of producers: 7
+    Max expected throughput: 219 GB / 30 s = 7.29 GB/s
+    
+  * v1.3 same as v1.2 to check for a crash, have .log and .out file for mergers
+    Total / closed / opened files: 1000 / 1000 (100%) / 0 (0%)
+    LUMI_LENGTH_MEAN = 3.0
+    number of producers: 7
+    Max expected throughput: 219 GB / 30 s = 7.29 GB/s
+    Average throughput: 2188 GB / 544 s = 4.02 GB/s
+  * v1.4 ls=50, limit number of processes spawned by the producer
+    Total / closed / opened files: 500 / 486 (97%) / 14 (3%)
+    LUMI_LENGTH_MEAN = 3.0
+    number of producers: 7
+    Max expected throughput: 219 GB / 30 s = 7.29 GB/s
+    Volume (GB): `1089'
+    Average throughput: 1089 GB / 290 s = 3.76 GB/s
+  * v1.5 more lumis
+    Total / closed / opened files: 1000 / 969 (96%) / 31 (4%)
+    LUMI_LENGTH_MEAN = 3.0
+number of producers: 7
+Max expected throughput: 1094 GB / 150 s = 7.29 GB/s
+    Average throughput: 2179 GB / 390 s = 5.59 GB/s
+  * v1.6  ls=5000
+    Total / closed / opened files: 50000 / 1043 (2%) / 48957 (98%)
+    Max expected throughput: 1094 GB / 150 s = 7.29 GB/s
+    Average throughput: 64512 GB / 15164 s = 4.25 GB/s
+    

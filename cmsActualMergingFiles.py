@@ -528,37 +528,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
       else:
          outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
-         if(fileNameString[2] != "streamError"):
-            # observed checksum
-            adler32c=1
-            with open(outMergedFileFullPath, 'r') as fsrc:
-               length=16*1024
-               while 1:
-                  buf = fsrc.read(length)
-                  if not buf:
-                     break
-                  adler32c=zlib.adler32(buf,adler32c)
-
-	    adler32c = adler32c & 0xffffffff
-	    # expected checksum
-            with open(lockNameFullPath, 'r+w') as filelock:
-               lockFullString = filelock.readline().split(',')
-	    checkSum = int(lockFullString[0].split(':')[1])
-	    for nf in range(1, len(lockFullString)):
-               fileSizeAux = int(lockFullString[nf].split(':')[0].split('=')[1])-int(lockFullString[nf-1].split(':')[0].split('=')[1])
-               checkSumAux = int(lockFullString[nf].split(':')[1])
-	       checkSum = zlibextras.adler32_combine(checkSum,checkSumAux,fileSizeAux)
-               checkSum = checkSum & 0xffffffff
-
-            if(adler32c != checkSum):
-	       checkSumFailed = True
-               log.error("BIG PROBLEM, checkSum failed != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,adler32c,checkSum))
-               outMergedFileFullPathStable = outputSMMergedFolder + "/../bad/" + outMergedFile
-
-	       # also want to move the lock file to the bad area
-               lockNameFullPathStable = outputSMMergedFolder + "/../bad/" + lockName
-               shutil.move(lockNameFullPath,lockNameFullPathStable)
-
 	 if(doRemoveFiles == "True" and checkSumFailed == False):
             if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
                os.remove(lockNameFullPath)

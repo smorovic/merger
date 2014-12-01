@@ -67,10 +67,10 @@ def main():
            msg = "BIG PROBLEM, file does not exists!: %s" % str(fullFileName)
            raise RuntimeError, msg
 
-        #contentInputFile.append(fullFileName)
-        with open(fullFileName, 'r') as theInputfile:
-           contentInputFile.append(theInputfile.read())
-        theInputfile.close()
+        contentInputFile.append(fullFileName)
+        #with open(fullFileName, 'r') as theInputfile:
+        #   contentInputFile.append(theInputfile.read())
+        #theInputfile.close()
 
     init(options, params)
 
@@ -82,7 +82,7 @@ def main():
        print now.strftime("%H:%M:%S"), ": writing ls(%d)" % (ls)
        for i in range(filesNb):
           # Produce files every lumi_length_mean seconds with random flutuation
-          sleep_time = seconds_to_sleep(ls, lumi_length_mean, lumi_length_sigma)
+          sleep_time = seconds_to_sleep(5, lumi_length_mean, lumi_length_sigma)
           streamName =  params['Streams']['name' + str(i)]
           process = multiprocessing.Process(
               target = launch_file_making,
@@ -92,7 +92,7 @@ def main():
           process.start()
 
        print now.strftime("%H:%M:%S"), ": finished LS", ls, ", exiting..."
-       time.sleep(1)
+       time.sleep(lumi_length_mean)
     now = datetime.datetime.now()
     print now.strftime("%H:%M:%S"), ": finished, exiting..."
 ## main
@@ -153,9 +153,8 @@ def configureStreams(fileName):
 #______________________________________________________________________________
 def seconds_to_sleep(ls, lumi_length_mean=20, lumi_length_sigma=0.001):
     mean_offset = ls * lumi_length_mean
-    expected_offset = mean_offset + random.gauss(0., lumi_length_sigma)
-    actual_offset = total_seconds(datetime.datetime.now() - start_time)
-    ret = max(0., expected_offset - actual_offset)
+    random_offset = random.gauss(mean_offset, lumi_length_sigma)
+    ret = max(0., mean_offset)
     return ret
 ## seconds_to_sleep
 

@@ -1,0 +1,22 @@
+## This files contains rules for rsync filter
+##
+## USAGE:
+##   rsync -F <source> <destination>
+##
+## From the man page: 
+#
+#     -F : The -F option is a shorthand [...] for this rule:
+#
+#          --filter='dir-merge /.rsync-filter'
+#
+#     This tells rsync to look for per-directory .rsync-filter files 
+#     that have been sprinkled through the hierarchy and use their rules 
+#     to filter the files in the transfer.
+#
+## See http://askubuntu.com/questions/291322/how-to-exclude-files-in-rsync
+#
+## Ignore files and directories matching these patterns
+- .git
+- .gitignore
+- *.pyc
+

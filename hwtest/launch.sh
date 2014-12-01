@@ -7,21 +7,21 @@ LIST_PRODUCERS=listProducers.txt
 LIST_MERGERS=$LIST_PRODUCERS
 ALL_NODES=all_nodes.txt
 
-LUMI_LENGTH_MEAN=5.9
-LUMI_LENGTH_SIGMA=3.0
+LUMI_LENGTH_MEAN=9.0
+LUMI_LENGTH_SIGMA=9.0
 
 ## Top-level directory for the test management and control
-MASTER_BASE=/home/cern/merger
+MASTER_BASE=/hwtests/master
 ## Top level directory for the producer and merger scripts used during the test
-SLAVE_BASE=/home/cern/slave
+SLAVE_BASE=/hwtests/slave
 ## Folder for the producer inputs
 #FROZEN_BASE=/home/cern/frozen # HDD
-FROZEN_BASE=/ramdisk/frozen # RAM disk
+FROZEN_BASE=/fff/ramdisk/hwtest/frozen # RAM disk
 ## Top-level directory for the producer outputs / merger inputs
-#INPUT_BASE=/home/cern/data # HDD
-INPUT_BASE=/ramdisk/data # RAM disk
+INPUT_BASE=/mnt/cmsfs/benchmark/inputs # Lustre
+#INPUT_BASE=/fff/ramdisk/hwtest/inputs # RAM disk
 ## Top-level directory for the merger outputs
-OUTPUT_BASE=/lustre/cern/data
+OUTPUT_BASE=/mnt/cmsfs/benchmark
 
 ## Provides node_name, count_args, parse_machine_list, echo_and_ssh
 source $MASTER_BASE/hwtest/tools.sh
@@ -30,7 +30,7 @@ source $MASTER_BASE/hwtest/tools.sh
 function launch_main {
     echo "+ Launching the test ..."
     clean_up
-    launch_merger 100 optionC server20 macro
+    launch_merger 100 optionC bu-c2d38-27-01 macro
     launch_mergers 100 optionC
     launch_producers run100.cfg 1
     echo "+ ... done. Finished launching the test."
@@ -76,7 +76,7 @@ function kill_previous_mergers_and_producers {
     for NODE in $NODES; do
         COMMAND="$(cat <<'EOF'
             PROCESS_IDS=$(ps awwx |\
-                grep python |\
+                egrep "dataFlowMergerInLine|manageStreams.py" |\
                 egrep -v "grep|bash" |\
                 awk '{print $1}');\
             if [[ ! -z "$PROCESS_IDS" ]]; then                              \
@@ -123,6 +123,8 @@ function launch_merger {
     ## Create a custom config file
     CONFIG=$MASTER_BASE/dataFlowMerger.conf
     /bin/cp $MASTER_BASE/dataFlowMergerTemplate.conf $CONFIG
+    LCONFIG=$MASTER_BASE/logFormat.conf
+    /bin/cp $MASTER_BASE/logFormatTemplate.conf $LCONFIG
 
     if [ $MODE == "mini" ]; then
         sed -e "s|AAA|$INPUT_BASE/${NODE}/unmergedDATA/run${RUN}|" \
@@ -148,6 +150,9 @@ function launch_merger {
         return 1
     fi
 
+    LOG=merger_${THEOPTION}_run${RUN}_${NODE}_${MODE}.log
+    sed -e "s|LFILE|$MERGER_BASE/$LOG|" -i $LCONFIG
+
     ## Make sure that the remote folder to contain source code exists
     ssh $NODE "mkdir -p $MERGER_BASE"
 
@@ -169,11 +174,11 @@ function launch_merger {
     rm -rf $MASTER_BASE/custom
 
     ## Create the launch command
-    LOG=merger_${THEOPTION}_run${RUN}_${NODE}_${MODE}.log
+    OUT=merger_${THEOPTION}_run${RUN}_${NODE}_${MODE}.out
     COMMAND="$(cat << EOF
     (   cd $OUTPUT_BASE ; \
         nohup $MERGER_BASE/dataFlowMergerInLine \
-    )   >& $MERGER_BASE/$LOG &
+    )   >& $MERGER_BASE/$OUT &
 EOF
     )"
     

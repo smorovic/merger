@@ -3,14 +3,14 @@
 
 import os
 
-_base_path = '/home/cern/merger'
-_verbosity_level = 1
+_base_path = '/hwtests/master'
+_verbosity_level = 0
 
 #_______________________________________________________________________________
 def main():
     lumi_length_mean    = get_lumi_length_mean()
     number_of_producers = get_number_of_producers()
-    number_of_files_per_ls = 11  # NumberOfFilesPerLS in makeFiles.py
+    number_of_files_per_ls = 8   # NumberOfFilesPerLS in makeFiles.py
     total_file_size_in_mb = 400. # for all streams
     number_of_ls = 50            # ls in run100.cfg
 

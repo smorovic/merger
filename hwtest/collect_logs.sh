@@ -1,19 +1,19 @@
 #!/bin/bash
 source tools.sh
 NODES=$(parse_machine_list all_nodes.txt)
-MASTER_BASE=/home/cern/merger
-SLAVE_BASE=/home/cern/slave
-OUTPUT_BASE=/lustre/cern/data
+MASTER_BASE=/hwtests/master
+SLAVE_BASE=/hwtests/slave
+OUTPUT_BASE=/mnt/cmsfs/benchmark
 SUMMARY_FILE=README.txt
 
-MAJOR_VERSION_NUMBER=2
+MAJOR_VERSION_NUMBER=1
 MINOR_VERSION_NUMBER=0
 NAME=logs_v${MAJOR_VERSION_NUMBER}.${MINOR_VERSION_NUMBER}
-LOGS_BASE=/lustre/cern/logs/$NAME
+LOGS_BASE=/nfshome0/veverka/daq/benchmark/logs/$NAME
 while [[ -d $LOGS_BASE ]]; do
     (( MINOR_VERSION_NUMBER++ ))
     NAME=logs_v${MAJOR_VERSION_NUMBER}.${MINOR_VERSION_NUMBER}
-    LOGS_BASE=/lustre/cern/logs/$NAME
+    LOGS_BASE=/nfshome0/veverka/daq/benchmark/logs/$NAME
 done
 
 #______________________________________________________________________________
@@ -32,6 +32,13 @@ for NODE in $NODES; do
     COMMAND=$(cat <<EOF
         mkdir -p $DESTINATION_DIR; \
         cp $LOGS_MASK $DESTINATION_DIR;
+EOF
+    )
+    echo_and_ssh $NODE "$COMMAND"
+    OUT_MASK="\$(find $SLAVE_BASE -name '*.out')"
+    COMMAND=$(cat <<EOF
+        mkdir -p $DESTINATION_DIR; \
+        cp $OUT_MASK $DESTINATION_DIR;
 EOF
     )
     echo_and_ssh $NODE "$COMMAND"
