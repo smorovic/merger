@@ -242,6 +242,56 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
       raise RuntimeError, msg
 
 """
+Function to copy files
+"""
+def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName):
+   if(float(debug) >= 10): log.info("moving parameters files: {0} {1} {2} {3}".format(inputDataFolder, outputMergedFolder, fileName, jsonName))
+   inpMergedFileFullPath       = os.path.join(inputDataFolder,    fileName)
+   inpMergedJSONFullPath       = os.path.join(inputDataFolder,    jsonName)
+   outMergedFileFullPath       = os.path.join(outputMergedFolder, fileName)
+   outMergedJSONFullPath       = os.path.join(outputMergedFolder, jsonName)
+   outMergedFileFullPathStable = outputMergedFolder + "/../" + fileName
+   outMergedJSONFullPathStable = outputMergedFolder + "/../" + jsonName.replace("_TEMP.jsn",".jsn")
+
+   if(float(debug) >= 10): log.info("moving info: {0} {1} {2} {3} {2} {3}".format(inpMergedFileFullPath, outMergedFileFullPath, outMergedFileFullPathStable, 
+                                                                                  inpMergedJSONFullPath, outMergedJSONFullPath, outMergedJSONFullPathStable))
+
+   # moving dat files
+   if not os.path.exists(inpMergedFileFullPath):
+      log.error("COPY PROBLEM, inpMergedFileFullPath does not exist: {0}".format(inpMergedFileFullPath))
+
+   try:
+      shutil.move(inpMergedFileFullPath,outMergedFileFullPath)
+   except OSError, e:
+      log.error("copy dat file failed: {0}, {1}".format(inpMergedFileFullPath,outMergedFileFullPath))
+
+   if not os.path.exists(outMergedFileFullPath):
+      log.error("COPY PROBLEM, outMergedFileFullPath does not exist: {0}".format(outMergedFileFullPath))
+
+   try:
+      shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+   except OSError, e:
+      log.error("move dat file failed: {0}, {1}".format(outMergedFileFullPath,outMergedFileFullPathStable))
+
+   # moving json files
+   if not os.path.exists(inpMergedJSONFullPath):
+      log.error("COPY PROBLEM, inpMergedJSONFullPath does not exist: {0}".format(inpMergedJSONFullPath))
+
+   try:
+      shutil.move(inpMergedJSONFullPath,outMergedJSONFullPath)
+   except OSError, e:
+      log.error("copy json file failed: {0}, {1}".format(inpMergedJSONFullPath,outMergedJSONFullPath))
+
+   # moving json files
+   if not os.path.exists(outMergedJSONFullPath):
+      log.error("COPY PROBLEM, outMergedJSONFullPath does not exist: {0}".format(outMergedJSONFullPath))
+
+   try:
+      shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
+   except OSError, e:
+      log.error("move json file failed: {0}, {1}".format(outMergedJSONFullPath,outMergedJSONFullPathStable))
+
+"""
 Functions to handle errors properly
 """
 def error(msg, *args):
@@ -575,7 +625,15 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       shutil.move(inputJsonRenameFile,inputJsonFailedFile)
                       isFailed = True
 
-             # avoid corrupted files
+             # This is just for streamEvD files
+             if  (isFailed == False and fileNameString[2] == "streamEvDOutput"):
+                isFailed = True
+		fileName = str(settings['data'][4])
+                jsonName = afterString[i].replace(".jsn","_TEMP.jsn")
+
+                process = thePool.apply_async(copyFiles, [debug, inputDataFolder, outputMergedFolder, fileName, jsonName])
+
+             # avoid corrupted files or streamEvD files
 	     if(isFailed == True): continue
 
              # this is the number of input and output events, and the name of the dat file, something critical
