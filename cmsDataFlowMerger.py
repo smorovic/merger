@@ -244,14 +244,25 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
 """
 Function to copy files
 """
-def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName):
+def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, theRunNumber):
    if(float(debug) >= 10): log.info("moving parameters files: {0} {1} {2} {3}".format(inputDataFolder, outputMergedFolder, fileName, jsonName))
    inpMergedFileFullPath       = os.path.join(inputDataFolder,    fileName)
    inpMergedJSONFullPath       = os.path.join(inputDataFolder,    jsonName)
-   outMergedFileFullPath       = os.path.join(outputMergedFolder, fileName)
-   outMergedJSONFullPath       = os.path.join(outputMergedFolder, jsonName)
-   outMergedFileFullPathStable = outputMergedFolder + "/../" + fileName
-   outMergedJSONFullPathStable = outputMergedFolder + "/../" + jsonName.replace("_TEMP.jsn",".jsn")
+
+   outputMergedFolderFullPath      = outputMergedFolder + "/../" + theRunNumber
+   outputMergedFolderFullPathOpen  = outputMergedFolder + "/../" + theRunNumber + "/open"
+
+   outMergedFileFullPath       = outputMergedFolderFullPath + "/open/" + fileName
+   outMergedJSONFullPath       = outputMergedFolderFullPath + "/open/" + jsonName
+   outMergedFileFullPathStable = outputMergedFolderFullPath + "/"      + fileName
+   outMergedJSONFullPathStable = outputMergedFolderFullPath + "/"      + jsonName.replace("_TEMP.jsn",".jsn")
+
+   if not os.path.exists(outputMergedFolderFullPathOpen):
+      log.warning("Moving operation, folder did not exist, {0}, creating it".format(outputMergedFolderFullPathOpen))
+      try:
+   	 os.makedirs(outputMergedFolderFullPathOpen)
+      except OSError, e:
+   	 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMergedFolderFullPathOpen))
 
    if(float(debug) >= 10): log.info("moving info: {0} {1} {2} {3} {2} {3}".format(inpMergedFileFullPath, outMergedFileFullPath, outMergedFileFullPathStable, 
                                                                                   inpMergedJSONFullPath, outMergedJSONFullPath, outMergedJSONFullPathStable))
@@ -630,8 +641,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 isFailed = True
 		fileName = str(settings['data'][4])
                 jsonName = afterString[i].replace(".jsn","_TEMP.jsn")
+                theRunNumber = afterString[i].split('_')[0]
 
-                process = thePool.apply_async(copyFiles, [debug, inputDataFolder, outputMergedFolder, fileName, jsonName])
+                process = thePool.apply_async(copyFiles, [debug, inputDataFolder, outputMergedFolder, fileName, jsonName, theRunNumber])
 
              # avoid corrupted files or streamEvD files
 	     if(isFailed == True): continue
