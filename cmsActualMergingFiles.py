@@ -383,6 +383,8 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                fcntl.flock(fout, fcntl.LOCK_EX)
                fout.truncate(maxSizeMergedFile)
                fout.seek(0)
+               #filenameIni = [iniNameFullPath]
+               #append_files(filenameIni, fout)
                if(float(debug) > 0): log.info("outMergedFile {0} being generated".format(outMergedFileFullPath))
                fcntl.flock(fout, fcntl.LOCK_UN)
             fout.close()
@@ -481,7 +483,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    if(doRemoveFiles == "True"):
       if mergeType == "mini":
          for nfile in range(0, len(files)):
-            if(float(debug) > 0): log.info("removing file: {0}".format(files[nfile]))
+            if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
    	    inputFileToRemove = os.path.join(inputDataFolder, files[nfile])
             if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	       os.remove(inputFileToRemove)
