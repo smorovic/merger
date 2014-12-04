@@ -257,6 +257,10 @@ def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, th
    outMergedFileFullPathStable = outputMergedFolderFullPath + "/"      + fileName
    outMergedJSONFullPathStable = outputMergedFolderFullPath + "/"      + jsonName.replace("_TEMP.jsn",".jsn")
 
+   initMergingTime = time.time()
+   now = datetime.datetime.now()
+   if(float(debug) > 0): log.info("{0}: Start moving of {1}".format(now.strftime("%H:%M:%S"), outMergedFileFullPathStable))
+
    if not os.path.exists(outputMergedFolderFullPathOpen):
       log.warning("Moving operation, folder did not exist, {0}, creating it".format(outputMergedFolderFullPathOpen))
       try:
@@ -301,6 +305,10 @@ def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, th
       shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
    except OSError, e:
       log.error("move json file failed: {0}, {1}".format(outMergedJSONFullPath,outMergedJSONFullPathStable))
+
+   endMergingTime = time.time() 
+   now = datetime.datetime.now()
+   if(float(debug) > 0): log.info("{0}, : Time for moving({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedFileFullPathStable, endMergingTime-initMergingTime))
 
 """
 Functions to handle errors properly
