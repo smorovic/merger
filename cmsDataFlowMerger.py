@@ -421,8 +421,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
       nLoops = nLoops + 1
       inputDataFolders = glob.glob(paths_to_watch)
-      if(float(debug) >= 20): log.info("***************NEW LOOP************** {0}".format(nLoops))
-      if(float(debug) >= 20): log.info("inputDataFolders: {0}".format(inputDataFolders))
+      if(float(debug) >= 20 or nLoops%1000 == 1): log.info("***************NEW LOOP************** {0}".format(nLoops))
+      if(float(debug) >= 20 or nLoops%1000 == 1): log.info("inputDataFolders: {0}".format(inputDataFolders))
       for nf in range(0, len(inputDataFolders)):
           inputDataFolder = inputDataFolders[nf]
 	  # making output folders
