@@ -92,9 +92,15 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       if(numberBoLSFiles == 0 and eventsInputBU == eventsInputFU):
          EoLSFolder = os.path.join(path_eol, theRunNumber)
          log.info("Run folder deletion is triggered!: {0} and {1}".format(inputDataFolder,EoLSFolder))
-         shutil.rmtree(inputDataFolder)
          time.sleep(10)
-         shutil.rmtree(EoLSFolder)
+         try:
+            shutil.rmtree(inputDataFolder)
+   	 except ValueError, e:
+   	    log.warning("Failed removing {0}".format(inputDataFolder))
+         try:
+            shutil.rmtree(EoLSFolder)
+   	 except ValueError, e:
+   	    log.warning("Failed removing {0}".format(EoLSFolder))
 
 def doSumEoLS(inputDataFolder, eventsEoLS):
 
