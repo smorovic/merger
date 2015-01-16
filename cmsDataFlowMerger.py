@@ -242,6 +242,75 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
       raise RuntimeError, msg
 
 """
+Function to copy files
+"""
+def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, theRunNumber):
+   if(float(debug) >= 10): log.info("moving parameters files: {0} {1} {2} {3}".format(inputDataFolder, outputMergedFolder, fileName, jsonName))
+   inpMergedFileFullPath       = os.path.join(inputDataFolder,    fileName)
+   inpMergedJSONFullPath       = os.path.join(inputDataFolder,    jsonName)
+
+   outputMergedFolderFullPath      = outputMergedFolder + "/../" + theRunNumber
+   outputMergedFolderFullPathOpen  = outputMergedFolder + "/../" + theRunNumber + "/open"
+
+   outMergedFileFullPath       = outputMergedFolderFullPath + "/open/" + fileName
+   outMergedJSONFullPath       = outputMergedFolderFullPath + "/open/" + jsonName
+   outMergedFileFullPathStable = outputMergedFolderFullPath + "/"      + fileName
+   outMergedJSONFullPathStable = outputMergedFolderFullPath + "/"      + jsonName.replace("_TEMP.jsn",".jsn")
+
+   initMergingTime = time.time()
+   now = datetime.datetime.now()
+   if(float(debug) > 0): log.info("{0}: Start moving of {1}".format(now.strftime("%H:%M:%S"), outMergedFileFullPathStable))
+
+   if not os.path.exists(outputMergedFolderFullPathOpen):
+      log.warning("Moving operation, folder did not exist, {0}, creating it".format(outputMergedFolderFullPathOpen))
+      try:
+   	 os.makedirs(outputMergedFolderFullPathOpen)
+      except OSError, e:
+   	 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMergedFolderFullPathOpen))
+
+   if(float(debug) >= 10): log.info("moving info: {0} {1} {2} {3} {2} {3}".format(inpMergedFileFullPath, outMergedFileFullPath, outMergedFileFullPathStable, 
+                                                                                  inpMergedJSONFullPath, outMergedJSONFullPath, outMergedJSONFullPathStable))
+
+   # moving dat files
+   if not os.path.exists(inpMergedFileFullPath):
+      log.error("COPY PROBLEM, inpMergedFileFullPath does not exist: {0}".format(inpMergedFileFullPath))
+
+   try:
+      shutil.move(inpMergedFileFullPath,outMergedFileFullPath)
+   except OSError, e:
+      log.error("copy dat file failed: {0}, {1}".format(inpMergedFileFullPath,outMergedFileFullPath))
+
+   if not os.path.exists(outMergedFileFullPath):
+      log.error("COPY PROBLEM, outMergedFileFullPath does not exist: {0}".format(outMergedFileFullPath))
+
+   try:
+      shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+   except OSError, e:
+      log.error("move dat file failed: {0}, {1}".format(outMergedFileFullPath,outMergedFileFullPathStable))
+
+   # moving json files
+   if not os.path.exists(inpMergedJSONFullPath):
+      log.error("COPY PROBLEM, inpMergedJSONFullPath does not exist: {0}".format(inpMergedJSONFullPath))
+
+   try:
+      shutil.move(inpMergedJSONFullPath,outMergedJSONFullPath)
+   except OSError, e:
+      log.error("copy json file failed: {0}, {1}".format(inpMergedJSONFullPath,outMergedJSONFullPath))
+
+   # moving json files
+   if not os.path.exists(outMergedJSONFullPath):
+      log.error("COPY PROBLEM, outMergedJSONFullPath does not exist: {0}".format(outMergedJSONFullPath))
+
+   try:
+      shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
+   except OSError, e:
+      log.error("move json file failed: {0}, {1}".format(outMergedJSONFullPath,outMergedJSONFullPathStable))
+
+   endMergingTime = time.time() 
+   now = datetime.datetime.now()
+   if(float(debug) > 0): log.info("{0}, : Time for moving({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedFileFullPathStable, endMergingTime-initMergingTime))
+
+"""
 Functions to handle errors properly
 """
 def error(msg, *args):
@@ -352,8 +421,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
       nLoops = nLoops + 1
       inputDataFolders = glob.glob(paths_to_watch)
-      if(float(debug) >= 20): log.info("***************NEW LOOP************** {0}".format(nLoops))
-      if(float(debug) >= 20): log.info("inputDataFolders: {0}".format(inputDataFolders))
+      if(float(debug) >= 20 or nLoops%10000 == 1): log.info("***************NEW LOOP************** {0}".format(nLoops))
+      if(float(debug) >= 20 or nLoops%10000 == 1): log.info("inputDataFolders: {0}".format(inputDataFolders))
       for nf in range(0, len(inputDataFolders)):
           inputDataFolder = inputDataFolders[nf]
 	  # making output folders
@@ -575,7 +644,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       shutil.move(inputJsonRenameFile,inputJsonFailedFile)
                       isFailed = True
 
-             # avoid corrupted files
+             # This is just for streamEvD files
+             if  (isFailed == False and fileNameString[2] == "streamEvDOutput"):
+                isFailed = True
+		fileName = str(settings['data'][4])
+                jsonName = afterString[i].replace(".jsn","_TEMP.jsn")
+                theRunNumber = afterString[i].split('_')[0]
+
+                process = thePool.apply_async(copyFiles, [debug, inputDataFolder, outputMergedFolder, fileName, jsonName, theRunNumber])
+
+             # avoid corrupted files or streamEvD files
 	     if(isFailed == True): continue
 
              # this is the number of input and output events, and the name of the dat file, something critical
@@ -799,9 +877,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
           before = after
 
-      if nLoops <= nWithPollMax or nWithPollMax < 0:
-         thePool.close()
-         thePool.join()
+      #if nLoops <= nWithPollMax or nWithPollMax < 0:
+      #   thePool.close()
+      #   thePool.join()
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
