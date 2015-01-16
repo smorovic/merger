@@ -43,12 +43,12 @@ for MB in 10 20 30 40 50 100 200 300 400 500; do OF=/root/testHW/frozen/inputFil
 
 ## Setup RAM disks
 source tools.sh
-FROZEN_BASE=/ramdisk/frozen
-INPUT_BASE=/ramdisk/data # RAM disk
-SIZES="10 20 30 40 50 100 200"
+FROZEN_BASE=/fff/ramdisk/hwtest/frozen
+INPUT_BASE=/fff/ramdisk/hwtest/inputs # RAM disk
+SIZES="2 4 6 8 10 20 40"
 # COMMAND="mkdir /ramdisk; mount -o size=1G -t tmpfs none /ramdisk; df -h /ramdisk"
 COMMAND="mkdir -p $FROZEN_BASE; for MB in $SIZES; do OF=$FROZEN_BASE/inputFile_\${MB}MB.dat; dd if=/dev/zero of=\$OF bs=1M count=\$MB; echo >> \$OF; done"
-COMMAND="chmod 755 $FROZEN_BASE; chmod 777 $INPUT_BASE"
+#COMMAND="chmod 755 $FROZEN_BASE; chmod 777 $INPUT_BASE"
 for NODE in $(parse_machine_list all_nodes.txt); do
     echo_and_ssh $NODE "$COMMAND"
 done
@@ -88,7 +88,8 @@ ssh-copy-id $NODE
 ssh $NODE
 ## Make frozen inputs
 SIZES="10 20 30 40 50 100 200"
-FROZEN_BASE=/home/cern/frozen
+SIZES="2 4 6 8 10 20 40"
+FROZEN_BASE=/fff/ramdisk/hwtest/frozen
 mkdir -p $FROZEN_BASE
 for MB in $SIZES; do
     OF=$FROZEN_BASE/inputFile_${MB}MB.dat
