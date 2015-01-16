@@ -18,8 +18,8 @@ SLAVE_BASE=/hwtests/slave
 #FROZEN_BASE=/home/cern/frozen # HDD
 FROZEN_BASE=/fff/ramdisk/hwtest/frozen # RAM disk
 ## Top-level directory for the producer outputs / merger inputs
-INPUT_BASE=/mnt/cmsfs/benchmark/inputs # Lustre
-#INPUT_BASE=/fff/ramdisk/hwtest/inputs # RAM disk
+#INPUT_BASE=/mnt/cmsfs/benchmark/inputs # Lustre
+INPUT_BASE=/fff/ramdisk/hwtest/inputs # RAM disk
 ## Top-level directory for the merger outputs
 OUTPUT_BASE=/mnt/cmsfs/benchmark
 
