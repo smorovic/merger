@@ -89,7 +89,7 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
                'processed'     :{'type':'integer'},
                'accepted'      :{'type':'integer'},
                'errorEvents'   :{'type':'integer'},
-               'size'          :{'type':'integer'},
+               'size'          :{'type':'long'},
             }
          }
       }
@@ -106,7 +106,7 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
                'processed'     :{'type':'integer'},
                'accepted'      :{'type':'integer'},
                'errorEvents'   :{'type':'integer'},
-               'size'          :{'type':'integer'},
+               'size'          :{'type':'long'},
             }
          }
       }
