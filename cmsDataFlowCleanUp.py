@@ -98,6 +98,11 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 except ValueError, e:
    	    log.warning("Failed removing {0}".format(inputDataFolder))
          try:
+            if os.path.islink(EoLSFolder):
+               link_dir = os.readlink(EoLSFolder)
+               log.info("EoLS run directory is a symlink pointing to {0}".format(link_dir))
+               os.unlink(EoLSFolder)
+               EoLSFolder = link_dir
             shutil.rmtree(EoLSFolder)
    	 except ValueError, e:
    	    log.warning("Failed removing {0}".format(EoLSFolder))
