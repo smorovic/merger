@@ -521,7 +521,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	   shutil.move(inputName,inputNameRename)
           	   if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
 	  	   # getting the ini file, just once per stream
-	     	   if not os.path.exists(outputIniName) or os.path.getsize(outputIniName) == 0:
+	     	   if (not os.path.exists(outputIniName) or (os.path.exists(outputIniName) and os.path.getsize(outputIniName) == 0)):
 	     	      try:
           		 with open(outputIniName, 'a', 1) as file_object:
           		    fcntl.flock(file_object, fcntl.LOCK_EX)
@@ -531,7 +531,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	      except OSError, e:
 	     		 log.warning("Looks like the outputIniName file {0} has just been created by someone else...".format(outputIniName))
 
-	     	   if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
+	     	   if (not os.path.exists(outputIniNameToCompare) or (os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
 	     	      try:
           		 with open(outputIniNameToCompare, 'a', 1) as file_object:
           		    fcntl.flock(file_object, fcntl.LOCK_EX)
@@ -562,7 +562,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           		 outputIniNameToCompare = theIniOutputFolder +   "/"  + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + ".jsd"
           		 if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
 	  		 # getting the ini file, just once per stream
-	     		 if not os.path.exists(outputIniName) or os.path.getsize(outputIniName) == 0:
+	     		 if (not os.path.exists(outputIniName) or (os.path.exists(outputIniName) and os.path.getsize(outputIniName) == 0)):
 	     		    try:
           		       with open(outputIniName, 'a', 1) as file_object:
           			  fcntl.flock(file_object, fcntl.LOCK_EX)
@@ -572,7 +572,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     		    except OSError, e:
 	     		       log.warning("Looks like the outputIniName-Rates file {0} has just been created by someone else...".format(outputIniName))
 
-	     		 if not os.path.exists(outputIniNameToCompare) or os.path.getsize(outputIniNameToCompare) == 0:
+	     		 if (not os.path.exists(outputIniNameToCompare) or (os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
 	     		    try:
           		       with open(outputIniNameToCompare, 'a', 1) as file_object:
           			  fcntl.flock(file_object, fcntl.LOCK_EX)
@@ -615,7 +615,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
 
              # avoid empty files
-	     if(os.path.getsize(inputJsonFile) == 0): continue
+	     if(os.path.exists(inputJsonFile) and os.path.getsize(inputJsonFile) == 0): continue
 
              isFailed = False
              # moving the file to avoid issues
