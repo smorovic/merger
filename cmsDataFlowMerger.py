@@ -27,15 +27,16 @@ Do actual merging
 
 def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,debug):
 # subroutine which creates index and mappings in elastic search database
+   indexExists = False
    # check if the index exists:
    try:
       checkIndexResponse=requests.get(esServerUrl+'/'+esIndexName+'/_stats/_shards/')
       if '_shards' in json.loads(checkIndexResponse.text):
          if(float(debug) >= 10): log.info('found index '+esIndexName+' containing '+str(json.loads(checkIndexResponse.text)['_shards']['total'])+' total shards')
-         indexExists=True
+         indexExists = True
       else:
          if(float(debug) >= 10): log.info('did not find existing index '+esIndexName+', attempting to create it now...')
-         indexExists=False 
+         indexExists = False
    except requests.exceptions.ConnectionError as e:
       log.error('esMonitorMapping: Could not connect to ElasticSearch database!')
    if indexExists:
@@ -925,7 +926,7 @@ def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, 
           os.makedirs(outputECALMerge)
        except OSError, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMerge))
-   
+
     if not (esServerUrl == '' or esIndexName==''):
         esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,debug)
 
