@@ -44,7 +44,7 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
                theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
          except OSError, e:
             print "Looks like the file " + fileJSONNameFullPathTEMP + " has just been created by someone else..."
-          shutil.move(fileJSONNameFullPathTEMP,fileJSONNameFullPath)
+         shutil.move(fileJSONNameFullPathTEMP,fileJSONNameFullPath)
 	 
 	 fileBoLSFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName)
 	 msg = "touch %s" % fileBoLSFullPath
