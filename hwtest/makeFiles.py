@@ -12,7 +12,7 @@ Do actual files
 """
 def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentInputFile, ls = 5, theBUNumber = "AAA", theTotalBUs = 1):
 
-   NumberOfFilesPerLS = 12
+   NumberOfFilesPerLS = 50
 
    random.seed(int(seeds))
    theNLoop = 1
@@ -37,16 +37,18 @@ def doFiles(RUNNumber, seeds, timeEnd, rate, path_to_make, streamName, contentIn
 	seedsRND.append(random.randint(0,999999))
 
       if theNLoop == 1:
-         fileJSONNameFullPathTEMP = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn_TEMP" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
-         fileJSONNameFullPath     = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn"      % (path_to_make,RUNNumber,RUNNumber,LSNumber)
-         try:
-            with open(fileJSONNameFullPathTEMP, 'w') as theFileJSONName:
-               theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
-         except OSError, e:
-            print "Looks like the file " + fileJSONNameFullPathTEMP + " has just been created by someone else..."
-         shutil.move(fileJSONNameFullPathTEMP,fileJSONNameFullPath)
-	 
-	 fileBoLSFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName)
+         fileJSONNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber)
+         if not os.path.exists(fileJSONNameFullPath):
+            try:
+               with open(fileJSONNameFullPath, 'w') as theFileJSONName:
+                  fcntl.flock(theFileJSONName, fcntl.LOCK_EX)
+                  theFileJSONName.write(json.dumps({'data': (nInput*int(NumberOfFilesPerLS), nOutput*int(NumberOfFilesPerLS), nInput*int(NumberOfFilesPerLS)*int(theTotalBUs))}))
+                  fcntl.flock(theFileJSONName, fcntl.LOCK_UN)
+               theFileJSONName.close()
+               ###os.chmod(fileJSONNameFullPath, 0666)
+            except OSError, e:
+               print "Looks like the file " + fileJSONNameFullPath + " has just been created by someone else..."
+         fileBoLSFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName)
 	 msg = "touch %s" % fileBoLSFullPath
 	 os.system(msg)
 
