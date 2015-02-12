@@ -491,7 +491,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	   shutil.move(inputName,inputNameRename)
           	   if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
 	  	   # getting the ini file, just once per stream
-	     	   if (not os.path.exists(outputIniNameToCompare) or (os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
+	     	   if (not os.path.exists(outputIniNameToCompare) or (fileIniString[2] != "streamError" and fileIniString[2] != "streamDQMHistograms" and os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
 	     	      try:
           		 with open(outputIniNameToCompareTEMP, 'a', 1) as file_object:
           		    fcntl.flock(file_object, fcntl.LOCK_EX)
@@ -510,7 +510,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	      except IOError, e:
           		    log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
 
-	     	   if (not os.path.exists(outputIniName) or (os.path.exists(outputIniName) and os.path.getsize(outputIniName) == 0)):
+	     	   if (not os.path.exists(outputIniName) or (fileIniString[2] != "streamError" and fileIniString[2] != "streamDQMHistograms" and os.path.exists(outputIniName) and os.path.getsize(outputIniName) == 0)):
 	     	      try:
           		 with open(outputIniNameTEMP, 'a', 1) as file_object:
           		    fcntl.flock(file_object, fcntl.LOCK_EX)
