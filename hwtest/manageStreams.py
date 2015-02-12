@@ -182,8 +182,9 @@ def launch_file_making(streamName, contentInputFile, lumiSections, runNumber,
 		       theNumberOfFilesPerLS, theNInput, theNOutput):
     time.sleep(sleep_time)
     createFiles(streamName, contentInputFile, lumiSections, runNumber,
-                theBUId, thePath, theTotalBUs, 
-		theNumberOfFilesPerLS, theNInput, theNOutput)
+                theBUId, thePath, theTotalBUs, 0.0, 999, -1,
+                theNumberOfFilesPerLS, theNInput, theNOutput)
+
 ## launch_file_making
 
 
