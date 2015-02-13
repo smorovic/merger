@@ -567,6 +567,15 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
             if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
                os.remove(lockNameFullPath)
 
+      # monitor the merger by inserting record into elastic search database:
+      if not (esServerUrl=='' or esIndexName==''):
+	 ls=fileNameString[1][2:]
+	 stream=fileNameString[2][6:]
+	 runnumber=fileNameString[0][3:]
+	 id=outMergedJSON.replace(".jsn","")
+	 mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], time.time(), ls, stream, id]
+	 elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, 5, debug)
+
       if (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2])):
          outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
@@ -587,7 +596,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    if (mergeType == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
-
+   """
    # monitor the merger by inserting record into elastic search database:
    if not (esServerUrl=='' or esIndexName==''):
       ls=fileNameString[1][2:]
@@ -596,7 +605,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       id=outMergedJSON.replace(".jsn","")
       mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], time.time(), ls, stream, id]
       elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, 5, debug)
-
+   """
    endMergingTime = time.time() 
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))

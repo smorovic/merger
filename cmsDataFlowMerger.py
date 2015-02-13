@@ -346,7 +346,7 @@ class LoggingPool(ThreadPool):
 """
 Do recovering JSON files
 """
-def doTheRecovering(paths_to_watch, debug, streamType):
+def doTheRecovering(paths_to_watch, streamType, debug):
    inputDataFolders = glob.glob(paths_to_watch)
    log.info("Recovering: inputDataFolders: {0}".format(inputDataFolders))
    if(float(debug) >= 10): log.info("**************recovering JSON files***************")
@@ -363,8 +363,9 @@ def doTheRecovering(paths_to_watch, debug, streamType):
       for i in range(0, len(afterString)):
          if(streamType != "0" and (afterString[i].endswith(".jsn") or afterString[i].endswith(".ini"))):
             fileString = afterString[i].split('_')
-            if  (streamType == "onlyStreamA" and fileString[2] != "StreamA"): continue
-            elif(streamType == "noStreamA"   and fileString[2] == "StreamA"): continue
+            if  (streamType == "onlyDQM" and "DQM" not in fileString[2]): continue
+            elif(streamType == "onlyECAL" and "EcalCalibration" not in fileString[2]): continue
+            elif(streamType == "noDQMnoECAL" and ("DQM" in fileString[2] or "EcalCalibration" in fileString[2])): continue
       
          if afterString[i].endswith("_TEMP.jsn"):
             inputJsonFile = os.path.join(inputDataFolder, afterString[i])
@@ -471,8 +472,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
 
                 fileIniString = afterString[i].split('_')
-                if  (streamType == "onlyStreamA" and fileIniString[2] != "StreamA"): continue
-                elif(streamType == "noStreamA"   and fileIniString[2] == "StreamA"): continue
+                if  (streamType == "onlyDQM" and "DQM" not in fileIniString[2]): continue
+                elif(streamType == "onlyECAL" and "EcalCalibration" not in fileIniString[2]): continue
+                elif(streamType == "noDQMnoECAL" and ("DQM" in fileIniString[2] or "EcalCalibration" in fileIniString[2])): continue
 
           	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2]) or ("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
           	    theIniOutputFolder = outputSMMergedFolder
@@ -599,8 +601,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     if "TEMP" in afterString[i]: continue
 
              fileNameString = afterString[i].split('_')
-             if  (streamType == "onlyStreamA" and fileNameString[2] != "StreamA"): continue
-             elif(streamType == "noStreamA"   and fileNameString[2] == "StreamA"): continue
+             if  (streamType == "onlyDQM" and "DQM" not in fileNameString[2]): continue
+             elif(streamType == "onlyECAL" and "EcalCalibration" not in fileNameString[2]): continue
+             elif(streamType == "noDQMnoECAL" and ("DQM" in fileNameString[2] or "EcalCalibration" in fileNameString[2])): continue
 
 	     if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
