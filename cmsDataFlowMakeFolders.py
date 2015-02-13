@@ -4,7 +4,7 @@ import os
 """
 making theOutput folders
 """
-def doMakeFolders(theOutputMergedFolder, theOutputSMMergedFolder, theOutputDQMMergedFolder, theOutputECALMergedFolder, theOutputBadFolder, theOutputSMBadFolder, theMergeType):
+def doMakeFolders(theOutputMergedFolder, theOutputSMMergedFolder, theOutputDQMMergedFolder, theOutputECALMergedFolder, theOutputBadFolder, theOutputSMBadFolder):
 
    if not os.path.exists(theOutputMergedFolder):
       try:
@@ -18,13 +18,13 @@ def doMakeFolders(theOutputMergedFolder, theOutputSMMergedFolder, theOutputDQMMe
       except OSError, e:
 	  log.warning("Looks like the directory {0} has just been created by someone else...".format(theOutputSMMergedFolder))
 
-   if not os.path.exists(theOutputDQMMergedFolder) and theMergeType == "macro":
+   if not os.path.exists(theOutputDQMMergedFolder):
       try:
 	 os.makedirs(theOutputDQMMergedFolder)
       except OSError, e:
 	  log.warning("Looks like the directory {0} has just been created by someone else...".format(theOutputDQMMergedFolder))
 
-   if not os.path.exists(theOutputECALMergedFolder) and theMergeType == "macro":
+   if not os.path.exists(theOutputECALMergedFolder):
       try:
 	 os.makedirs(theOutputECALMergedFolder)
       except OSError, e:

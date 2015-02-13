@@ -583,7 +583,11 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
          shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
       except Exception,e:
          log.error("cmsActualMergingFilesC crashed, trying again: {0}, {1} - {2}".format(outMergedFileFullPath,outMergedFileFullPathStable,e))
-         shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+         try:
+            shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+         except Exception,e:
+            log.error("cmsActualMergingFilesC crashed again: {0}, {1} - {2}".format(outMergedFileFullPath,outMergedFileFullPathStable,e))
+            return
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important

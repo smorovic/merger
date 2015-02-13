@@ -448,7 +448,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1], "bad")
 	    outputSMBadFolder     = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1], "bad")
 
-	  #cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder, mergeType)
+	  #cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder)
 
 	  # reading the list of files in the given folder
           before = dict ([(f, None) for f in os.listdir (inputDataFolder)])
@@ -470,7 +470,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
 
                 # very first thing is to create the folder
-	        cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder, mergeType)
+	        cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder)
 
           	inputName  = os.path.join(inputDataFolder,afterString[i])
           	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
@@ -915,13 +915,13 @@ def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, 
        except OSError, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMMerge))
     
-    if not os.path.exists(outputDQMMerge) and mergeType == "macro":
+    if not os.path.exists(outputDQMMerge):
        try:
           os.makedirs(outputDQMMerge)
        except OSError, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputDQMMerge))
     
-    if not os.path.exists(outputECALMerge) and mergeType == "macro":
+    if not os.path.exists(outputECALMerge):
        try:
           os.makedirs(outputECALMerge)
        except OSError, e:
