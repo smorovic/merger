@@ -579,7 +579,11 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       if (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2])):
          outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
-      shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+      try:
+         shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+      except Exception,e:
+         log.error("cmsActualMergingFilesC crashed, trying again: {0}, {1} - {2}".format(outMergedFileFullPath,outMergedFileFullPathStable,e))
+         shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
