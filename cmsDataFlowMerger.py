@@ -448,7 +448,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1], "bad")
 	    outputSMBadFolder     = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1], "bad")
 
-	  cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder, mergeType)
+	  #cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder, mergeType)
 
 	  # reading the list of files in the given folder
           before = dict ([(f, None) for f in os.listdir (inputDataFolder)])
@@ -468,6 +468,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	  for i in range(0, len(afterString)):
 
 	     if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
+
+                # very first thing is to create the folder
+	        cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder, mergeType)
+
           	inputName  = os.path.join(inputDataFolder,afterString[i])
           	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
 
