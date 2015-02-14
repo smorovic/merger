@@ -29,6 +29,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 settingsEoR_textI = open(EoRFileName, "r").read()
          settingsEoR = json.loads(settingsEoR_textI)
    eventsInputBU = int(settingsEoR['data'][0])
+   lastLumiBU    = int(settingsEoR['data'][3])
 
    eventsInputFU = 0
    for nb in range(0, len(afterString)):
@@ -84,7 +85,8 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       theEoRFileMiniOutput.write(json.dumps({'eventsInputBU':   eventsInputBU, 
                                              'eventsInputFU':   eventsInputFU, 
 					     'numberBoLSFiles': numberBoLSFiles,
-					     'eventsTotalRun':  eventsEoLS[1]}))
+					     'eventsTotalRun':  eventsEoLS[1],
+					     'lastLumiBU':      lastLumiBU}))
       theEoRFileMiniOutput.close()
 
       shutil.move(EoRFileNameMiniOutput, EoRFileNameMiniOutputStable)
