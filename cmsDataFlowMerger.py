@@ -423,7 +423,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
       thePool = LoggingPool(processes=nThreadsMax)
 
       nLoops = nLoops + 1
-      inputDataFolders = glob.glob(paths_to_watch)
+      inputDataFoldersNoSorted = glob.glob(paths_to_watch)
+      inputDataFolders = sorted(inputDataFoldersNoSorted, reverse=True)
       if(float(debug) >= 20 or nLoops%10000 == 1): log.info("***************NEW LOOP************** {0}".format(nLoops))
       if(float(debug) >= 20 or nLoops%10000 == 1): log.info("inputDataFolders: {0}".format(inputDataFolders))
       for nf in range(0, len(inputDataFolders)):
