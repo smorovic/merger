@@ -799,7 +799,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		      eventsInputReal.append(eventsIDict[key][0])
 		      eventsInputReal.append(eventsEoLSDict[keyEoLS][1])
 		      eventsInputReal.append(eventsEoLSDict[keyEoLS][2])
-                      eventsIDict.update({key:[-1.01*eventsTotalInput]})
+                      eventsIDict.update({key:[-1.01*eventsTotalInput-1]})
                       if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                       if nLoops <= nWithPollMax or nWithPollMax < 0:
                          process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
@@ -832,7 +832,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		   eventsInputReal.append(eventsIDict[key][0])
 		   eventsInputReal.append(eventsEoLSDict[keyEoLS][1])
 		   eventsInputReal.append(eventsEoLSDict[keyEoLS][2])
-                   eventsIDict.update({key:[-1.01*eventsTotalInput]})
+                   eventsIDict.update({key:[-1.01*eventsTotalInput-1]})
                    if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                    if nLoops <= nWithPollMax or nWithPollMax < 0:
                       process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
