@@ -95,17 +95,16 @@ def main():
           # Produce files every lumi_length_mean seconds with random flutuation
           sleep_time = seconds_to_sleep(ls, lumi_length_mean, lumi_length_sigma)
           streamName =  params['Streams']['name' + str(i)]
-          thePool.apply_async(launch_file_making, 
-                      [streamName, contentInputFile[i], ls, runNumber, theBUId,
-                      thePath, theTotalBUs, sleep_time, 
-                      theNumberOfFilesPerLS, theNInput, theNOutput])
+          thePool.apply_async(launch_file_making, [streamName, contentInputFile[i], ls, runNumber, theBUId, thePath, theTotalBUs, sleep_time, theNumberOfFilesPerLS, theNInput, theNOutput])
 
-       thePool.close()
-       thePool.join()
 
 
        print now.strftime("%H:%M:%S"), ": finished LS", ls, ", exiting..."
        time.sleep(1)
+
+    thePool.close()
+    thePool.join()
+
     now = datetime.datetime.now()
     print now.strftime("%H:%M:%S"), ": finished, exiting..."
 ## main
