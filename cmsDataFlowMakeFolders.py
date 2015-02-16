@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import os
 
+from Logging import getLogger
+log = getLogger()
+
 """
 making theOutput folders
 """
