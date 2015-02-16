@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+###########################################################
+################### Managed by puppet #####################
+###########################################################
+
 import os, time, sys, getopt, fcntl
 import shutil
 import json
@@ -449,7 +453,41 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1], "bad")
 	    outputSMBadFolder     = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1], "bad")
 
-	  #cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder)
+	  if not os.path.exists(outputMergedFolder):
+             try:
+                os.makedirs(outputMergedFolder)
+             except OSError, e:
+                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMergedFolder))
+	  
+	  if not os.path.exists(outputSMMergedFolder):
+             try:
+                os.makedirs(outputSMMergedFolder)
+             except OSError, e:
+                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMMergedFolder))
+
+	  if not os.path.exists(outputDQMMergedFolder) and mergeType == "macro":
+             try:
+                os.makedirs(outputDQMMergedFolder)
+             except OSError, e:
+                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputDQMMergedFolder))
+
+	  if not os.path.exists(outputECALMergedFolder) and mergeType == "macro":
+             try:
+                os.makedirs(outputECALMergedFolder)
+             except OSError, e:
+                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMergedFolder))
+
+	  if not os.path.exists(outputBadFolder):
+             try:
+                os.makedirs(outputBadFolder)
+             except OSError, e:
+                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputBadFolder))
+	  
+	  if not os.path.exists(outputSMBadFolder):
+             try:
+                os.makedirs(outputSMBadFolder)
+             except OSError, e:
+                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMBadFolder))
 
 	  # reading the list of files in the given folder
           before = dict ([(f, None) for f in os.listdir (inputDataFolder)])
@@ -469,10 +507,6 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	  for i in range(0, len(afterString)):
 
 	     if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
-
-                # very first thing is to create the folder
-	        cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder)
-
           	inputName  = os.path.join(inputDataFolder,afterString[i])
           	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
 
@@ -800,7 +834,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		      eventsInputReal.append(eventsIDict[key][0])
 		      eventsInputReal.append(eventsEoLSDict[keyEoLS][1])
 		      eventsInputReal.append(eventsEoLSDict[keyEoLS][2])
-                      eventsIDict.update({key:[-1.01*eventsTotalInput-1]})
+                      eventsIDict.update({key:[-1.01*eventsTotalInput-1.0]})
                       if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                       if nLoops <= nWithPollMax or nWithPollMax < 0:
                          process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
@@ -833,7 +867,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		   eventsInputReal.append(eventsIDict[key][0])
 		   eventsInputReal.append(eventsEoLSDict[keyEoLS][1])
 		   eventsInputReal.append(eventsEoLSDict[keyEoLS][2])
-                   eventsIDict.update({key:[-1.01*eventsTotalInput-1]})
+                   eventsIDict.update({key:[-1.01*eventsTotalInput-1.0]})
                    if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                    if nLoops <= nWithPollMax or nWithPollMax < 0:
                       process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
@@ -859,14 +893,14 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	        EoRFileNameECALOutput      = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
 	        EoRFileNameECALOutputFinal = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR.jsn"
 	     # DQM guys don't want to receive the EoR file for now
-	     #if(not os.path.exists(EoRFileNameDQMOutputFinal)):
+	     #if((streamType != "0" or streamType == "onlyDQM") and not os.path.exists(EoRFileNameDQMOutputFinal)):
              #   if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameDQMOutputFinal))
              #   try:
 	     #     shutil.copy(EoRFileName,EoRFileNameDQMOutput)
              #     shutil.move(EoRFileNameDQMOutput,EoRFileNameDQMOutputFinal)
              #   except OSError, e:
              #      log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameDQMOutputFinal))
-	     if(not os.path.exists(EoRFileNameECALOutputFinal)):
+	     if((streamType != "0" or streamType == "onlyECAL") and not os.path.exists(EoRFileNameECALOutputFinal)):
                 if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameECALOutputFinal))
 		try:
 	          shutil.copy(EoRFileName,EoRFileNameECALOutput)
