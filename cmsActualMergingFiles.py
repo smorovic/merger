@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-###########################################################
-################### Managed by puppet #####################
-###########################################################
-
 import os, time, sys, getopt, fcntl, random
 import shutil
 import json
