@@ -449,41 +449,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1], "bad")
 	    outputSMBadFolder     = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1], "bad")
 
-	  if not os.path.exists(outputMergedFolder):
-             try:
-                os.makedirs(outputMergedFolder)
-             except OSError, e:
-                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMergedFolder))
-	  
-	  if not os.path.exists(outputSMMergedFolder):
-             try:
-                os.makedirs(outputSMMergedFolder)
-             except OSError, e:
-                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMMergedFolder))
-
-	  if not os.path.exists(outputDQMMergedFolder) and mergeType == "macro":
-             try:
-                os.makedirs(outputDQMMergedFolder)
-             except OSError, e:
-                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputDQMMergedFolder))
-
-	  if not os.path.exists(outputECALMergedFolder) and mergeType == "macro":
-             try:
-                os.makedirs(outputECALMergedFolder)
-             except OSError, e:
-                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMergedFolder))
-
-	  if not os.path.exists(outputBadFolder):
-             try:
-                os.makedirs(outputBadFolder)
-             except OSError, e:
-                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputBadFolder))
-	  
-	  if not os.path.exists(outputSMBadFolder):
-             try:
-                os.makedirs(outputSMBadFolder)
-             except OSError, e:
-                 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMBadFolder))
+	  cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder)
 
 	  # reading the list of files in the given folder
           before = dict ([(f, None) for f in os.listdir (inputDataFolder)])
