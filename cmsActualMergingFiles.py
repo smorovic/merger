@@ -465,7 +465,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
             #os.fdatasync(filelock)
             fcntl.flock(filelock, fcntl.LOCK_UN)
 	 filelock.close()
-	 if(float(debug) > 0): log.info("{0}: Unlocking file {1}".format(datetime.datetime.now().strftime("%H:%M:%S"), outMergedJSONFullPath))
+	 if(float(debug) > 0): log.info("{0}: Unlocking file {1} - {2}/{3}".format(datetime.datetime.now().strftime("%H:%M:%S"), outMergedJSONFullPath, ini, sum))
 
 	 with open(outMergedFileFullPath, 'r+w') as fout:
             fout.seek(ini)
