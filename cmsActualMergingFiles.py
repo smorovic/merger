@@ -632,6 +632,15 @@ def append_files(ifnames, ofile):
     for ifname in ifnames:
         if (os.path.exists(ifname) and (not os.path.isdir(ifname))):
             with open(ifname) as ifile:
-                shutil.copyfileobj(ifile, ofile)
+                copyfileobj(ifile, ofile)
             ifile.close()
 # append_files
+
+#______________________________________________________________________________
+def copyfileobj(fsrc, fdst, length=16*1024):
+    """copy data from file-like object fsrc to file-like object fdst"""
+    while 1:
+        buf = fsrc.read(length)
+        if not buf:
+            break
+# copyfileobj
