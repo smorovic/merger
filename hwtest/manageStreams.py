@@ -185,7 +185,7 @@ def launch_file_making(streamName, contentInputFile, lumiSections, runNumber,
 		       theNumberOfFilesPerLS, theNInput, theNOutput):
     time.sleep(sleep_time)
     createFiles(streamName, contentInputFile, lumiSections, runNumber,
-                theBUId, thePath, theTotalBUs, 0.0, 999, -1,
+                theBUId, thePath, theTotalBUs, 0.0, -1,
                 theNumberOfFilesPerLS, theNInput, theNOutput)
 
 ## launch_file_making
@@ -229,7 +229,7 @@ def create_ls_files(options, params, ls, numberOfFilesPerLS, nInput):
     fileLSNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_EoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,ls)
     try:
        with open(fileLSNameFullPath, 'w') as theFileLSName:
-    	  theFileLSName.write(json.dumps({'data': (nInput*int(numberOfFilesPerLS), int(numberOfFilesPerLS)*int(theTotalBUs), nInput*int(numberOfFilesPerLS)*int(theTotalBUs))}))
+    	  theFileLSName.write(json.dumps({'data': (nInput*int(numberOfFilesPerLS), int(numberOfFilesPerLS)*int(theTotalBUs), nInput*int(numberOfFilesPerLS)*int(theTotalBUs), 0)}))
     except OSError, e:
        print "Looks like the file " + fileLSNameFullPath + " has just been created by someone else..."
 ## create_ls_files

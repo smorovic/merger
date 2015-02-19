@@ -71,7 +71,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       if(float(debug) >= 50): log.info("numberBoLSFiles: {0}".format(numberBoLSFiles))
       
       EoLSFolder    = os.path.join(path_eol, theRunNumber)
-      eventsEoLS    = [0, 0]
+      eventsEoLS    = [0, 0, 0]
       doSumEoLS(EoLSFolder, eventsEoLS)
 
       if(eventsEoLS[0] != eventsInputBU):
@@ -86,6 +86,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
                                              'eventsInputFU':   eventsInputFU, 
 					     'numberBoLSFiles': numberBoLSFiles,
 					     'eventsTotalRun':  eventsEoLS[1],
+					     'eventsLostBU':    eventsEoLS[2],
 					     'lastLumiBU':      lastLumiBU}))
       theEoRFileMiniOutput.close()
 
@@ -118,6 +119,8 @@ def doSumEoLS(inputDataFolder, eventsEoLS):
    eventsEoLS[0] = 0
    # total number of processed events in all BUs
    eventsEoLS[1] = 0
+   # total number of lost events in a given BU
+   eventsEoLS[2] = 0
    for nb in range(0, len(afterString)):
       if not afterString[nb].endswith("EoLS.jsn"): continue
 
@@ -126,5 +129,7 @@ def doSumEoLS(inputDataFolder, eventsEoLS):
       if os.path.exists(EoLSFileName) and os.path.getsize(EoLSFileName) > 0:
          inputEoLSName = open(EoLSFileName, "r").read()
          settingsEoLS  = json.loads(inputEoLSName)
-         eventsEoLS[0] += int(settingsEoLS['data'][0])
-         eventsEoLS[1] += int(settingsEoLS['data'][2])
+         if(int(settingsEoLS['data'][0]) > 0):
+            eventsEoLS[0] += int(settingsEoLS['data'][0])
+            eventsEoLS[1] += int(settingsEoLS['data'][2])
+            eventsEoLS[2] += int(settingsEoLS['data'][3])

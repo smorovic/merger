@@ -407,21 +407,24 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
    eventsEoLSDict = dict()
    nFilesBUDict   = dict() 
    checkSumDict   = dict()
+   eventsLDict    = dict()
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
-   # Maximum number with pool option (< 0 == always)
+   # < 0 == will always use ThreadPool option
    nWithPollMax = -1
    # Maximum number of threads to be allowed with the pool option
-   nThreadsMax  = 100
+   nThreadsMax  = 50
    # Number of loops
    nLoops = 0
-   while 1:
-      # conservative call
-      #thePool = ThreadPool(nThreadsMax)
-      # agressive call
-      multiprocessing.log_to_stderr()
-      multiprocessing.get_logger().setLevel(logging.ERROR)
-      thePool = LoggingPool(processes=nThreadsMax)
 
+   # conservative call
+   #thePool = ThreadPool(nThreadsMax)
+   # agressive call
+   multiprocessing.log_to_stderr()
+   multiprocessing.get_logger().setLevel(logging.ERROR)
+   thePool = LoggingPool(processes=nThreadsMax)
+
+   while 1:
+      time.sleep (0.1)
       nLoops = nLoops + 1
       inputDataFoldersNoSorted = glob.glob(paths_to_watch)
       inputDataFolders = sorted(inputDataFoldersNoSorted, reverse=True)
@@ -663,13 +666,13 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              nFilesBU          = 0
              eventsTotalInput  = 0
              checkSum          = 0
+             NLostEvents       = 0
 	     if mergeType == "mini":
                 eventsOutputError = int(settings['data'][2])
 		errorCode	  = int(settings['data'][3])
 		file              = str(settings['data'][4])
 		fileSize          = int(settings['data'][5])
-		if(len(settings['data']) > 7):
-		   checkSum       = int(settings['data'][7])
+		checkSum          = int(settings['data'][7])
                 #else:
                 #   log.warning("wrong format for checksum: {0}".format(afterString[i]))
 	        if(float(debug) >= 50): log.info("Info from json file(eventsInput, eventsOutput, eventsOutputError, errorCode, file, fileSize): {0}, {1}, {2}, {3}, {4}, {5}".format(eventsInput, eventsOutput, eventsOutputError, errorCode, file, fileSize))
@@ -683,15 +686,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		errorCode	 = int(settings['data'][2])
 		file             = str(settings['data'][3])
 		fileSize         = int(settings['data'][4])
-		if(len(settings['data']) > 7):
-		   checkSum         = int(settings['data'][5])
-                   nFilesBU         = int(settings['data'][6])
-                   eventsTotalInput = int(settings['data'][7])
-                else:
-		   checkSum         = 0
-                   nFilesBU         = int(settings['data'][5])
-                   eventsTotalInput = int(settings['data'][6])
-                   #log.warning("wrong format for checksum: {0}".format(afterString[i]))
+		checkSum	 = int(settings['data'][5])
+                nFilesBU	 = int(settings['data'][6])
+                eventsTotalInput = int(settings['data'][7])
+		NLostEvents      = int(settings['data'][8])
 
              key = (fileNameString[0],fileNameString[1],fileNameString[2])
              if key in filesDict.keys():
@@ -728,6 +726,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	nFilesBUDict[key].remove(nFilesBUDict[key][0])
 	     	nFilesBUDict.update({key:[nFilesBU]})
 
+		NLostEvents = eventsLDict[key][0] + NLostEvents
+	     	eventsLDict[key].remove(eventsLDict[key][0])
+	     	eventsLDict.update({key:[NLostEvents]})
+
 	     else:
                 if(float(debug) >= 50): log.info("Adding {0} to filesDict".format(key))
 	        if fileErrorString != None and len(fileErrorString) >= 2:
@@ -749,6 +751,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	fileSizeDict.update({key:[fileSize]})
 
 	     	nFilesBUDict.update({key:[nFilesBU]})
+
+	     	eventsLDict.update({key:[NLostEvents]})
 
              if(float(debug) >= 50): log.info("filesDict: {0}\njsonsDict: {1}\n, eventsIDict: {2}, eventsODict: {3}, checkSumDict: {4} fileSizeDict: {5}, nFilesBUDict: {6}, errorCodeDict: {7}".format(filesDict, jsonsDict, eventsIDict, eventsODict, checkSumDict, fileSizeDict, nFilesBUDict, errorCodeDict))
 
@@ -775,7 +779,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       eventsEoLS    = int(settingsEoLS['data'][0])
                       filesEoLS     = int(settingsEoLS['data'][1])
                       eventsAllEoLS = int(settingsEoLS['data'][2])
-		      eventsEoLSDict.update({keyEoLS:[eventsEoLS,filesEoLS,eventsAllEoLS]})
+		      NLostEvents   = int(settingsEoLS['data'][3])
+		      eventsEoLSDict.update({keyEoLS:[eventsEoLS,filesEoLS,eventsAllEoLS,NLostEvents]})
                    else:
 		      print "PROBLEM WITH: ",EoLSName
 
@@ -796,9 +801,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		      eventsInputReal.append(eventsIDict[key][0])
 		      eventsInputReal.append(eventsEoLSDict[keyEoLS][1])
 		      eventsInputReal.append(eventsEoLSDict[keyEoLS][2])
+		      eventsInputReal.append(eventsEoLSDict[keyEoLS][3])
                       eventsIDict.update({key:[-1.01*eventsTotalInput-1.0]})
                       if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
-                      if nLoops <= nWithPollMax or nWithPollMax < 0:
+                      if nWithPollMax < 0:
                          process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
 		      else:
                          #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, debug) )
@@ -813,8 +819,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 	  log.warning("Looks like {0} is not in filesDict".format(key))
 
              else:
-		if(float(debug) >= 20): log.info("macro-EventsTotalInput/EventsInput-LS/Stream: {0}, {1}, {2}, {3}".format(eventsTotalInput,eventsIDict[key][0],fileNameString[1],fileNameString[2]))
-                if((eventsTotalInput == eventsIDict[key][0]) or (eventsTotalInput*triggerMergingThreshold <= eventsIDict[key][0] and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
+		if(float(debug) >= 20): log.info("macro-EventsTotalInput/EventsInput/NLostEvents-LS/Stream: {0}, {1}, {2}, {3}".format(eventsTotalInput,eventsIDict[key][0],eventsLDict[key][0],fileNameString[1],fileNameString[2]))
+                if((eventsTotalInput == (eventsIDict[key][0]+eventsLDict[key][0])) or (eventsTotalInput*triggerMergingThreshold <= (eventsIDict[key][0]+eventsLDict[key][0]) and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
 	           # merged files
 	           outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + extensionName;
 	           outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + ".jsn";
@@ -823,15 +829,17 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    eventsEoLS	 = eventsIDict[key][0]
                    filesEoLS	 = nFilesBUDict[key][0]
                    eventsAllEoLS = eventsTotalInput
-		   eventsEoLSDict.update({keyEoLS:[eventsEoLS,filesEoLS,eventsAllEoLS]})
+                   NLostEvents   = eventsLDict[key][0]
+		   eventsEoLSDict.update({keyEoLS:[eventsEoLS,filesEoLS,eventsAllEoLS,NLostEvents]})
 
                    eventsInputReal = []
 		   eventsInputReal.append(eventsIDict[key][0])
 		   eventsInputReal.append(eventsEoLSDict[keyEoLS][1])
 		   eventsInputReal.append(eventsEoLSDict[keyEoLS][2])
+		   eventsInputReal.append(eventsEoLSDict[keyEoLS][3])
                    eventsIDict.update({key:[-1.01*eventsTotalInput-1.0]})
                    if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
-                   if nLoops <= nWithPollMax or nWithPollMax < 0:
+                   if nWithPollMax < 0:
                       process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                    else:
                       #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDict[key], checkSumDict[key][0], fileSizeDict[key][0], jsonsDict[key], errorCodeDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, debug) )
@@ -875,9 +883,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
           before = after
 
-      if nLoops <= nWithPollMax or nWithPollMax < 0:
-         thePool.close()
-         thePool.join()
+   if nWithPollMax < 0:
+      thePool.close()
+      thePool.join()
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
