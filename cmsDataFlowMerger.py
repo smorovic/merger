@@ -853,15 +853,15 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           EoRFileName = path_eol + "/" + theRunNumber + "/" + theRunNumber + "_ls0000_EoR.jsn"
           if(os.path.exists(EoRFileName) and os.path.getsize(EoRFileName) > 0):
 	     # need to copy the file to DQM downstream
-	     EoRFileNameDQMOutput       = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
-	     EoRFileNameDQMOutputFinal  = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
-	     EoRFileNameECALOutput      = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
-	     EoRFileNameECALOutputFinal = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
-	     if(mergeType == "macro"):
-	        EoRFileNameDQMOutput       = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
-	        EoRFileNameDQMOutputFinal  = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR.jsn"
-	        EoRFileNameECALOutput      = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
-	        EoRFileNameECALOutputFinal = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR.jsn"
+	     #EoRFileNameDQMOutput       = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
+	     #EoRFileNameDQMOutputFinal  = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
+	     #EoRFileNameECALOutput      = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
+	     #EoRFileNameECALOutputFinal = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
+	     #if(mergeType == "macro"):
+	     #   EoRFileNameDQMOutput       = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
+	     #   EoRFileNameDQMOutputFinal  = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR.jsn"
+	     #   EoRFileNameECALOutput      = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
+	     #   EoRFileNameECALOutputFinal = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR.jsn"
 	     # DQM guys don't want to receive the EoR file for now
 	     #if((streamType != "0" or streamType == "onlyDQM") and not os.path.exists(EoRFileNameDQMOutputFinal)):
              #   if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameDQMOutputFinal))
@@ -870,13 +870,13 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              #     shutil.move(EoRFileNameDQMOutput,EoRFileNameDQMOutputFinal)
              #   except OSError, e:
              #      log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameDQMOutputFinal))
-	     if((streamType != "0" or streamType == "onlyECAL") and not os.path.exists(EoRFileNameECALOutputFinal)):
-                if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameECALOutputFinal))
-		try:
-	          shutil.copy(EoRFileName,EoRFileNameECALOutput)
-                  shutil.move(EoRFileNameECALOutput,EoRFileNameECALOutputFinal)
-                except OSError, e:
-                   log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameECALOutputFinal))
+	     #if((streamType != "0" or streamType == "onlyECAL") and not os.path.exists(EoRFileNameECALOutputFinal)):
+             #   if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameECALOutputFinal))
+             #   try:
+	     #     shutil.copy(EoRFileName,EoRFileNameECALOutput)
+             #     shutil.move(EoRFileNameECALOutput,EoRFileNameECALOutputFinal)
+             #   except OSError, e:
+             #      log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameECALOutputFinal))
 
 	     if(doRemoveFiles == "True" and mergeType == "mini"):
 	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
