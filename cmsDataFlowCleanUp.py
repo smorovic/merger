@@ -129,6 +129,7 @@ def doSumEoLS(inputDataFolder, eventsEoLS):
       if os.path.exists(EoLSFileName) and os.path.getsize(EoLSFileName) > 0:
          inputEoLSName = open(EoLSFileName, "r").read()
          settingsEoLS  = json.loads(inputEoLSName)
-         eventsEoLS[0] += int(settingsEoLS['data'][0])
-         eventsEoLS[1] += int(settingsEoLS['data'][2])
-         eventsEoLS[2] += int(settingsEoLS['data'][3])
+	 if(int(settingsEoLS['data'][0]) > 0 or int(settingsEoLS['data'][2]) > 0 or int(settingsEoLS['data'][3]) > 0):
+            eventsEoLS[0] += int(settingsEoLS['data'][0])
+            eventsEoLS[1] += int(settingsEoLS['data'][2])
+            eventsEoLS[2] += int(settingsEoLS['data'][3])
