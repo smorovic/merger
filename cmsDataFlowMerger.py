@@ -353,11 +353,8 @@ def doTheRecovering(paths_to_watch, streamType, debug):
    for nf in range(0, len(inputDataFolders)):
       inputDataFolder = inputDataFolders[nf]	   
       # reading the list of files in the given folder
-      before = dict ([(f, None) for f in os.listdir (inputDataFolder)])
       after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
       afterString = [f for f in after]
-      added = [f for f in after if not f in before]
-      removed = [f for f in before if not f in after]
 
       # loop over JSON files, which will give the list of files to be recovered
       for i in range(0, len(afterString)):
@@ -455,18 +452,11 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	  cmsDataFlowMakeFolders.doMakeFolders(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, outputBadFolder, outputSMBadFolder)
 
 	  # reading the list of files in the given folder
-          before = dict ([(f, None) for f in os.listdir (inputDataFolder)])
           if(float(debug) >= 50): time.sleep (1)
           if(float(debug) >= 20): log.info("Begin folder iteration")
           after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
           afterString = [f for f in after]
-          added = [f for f in after if not f in before]
           if(float(debug) >= 50): log.info("afterString: {0}".format(afterString))
-          removed = [f for f in before if not f in after]
-          if added: 
-             if(float(debug) >= 50): log.info("Added: {0}".format(added))
-          if removed: 
-             if(float(debug) >= 50): log.info("Removed: {0}".format(removed))
 
 	  # loop over ini files, needs to be done first of all
 	  for i in range(0, len(afterString)):
@@ -881,11 +871,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     if(doRemoveFiles == "True" and mergeType == "mini"):
 	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
 
-          before = after
-
-   if nWithPollMax < 0:
-      thePool.close()
-      thePool.join()
+   #if nWithPollMax < 0:
+   #   thePool.close()
+   #   thePool.join()
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 

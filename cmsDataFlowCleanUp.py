@@ -71,8 +71,9 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       if(float(debug) >= 50): log.info("numberBoLSFiles: {0}".format(numberBoLSFiles))
       
       EoLSFolder    = os.path.join(path_eol, theRunNumber)
-      eventsEoLS    = [0, 0, 0]
-      doSumEoLS(EoLSFolder, eventsEoLS)
+      eventsEoLS          = [0, 0, 0]
+      eventsEoLS_noLastLS = [0, 0, 0]
+      doSumEoLS(EoLSFolder, eventsEoLS, eventsEoLS_noLastLS)
 
       if(eventsEoLS[0] != eventsInputBU):
          log.info("PROBLEM eventsEoLS != eventsInputBU: {0} vs. {1}".format(eventsEoLS[0],eventsInputBU))
@@ -87,6 +88,9 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
 					     'numberBoLSFiles': numberBoLSFiles,
 					     'eventsTotalRun':  eventsEoLS[1],
 					     'eventsLostBU':    eventsEoLS[2],
+                                             'eventsInputBU_noLastLS':   eventsEoLS_noLastLS[0], 
+					     'eventsTotalRun_noLastLS':  eventsEoLS_noLastLS[1],
+					     'eventsLostBU_noLastLS':    eventsEoLS_noLastLS[2],
 					     'lastLumiBU':      lastLumiBU}))
       theEoRFileMiniOutput.close()
 
@@ -110,10 +114,20 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 except Exception,e:
    	    log.error("Failed removing {0} - {1}".format(EoLSFolder,e))
 
-def doSumEoLS(inputDataFolder, eventsEoLS):
+def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS):
 
    after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
-   afterString = [f for f in after]
+   afterStringNoSorted = [f for f in after]
+
+   afterString = sorted(afterStringNoSorted, reverse=True)
+   numberLS = 0
+
+   # total number of processed events in a given BU (not counting last LS)
+   eventsEoLS_noLastLS[0] = 0
+   # total number of processed events in all BUs (not counting last LS)
+   eventsEoLS_noLastLS[1] = 0
+   # total number of lost events in a given BU (not counting last LS)
+   eventsEoLS_noLastLS[2] = 0
 
    # total number of processed events in a given BU
    eventsEoLS[0] = 0
@@ -125,10 +139,17 @@ def doSumEoLS(inputDataFolder, eventsEoLS):
       if not afterString[nb].endswith("EoLS.jsn"): continue
 
       EoLSFileName = os.path.join(inputDataFolder, afterString[nb])
+      numberLS = numberLS + 1
 
       if os.path.exists(EoLSFileName) and os.path.getsize(EoLSFileName) > 0:
          inputEoLSName = open(EoLSFileName, "r").read()
          settingsEoLS  = json.loads(inputEoLSName)
+
+         if numberLS != 1:
+            eventsEoLS_noLastLS[0] += int(settingsEoLS['data'][0])
+            eventsEoLS_noLastLS[1] += int(settingsEoLS['data'][2])
+            eventsEoLS_noLastLS[2] += int(settingsEoLS['data'][3])
+
          eventsEoLS[0] += int(settingsEoLS['data'][0])
          eventsEoLS[1] += int(settingsEoLS['data'][2])
          eventsEoLS[2] += int(settingsEoLS['data'][3])
