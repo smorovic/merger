@@ -29,7 +29,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 settingsEoR_textI = open(EoRFileName, "r").read()
          settingsEoR = json.loads(settingsEoR_textI)
    eventsInputBU = int(settingsEoR['data'][0])
-   lastLumiBU    = int(settingsEoR['data'][3])
+   lastLumiBU    = -1
 
    eventsInputFU = 0
    for nb in range(0, len(afterString)):
@@ -139,18 +139,25 @@ def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS, lastLumiBU):
       if not afterString[nb].endswith("EoLS.jsn"): continue
 
       EoLSFileName = os.path.join(inputDataFolder, afterString[nb])
-      numberLS = numberLS + 1
 
-      if os.path.exists(EoLSFileName) and os.path.getsize(EoLSFileName) > 0:
+      if(os.path.exists(EoLSFileName) and os.path.getsize(EoLSFileName)):
          inputEoLSName = open(EoLSFileName, "r").read()
          settingsEoLS  = json.loads(inputEoLSName)
-         fileNameString = EoLSFileName.split('_')
+         
+         if(int(settingsEoLS['data'][0]) > 0 or 
+            int(settingsEoLS['data'][2]) > 0 or
+            int(settingsEoLS['data'][3]) > 0):
+            numberLS = numberLS + 1
+            if numberLS != 1:
+               fileNameString = EoLSFileName.split('_')
+               try:
+                  lastLumiBU = int(fileNameString[1].replace("ls",""))
+               except Exception,e:
+                  log.error("lastLumiBU assingment failed {0} - {1}".format(fileNameString[1],e))
+               eventsEoLS_noLastLS[0] += int(settingsEoLS['data'][0])
+               eventsEoLS_noLastLS[1] += int(settingsEoLS['data'][2])
+               eventsEoLS_noLastLS[2] += int(settingsEoLS['data'][3])
 
-         if int(fileNameString[1].replace("ls","")) != lastLumiBU:
-            eventsEoLS_noLastLS[0] += int(settingsEoLS['data'][0])
-            eventsEoLS_noLastLS[1] += int(settingsEoLS['data'][2])
-            eventsEoLS_noLastLS[2] += int(settingsEoLS['data'][3])
-
-         eventsEoLS[0] += int(settingsEoLS['data'][0])
-         eventsEoLS[1] += int(settingsEoLS['data'][2])
-         eventsEoLS[2] += int(settingsEoLS['data'][3])
+            eventsEoLS[0] += int(settingsEoLS['data'][0])
+            eventsEoLS[1] += int(settingsEoLS['data'][2])
+            eventsEoLS[2] += int(settingsEoLS['data'][3])
