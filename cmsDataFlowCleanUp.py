@@ -141,7 +141,7 @@ def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS):
 
       EoLSFileName = os.path.join(inputDataFolder, afterString[nb])
 
-      if(os.path.exists(EoLSFileName) and os.path.getsize(EoLSFileName)):
+      if(os.path.exists(EoLSFileName) and os.path.getsize(EoLSFileName) > 0):
          inputEoLSName = open(EoLSFileName, "r").read()
          settingsEoLS  = json.loads(inputEoLSName)
          
