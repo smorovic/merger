@@ -97,13 +97,13 @@ def main():
           streamName =  params['Streams']['name' + str(i)]
           thePool.apply_async(launch_file_making, [streamName, contentInputFile[i], ls, runNumber, theBUId, thePath, theTotalBUs, sleep_time, theNumberOfFilesPerLS, theNInput, theNOutput])
 
-
-
        print now.strftime("%H:%M:%S"), ": finished LS", ls, ", exiting..."
        time.sleep(1)
 
     thePool.close()
     thePool.join()
+
+    create_eor_files(options, params, lumiSections, theNumberOfFilesPerLS, theNInput)
 
     now = datetime.datetime.now()
     print now.strftime("%H:%M:%S"), ": finished, exiting..."
@@ -233,6 +233,28 @@ def create_ls_files(options, params, ls, numberOfFilesPerLS, nInput):
     except OSError, e:
        print "Looks like the file " + fileLSNameFullPath + " has just been created by someone else..."
 ## create_ls_files
+
+#______________________________________________________________________________
+def create_eor_files(options, params, lumiSections, numberOfFilesPerLS, nInput):
+    path_to_make = options.Path
+    if path_to_make == None:
+       path_to_make = ""
+    RUNNumber = int(params['Streams']['runnumber'])
+
+    fileEoRNameFullPath = "%sunmergedMON/run%d/run%d_ls0000_EoR.jsn" % (path_to_make,RUNNumber,RUNNumber)
+    try:
+       with open(fileEoRNameFullPath, 'w') as theFileEoRName:
+    	  theFileEoRName.write(json.dumps({'data': (nInput*int(numberOfFilesPerLS)*lumiSections, int(numberOfFilesPerLS)*lumiSections, lumiSections, lumiSections)}))
+    except OSError, e:
+       print "Looks like the file " + fileEoRNameFullPath + " has just been created by someone else..."
+
+    fileEoRFUNameFullPath = "%sunmergedDATA/run%d/run%d_ls0000_EoR_FU.jsn" % (path_to_make,RUNNumber,RUNNumber)
+    try:
+       with open(fileEoRFUNameFullPath, 'w') as theFileEoRFUName:
+    	  theFileEoRFUName.write(json.dumps({'data': (nInput*int(numberOfFilesPerLS)*lumiSections, int(numberOfFilesPerLS)*lumiSections)}))
+    except OSError, e:
+       print "Looks like the file " + fileEoRFUNameFullPath + " has just been created by someone else..."
+## create_eor_files
 
 #______________________________________________________________________________
 def create_data_dir(options, params):

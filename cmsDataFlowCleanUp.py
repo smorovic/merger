@@ -29,7 +29,6 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 settingsEoR_textI = open(EoRFileName, "r").read()
          settingsEoR = json.loads(settingsEoR_textI)
    eventsInputBU = int(settingsEoR['data'][0])
-   lastLumiBU    = -1
 
    eventsInputFU = 0
    for nb in range(0, len(afterString)):
@@ -73,7 +72,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       EoLSFolder    = os.path.join(path_eol, theRunNumber)
       eventsEoLS          = [0, 0, 0]
       eventsEoLS_noLastLS = [0, 0, 0]
-      doSumEoLS(EoLSFolder, eventsEoLS, eventsEoLS_noLastLS, lastLumiBU)
+      lastLumiBU = doSumEoLS(EoLSFolder, eventsEoLS, eventsEoLS_noLastLS)
 
       if(eventsEoLS[0] != eventsInputBU):
          log.info("PROBLEM eventsEoLS != eventsInputBU: {0} vs. {1}".format(eventsEoLS[0],eventsInputBU))
@@ -114,13 +113,15 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
    	 except Exception,e:
    	    log.error("Failed removing {0} - {1}".format(EoLSFolder,e))
 
-def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS, lastLumiBU):
+def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS):
 
    after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
    afterStringNoSorted = [f for f in after]
 
    afterString = sorted(afterStringNoSorted, reverse=True)
    numberLS = 0
+
+   lastLumiBU = -1
 
    # total number of processed events in a given BU (not counting last LS)
    eventsEoLS_noLastLS[0] = 0
@@ -149,15 +150,19 @@ def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS, lastLumiBU):
             int(settingsEoLS['data'][3]) > 0):
             numberLS = numberLS + 1
             if numberLS != 1:
+               eventsEoLS_noLastLS[0] += int(settingsEoLS['data'][0])
+               eventsEoLS_noLastLS[1] += int(settingsEoLS['data'][2])
+               eventsEoLS_noLastLS[2] += int(settingsEoLS['data'][3])
+
+            else:
                fileNameString = EoLSFileName.split('_')
                try:
                   lastLumiBU = int(fileNameString[1].replace("ls",""))
                except Exception,e:
                   log.error("lastLumiBU assingment failed {0} - {1}".format(fileNameString[1],e))
-               eventsEoLS_noLastLS[0] += int(settingsEoLS['data'][0])
-               eventsEoLS_noLastLS[1] += int(settingsEoLS['data'][2])
-               eventsEoLS_noLastLS[2] += int(settingsEoLS['data'][3])
 
             eventsEoLS[0] += int(settingsEoLS['data'][0])
             eventsEoLS[1] += int(settingsEoLS['data'][2])
             eventsEoLS[2] += int(settingsEoLS['data'][3])
+
+   return lastLumiBU
