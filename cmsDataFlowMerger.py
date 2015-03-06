@@ -223,19 +223,19 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
    if ((optionMerging == "optionA") or ("DQM" in fileNameString[2]) or ("streamError" in fileNameString[2]) or ("streamHLTRates" in fileNameString[2]) or ("streamL1Rates" in fileNameString[2])):
       try:
          cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
-      except OSError, e:
+      except Exception, e:
          log.error("cmsActualMergingFilesA crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    elif (optionMerging == "optionB"):
       try:
          cmsActualMergingFiles.mergeFilesB(outputMergedFolder, outputSMMergedFolder,                        outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
-      except OSError, e:
+      except Exception, e:
          log.error("cmsActualMergingFilesB crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    elif (optionMerging == "optionC"):
       try:
          cmsActualMergingFiles.mergeFilesC(outputMergedFolder, outputSMMergedFolder,                        outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
-      except OSError, e:
+      except Exception, e:
          log.error("cmsActualMergingFilesC crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    else:
@@ -267,7 +267,7 @@ def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, th
       log.warning("Moving operation, folder did not exist, {0}, creating it".format(outputMergedFolderFullPathOpen))
       try:
    	 os.makedirs(outputMergedFolderFullPathOpen)
-      except OSError, e:
+      except Exception, e:
    	 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMergedFolderFullPathOpen))
 
    if(float(debug) >= 10): log.info("moving info: {0} {1} {2} {3} {2} {3}".format(inpMergedFileFullPath, outMergedFileFullPath, outMergedFileFullPathStable, 
@@ -279,7 +279,7 @@ def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, th
 
    try:
       shutil.move(inpMergedFileFullPath,outMergedFileFullPath)
-   except OSError, e:
+   except Exception, e:
       log.error("copy dat file failed: {0}, {1}".format(inpMergedFileFullPath,outMergedFileFullPath))
 
    if not os.path.exists(outMergedFileFullPath):
@@ -287,7 +287,7 @@ def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, th
 
    try:
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
-   except OSError, e:
+   except Exception, e:
       log.error("move dat file failed: {0}, {1}".format(outMergedFileFullPath,outMergedFileFullPathStable))
 
    # moving json files
@@ -296,7 +296,7 @@ def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, th
 
    try:
       shutil.move(inpMergedJSONFullPath,outMergedJSONFullPath)
-   except OSError, e:
+   except Exception, e:
       log.error("copy json file failed: {0}, {1}".format(inpMergedJSONFullPath,outMergedJSONFullPath))
 
    # moving json files
@@ -305,7 +305,7 @@ def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, th
 
    try:
       shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
-   except OSError, e:
+   except Exception, e:
       log.error("move json file failed: {0}, {1}".format(outMergedJSONFullPath,outMergedJSONFullPathStable))
 
    endMergingTime = time.time() 
@@ -392,6 +392,39 @@ def is_completed(filepath):
    return completed
 
 """
+Read json files
+"""
+
+def readJsonFile(inputJsonFile, debug):
+   try:
+      settingsLS = "bad"
+      if(os.path.getsize(inputJsonFile) > 0):
+         try:
+            settings_textI = open(inputJsonFile, "r").read()
+            if(float(debug) >= 50): log.info("trying to load: {0}".format(inputJsonFile))
+            settingsLS = json.loads(settings_textI)
+         except Exception, e:
+            log.warning("Looks like the file {0} is not available, I'll try again...".format(inputJsonFile))
+            try:
+               time.sleep (0.1)
+               settings_textI = open(inputJsonFile, "r").read()
+   	       settingsLS = json.loads(settings_textI)
+            except Exception, e:
+               log.warning("Looks like the file {0} is not available (2nd try)...".format(inputJsonFile))
+               try:
+                  time.sleep (1.0)
+                  settings_textI = open(inputJsonFile, "r").read()
+   	          settingsLS = json.loads(settings_textI)
+               except Exception, e:
+                  log.warning("Looks like the file {0} failed for good (3rd try)...".format(inputJsonFile))
+                  inputJsonFailedFile = inputJsonFile.replace("_TEMP.jsn","_FAILED.bad")
+                  shutil.move(inputJsonFile,inputJsonFailedFile)
+
+      return settingsLS
+   except Exception, e:
+      log.error("readJsonFile {0} failed {1}".format(inputJsonFile.e))
+
+"""
 Do json dat files for 0 event cases using EoLS files
 """
 def doMakeJsonStreams(inputDataFolder,afterString,iniIDict,outputMergedFolder,outputEndName,doRemoveFiles,debug):
@@ -402,36 +435,13 @@ def doMakeJsonStreams(inputDataFolder,afterString,iniIDict,outputMergedFolder,ou
       # avoid empty files
       if(os.path.exists(inputJsonFile) and os.path.getsize(inputJsonFile) == 0): return
 
-      isFailed = False
       # moving the file to avoid issues
       inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
       shutil.move(inputJsonFile,inputJsonRenameFile)
 
-      settingsEoLS = ""
-      isFailed = False
-      try:
-	 settings_textI = open(inputJsonRenameFile, "r").read()
-	 if(float(debug) >= 50): log.info("trying to load: {0}".format(inputJsonRenameFile))
-	 settingsEoLS = json.loads(settings_textI)
-      except ValueError, e:
-	 log.warning("Looks like the file {0} is not available, I'll try again...".format(inputJsonRenameFile))
-	 try:
-   	    time.sleep (0.1)
-   	    settings_textI = open(inputJsonRenameFile, "r").read()
-            settingsEoLS = json.loads(settings_textI)
-	 except ValueError, e:
-   	    log.warning("Looks like the file {0} is not available (2nd try)...".format(inputJsonRenameFile))
-   	    try:
-   	       time.sleep (1.0)
-   	       settings_textI = open(inputJsonRenameFile, "r").read()
-               settingsEoLS = json.loads(settings_textI)
-   	    except ValueError, e:
-   	       log.warning("Looks like the file {0} failed for good (3rd try)...".format(inputJsonRenameFile))
-   	       inputJsonFailedFile = inputJsonRenameFile.replace("_TEMP.jsn","_FAILED.bad")
-   	       shutil.move(inputJsonRenameFile,inputJsonFailedFile)
-   	       isFailed = True
+      settingsEoLS = readJsonFile(inputJsonRenameFile,debug)
 
-      if(isFailed == True): return
+      if("bad" in settingsEoLS): return
 
       eventsEoLS    = int(settingsEoLS['data'][0])
       filesEoLS     = int(settingsEoLS['data'][1])
@@ -563,7 +573,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           		    fcntl.flock(file_object, fcntl.LOCK_UN)
 	     		 file_object.close()
                          shutil.move(outputIniNameToCompareTEMP,outputIniNameToCompare)
-	     	      except OSError, e:
+	     	      except Exception, e:
 	     		 log.warning("Looks like the outputIniNameToCompare file {0} has just been created by someone else...".format(outputIniNameToCompare))
 
 	  	   # otherwise, checking if they are identical
@@ -571,7 +581,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	      try:
 	     		 if filecmp.cmp(outputIniNameToCompare,inputNameRename) == False:
 	     		    log.warning("ini files: {0} and {1} are different!!!".format(outputIniNameToCompare,inputNameRename))
-          	      except IOError, e:
+          	      except Exception, e:
           		    log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
 
 	     	   if (not os.path.exists(outputIniName) or (fileIniString[2] != "streamError" and fileIniString[2] != "streamDQMHistograms" and os.path.exists(outputIniName) and os.path.getsize(outputIniName) == 0)):
@@ -582,7 +592,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           		    fcntl.flock(file_object, fcntl.LOCK_UN)
 	     		 file_object.close()
                          shutil.move(outputIniNameTEMP,outputIniName)
-	     	      except OSError, e:
+	     	      except Exception, e:
 	     		 log.warning("Looks like the outputIniName file {0} has just been created by someone else...".format(outputIniName))
 
 	  	   # otherwise, checking if they are identical
@@ -590,7 +600,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	      try:
 	     		 if filecmp.cmp(outputIniName,inputNameRename) == False:
 	     		    log.warning("ini files: {0} and {1} are different!!!".format(outputIniName,inputNameRename))
-          	      except IOError, e:
+          	      except Exception, e:
           		    log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
 
           	   if(doRemoveFiles == "True"): 
@@ -616,7 +626,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           			  fcntl.flock(file_object, fcntl.LOCK_UN)
 	     		       file_object.close()
                                shutil.move(outputIniNameToCompareTEMP,outputIniNameToCompare)
-	     		    except OSError, e:
+	     		    except Exception, e:
 	     		       log.warning("Looks like the outputIniNameToCompare-Rates file {0} has just been created by someone else...".format(outputIniNameToCompare))
 
 	  		 # otherwise, checking if they are identical
@@ -624,7 +634,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           		    try:
 	     		       if filecmp.cmp(outputIniNameToCompare,inputJsdName) == False:
 	     			  log.warning("ini files: {0} and {1} are different!!!".format(outputIniNameToCompare,inputJsdName))
-          		    except IOError, e:
+          		    except Exception, e:
           			  log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
 
 	     		 if (not os.path.exists(outputIniName) or (os.path.exists(outputIniName) and os.path.getsize(outputIniName) == 0)):
@@ -635,7 +645,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           			  fcntl.flock(file_object, fcntl.LOCK_UN)
 	     		       file_object.close()
                                shutil.move(outputIniNameTEMP,outputIniName)
-	     		    except OSError, e:
+	     		    except Exception, e:
 	     		       log.warning("Looks like the outputIniName-Rates file {0} has just been created by someone else...".format(outputIniName))
 
 	  		 # otherwise, checking if they are identical
@@ -643,7 +653,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           		    try:
 	     		       if filecmp.cmp(outputIniName,inputJsdName) == False:
 	     			  log.warning("ini files: {0} and {1} are different!!!".format(outputIniName,inputJsdName))
-          		    except IOError, e:
+          		    except Exception, e:
           			  log.error("Try to move a .ini to a _TEMP.ini, disappeared under my feet. Carrying on...")
 
                       else:
@@ -710,36 +720,15 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              # avoid empty files
 	     if(os.path.exists(inputJsonFile) and os.path.getsize(inputJsonFile) == 0): continue
 
-             isFailed = False
              # moving the file to avoid issues
 	     inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
              shutil.move(inputJsonFile,inputJsonRenameFile)
 
-	     try:
-                settings_textI = open(inputJsonRenameFile, "r").read()
-                if(float(debug) >= 50): log.info("trying to load: {0}".format(inputJsonRenameFile))
-	        settings = json.loads(settings_textI)
-             except ValueError, e:
-                log.warning("Looks like the file {0} is not available, I'll try again...".format(inputJsonRenameFile))
-	        try:
-	           time.sleep (0.1)
-                   settings_textI = open(inputJsonRenameFile, "r").read()
-		   settings = json.loads(settings_textI)
-                except ValueError, e:
-                   log.warning("Looks like the file {0} is not available (2nd try)...".format(inputJsonRenameFile))
-	           try:
-	              time.sleep (1.0)
-                      settings_textI = open(inputJsonRenameFile, "r").read()
-		      settings = json.loads(settings_textI)
-                   except ValueError, e:
-                      log.warning("Looks like the file {0} failed for good (3rd try)...".format(inputJsonRenameFile))
-	              inputJsonFailedFile = inputJsonRenameFile.replace("_TEMP.jsn","_FAILED.bad")
-                      shutil.move(inputJsonRenameFile,inputJsonFailedFile)
-                      isFailed = True
+             settings = readJsonFile(inputJsonRenameFile,debug)
 
              # This is just for streamEvD files
-             if  (isFailed == False and fileNameString[2] == "streamEvDOutput"):
-                isFailed = True
+             if  ("bad" not in settings and fileNameString[2] == "streamEvDOutput"):
+                settings = "bad"
 		fileName = str(settings['data'][4])
                 jsonName = afterString[i].replace(".jsn","_TEMP.jsn")
                 theRunNumber = afterString[i].split('_')[0]
@@ -747,7 +736,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 process = thePool.apply_async(copyFiles, [debug, inputDataFolder, outputMergedFolder, fileName, jsonName, theRunNumber])
 
              # avoid corrupted files or streamEvD files
-	     if(isFailed == True): continue
+	     if("bad" in settings): continue
 
              # this is the number of input and output events, and the name of the dat file, something critical
 	     # eventsOutput is actually the total number of events to merge in the macromerged stage
@@ -962,14 +951,14 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              #   try:
 	     #     shutil.copy(EoRFileName,EoRFileNameDQMOutput)
              #     shutil.move(EoRFileNameDQMOutput,EoRFileNameDQMOutputFinal)
-             #   except OSError, e:
+             #   except Exception, e:
              #      log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameDQMOutputFinal))
 	     #if((streamType != "0" or streamType == "onlyECAL") and not os.path.exists(EoRFileNameECALOutputFinal)):
              #   if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameECALOutputFinal))
              #   try:
 	     #     shutil.copy(EoRFileName,EoRFileNameECALOutput)
              #     shutil.move(EoRFileNameECALOutput,EoRFileNameECALOutputFinal)
-             #   except OSError, e:
+             #   except Exception, e:
              #      log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameECALOutputFinal))
 
 	     if(doRemoveFiles == "True" and mergeType == "mini"):
@@ -1003,25 +992,25 @@ def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, 
     if not os.path.exists(outputMerge):
        try:
           os.makedirs(outputMerge)
-       except OSError, e:
+       except Exception, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMerge))
     
     if not os.path.exists(outputSMMerge):
        try:
           os.makedirs(outputSMMerge)
-       except OSError, e:
+       except Exception, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputSMMerge))
     
     if not os.path.exists(outputDQMMerge):
        try:
           os.makedirs(outputDQMMerge)
-       except OSError, e:
+       except Exception, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputDQMMerge))
     
     if not os.path.exists(outputECALMerge):
        try:
           os.makedirs(outputECALMerge)
-       except OSError, e:
+       except Exception, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMerge))
 
     if not (esServerUrl == '' or esIndexName==''):
