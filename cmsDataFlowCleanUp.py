@@ -11,7 +11,9 @@ log = getLogger()
 """
 clean up run folder if some conditions are met
 """
-def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold):
+def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, 
+      theRunNumber, outputSMMergedFolder, outputEndName, 
+      completeMergingThreshold):
    
    settingsEoR = cmsDataFlowMerger.readJsonFile(EoRFileName, debug)
 
@@ -35,15 +37,18 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
 
       eventsInputFU = eventsInputFU + int(settingsLS['data'][0])
    
-   if(float(debug) >= 50): log.info("eventsInputBU vs. eventsInputFU: {0} vs. {1}".format(eventsInputBU,eventsInputFU))
+   if(float(debug) >= 50): log.info(
+      "eventsInputBU vs. eventsInputFU: {0} vs. {1}".format
+      (eventsInputBU,eventsInputFU))
    if (eventsInputBU*completeMergingThreshold <= eventsInputFU):
       numberBoLSFiles = 0
       for nb in range(0, len(afterString)):
-   	 if not afterString[nb].endswith("_BoLS.jsn"): continue
+         if not afterString[nb].endswith("_BoLS.jsn"): continue
          if "DQM" in afterString[nb]: continue
          if "streamError" in afterString[nb]: continue
-   	 numberBoLSFiles = numberBoLSFiles + 1
-      if(float(debug) >= 50): log.info("numberBoLSFiles: {0}".format(numberBoLSFiles))
+         numberBoLSFiles = numberBoLSFiles + 1
+      if(float(debug) >= 50): log.info(
+         "numberBoLSFiles: {0}".format(numberBoLSFiles))
       
       EoLSFolder    = os.path.join(path_eol, theRunNumber)
       eventsEoLS          = [0, 0, 0]
@@ -51,43 +56,51 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRu
       lastLumiBU = doSumEoLS(EoLSFolder, eventsEoLS, eventsEoLS_noLastLS)
 
       if(eventsEoLS[0] != eventsInputBU):
-         log.info("PROBLEM eventsEoLS != eventsInputBU: {0} vs. {1}".format(eventsEoLS[0],eventsInputBU))
+         log.info("PROBLEM eventsEoLS != eventsInputBU: {0} vs. {1}".format(
+                  eventsEoLS[0],eventsInputBU))
 
       # This is needed to cleanUp the macroMerger later
-      EoRFileNameMiniOutput	  = outputSMMergedFolder + "/"    + theRunNumber + "_ls0000_MiniEoR_" + outputEndName + ".jsn_TEMP"
-      EoRFileNameMiniOutputStable = outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + outputEndName + ".jsn"
+      EoRFileNameMiniOutput       = (
+         outputSMMergedFolder + "/"    + theRunNumber + "_ls0000_MiniEoR_" + 
+         outputEndName + ".jsn_TEMP")
+      EoRFileNameMiniOutputStable = (
+         outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + 
+         outputEndName + ".jsn")
 
       theEoRFileMiniOutput = open(EoRFileNameMiniOutput, 'w')
-      theEoRFileMiniOutput.write(json.dumps({'eventsInputBU':   eventsInputBU, 
-                                             'eventsInputFU':   eventsInputFU, 
-					     'numberBoLSFiles': numberBoLSFiles,
-					     'eventsTotalRun':  eventsEoLS[1],
-					     'eventsLostBU':    eventsEoLS[2],
-                                             'eventsInputBU_noLastLS':   eventsEoLS_noLastLS[0], 
-					     'eventsTotalRun_noLastLS':  eventsEoLS_noLastLS[1],
-					     'eventsLostBU_noLastLS':    eventsEoLS_noLastLS[2],
-					     'lastLumiBU':      lastLumiBU}))
+      theEoRFileMiniOutput.write(
+         json.dumps({'eventsInputBU':   eventsInputBU, 
+                     'eventsInputFU':   eventsInputFU, 
+                     'numberBoLSFiles': numberBoLSFiles,
+                     'eventsTotalRun':  eventsEoLS[1],
+                     'eventsLostBU':    eventsEoLS[2],
+                     'eventsInputBU_noLastLS':   eventsEoLS_noLastLS[0], 
+                     'eventsTotalRun_noLastLS':  eventsEoLS_noLastLS[1],
+                     'eventsLostBU_noLastLS':    eventsEoLS_noLastLS[2],
+                     'lastLumiBU':      lastLumiBU}))
       theEoRFileMiniOutput.close()
 
       shutil.move(EoRFileNameMiniOutput, EoRFileNameMiniOutputStable)
 
       if(numberBoLSFiles == 0 and eventsInputBU == eventsInputFU):
          EoLSFolder = os.path.join(path_eol, theRunNumber)
-         log.info("Run folder deletion is triggered!: {0} and {1}".format(inputDataFolder,EoLSFolder))
+         log.info("Run folder deletion is triggered!: {0} and {1}".format(
+                 inputDataFolder,EoLSFolder))
          time.sleep(10)
          try:
             shutil.rmtree(inputDataFolder)
-   	 except Exception,e:
-   	    log.error("Failed removing {0} - {1}".format(inputDataFolder,e))
+         except Exception,e:
+            log.error("Failed removing {0} - {1}".format(inputDataFolder,e))
          try:
             if os.path.islink(EoLSFolder):
                link_dir = os.readlink(EoLSFolder)
-               log.info("EoLS run directory is a symlink pointing to {0}".format(link_dir))
+               log.info("EoLS run dir is a symlink pointing to {0}".format(
+                       link_dir))
                os.unlink(EoLSFolder)
                EoLSFolder = link_dir
             shutil.rmtree(EoLSFolder)
-   	 except Exception,e:
-   	    log.error("Failed removing {0} - {1}".format(EoLSFolder,e))
+         except Exception,e:
+            log.error("Failed removing {0} - {1}".format(EoLSFolder,e))
 
 def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS):
 
@@ -135,7 +148,8 @@ def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS):
                try:
                   lastLumiBU = int(fileNameString[1].replace("ls",""))
                except Exception,e:
-                  log.error("lastLumiBU assingment failed {0} - {1}".format(fileNameString[1],e))
+                  log.error("lastLumiBU assingment failed {0} - {1}".format(
+                           fileNameString[1],e))
 
             eventsEoLS[0] += int(settingsEoLS['data'][0])
             eventsEoLS[1] += int(settingsEoLS['data'][2])

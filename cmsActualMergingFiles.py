@@ -52,7 +52,7 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
  try:
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
@@ -134,7 +134,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2], infoEoLS[3])}))
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2], infoEoLS[3], transferDest)}))
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
@@ -230,7 +230,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 """
 merging option B: merging unmerged files to same file for different BUs locking the merged file
 """
-def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
  try:
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
@@ -292,7 +292,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2], infoEoLS[3])}))
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2], infoEoLS[3], transferDest)}))
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
@@ -354,7 +354,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
  try:
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
@@ -594,7 +594,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2], infoEoLS[3])}))
+   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2], infoEoLS[3], transferDest)}))
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 

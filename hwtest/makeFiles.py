@@ -49,9 +49,10 @@ def doFiles(RUNNumber, timeEnd, rate, path_to_make, streamName, contentInputFile
       adler32c = adler32c & 0xffffffff
 
       emptyString = ""
+      transferDest = "Tier0"
       outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
       with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
-         theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName, fileSize, emptyString, adler32c)}))
+         theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName, fileSize, emptyString, adler32c, transferDest)}))
       theMergedJSONfile.close()
       ###os.chmod(outMergedJSONFullPath, 0666)
 
