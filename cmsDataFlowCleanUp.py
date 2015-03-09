@@ -59,30 +59,30 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol,
          log.info("PROBLEM eventsEoLS != eventsInputBU: {0} vs. {1}".format(
                   eventsEoLS[0],eventsInputBU))
 
-      # This is needed to cleanUp the macroMerger later
-      EoRFileNameMiniOutput       = (
-         outputSMMergedFolder + "/"    + theRunNumber + "_ls0000_MiniEoR_" + 
-         outputEndName + ".jsn_TEMP")
-      EoRFileNameMiniOutputStable = (
-         outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + 
-         outputEndName + ".jsn")
-
-      theEoRFileMiniOutput = open(EoRFileNameMiniOutput, 'w')
-      theEoRFileMiniOutput.write(
-         json.dumps({'eventsInputBU':   eventsInputBU, 
-                     'eventsInputFU':   eventsInputFU, 
-                     'numberBoLSFiles': numberBoLSFiles,
-                     'eventsTotalRun':  eventsEoLS[1],
-                     'eventsLostBU':    eventsEoLS[2],
-                     'eventsInputBU_noLastLS':   eventsEoLS_noLastLS[0], 
-                     'eventsTotalRun_noLastLS':  eventsEoLS_noLastLS[1],
-                     'eventsLostBU_noLastLS':    eventsEoLS_noLastLS[2],
-                     'lastLumiBU':      lastLumiBU}))
-      theEoRFileMiniOutput.close()
-
-      shutil.move(EoRFileNameMiniOutput, EoRFileNameMiniOutputStable)
-
       if(numberBoLSFiles == 0 and eventsInputBU == eventsInputFU):
+         # This is needed to cleanUp the macroMerger later
+         EoRFileNameMiniOutput       = (
+            outputSMMergedFolder + "/"    + theRunNumber + "_ls0000_MiniEoR_" + 
+            outputEndName + ".jsn_TEMP")
+         EoRFileNameMiniOutputStable = (
+            outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + 
+            outputEndName + ".jsn")
+
+         theEoRFileMiniOutput = open(EoRFileNameMiniOutput, 'w')
+         theEoRFileMiniOutput.write(
+            json.dumps({'eventsInputBU':   eventsInputBU, 
+                        'eventsInputFU':   eventsInputFU, 
+                        'numberBoLSFiles': numberBoLSFiles,
+                        'eventsTotalRun':  eventsEoLS[1],
+                        'eventsLostBU':    eventsEoLS[2],
+                        'eventsInputBU_noLastLS':   eventsEoLS_noLastLS[0], 
+                        'eventsTotalRun_noLastLS':  eventsEoLS_noLastLS[1],
+                        'eventsLostBU_noLastLS':    eventsEoLS_noLastLS[2],
+                        'lastLumiBU':      lastLumiBU}))
+         theEoRFileMiniOutput.close()
+
+         shutil.move(EoRFileNameMiniOutput, EoRFileNameMiniOutputStable)
+
          EoLSFolder = os.path.join(path_eol, theRunNumber)
          log.info("Run folder deletion is triggered!: {0} and {1}".format(
                  inputDataFolder,EoLSFolder))
