@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+###########################################################
+################### Managed by puppet #####################
+###########################################################
+
 import os, time, sys, getopt, fcntl
 import shutil
 import json
@@ -461,7 +465,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
       inputDataFolders = sorted(inputDataFoldersNoSorted, reverse=True)
       if(float(debug) >= 20 or nLoops%10000 == 1): log.info("***************NEW LOOP************** {0}".format(nLoops))
       if(float(debug) >= 20 or nLoops%10000 == 1): log.info("inputDataFolders: {0}".format(inputDataFolders))
-      for nf in range(0, len(inputDataFolders)):
+      # check the last 50 runs only
+      for nf in range(0, min(len(inputDataFolders),50)):
           inputDataFolder = inputDataFolders[nf]
 	  # making output folders
 	  inputDataFolderString = inputDataFolder.split('/')
@@ -898,7 +903,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
-    triggerMergingThreshold = 0.80
+    triggerMergingThreshold = 0.99
     completeMergingThreshold = 1.0
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
