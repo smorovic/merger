@@ -427,14 +427,14 @@ def readJsonFile(inputJsonFile, debug):
 Do loops
 """
 def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, completeMergingThreshold, esServerUrl, esIndexName):
-   filesDict        = dict() 
-   fileSizeDict     = dict() 
-   errorCodeDict    = dict()    
+   filesDict        = dict()
+   fileSizeDict     = dict()
+   errorCodeDict    = dict()
    jsonsDict        = dict()    
    eventsIDict      = dict()
    eventsODict      = dict()
    eventsEoLSDict   = dict()
-   nFilesBUDict     = dict() 
+   nFilesBUDict     = dict()
    checkSumDict     = dict()
    eventsLDict      = dict()
    transferDestDict = dict()
@@ -489,7 +489,13 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	  # reading the list of files in the given folder
           if(float(debug) >= 50): time.sleep (1)
           if(float(debug) >= 20): log.info("Begin folder iteration")
-          after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
+
+          after = dict()
+          try:
+             after = dict ([(f, None) for f in os.listdir (inputDataFolder)])
+          except Exception, e:
+             log.error("os.listdir operation failed: {0} - {1}".format(inputDataFolder,e))
+
           afterString = [f for f in after]
           if(float(debug) >= 50): log.info("afterString: {0}".format(afterString))
 
