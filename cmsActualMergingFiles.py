@@ -167,14 +167,14 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outMergedFile)
       outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outMergedJSON)
       # second temporary copy
-      outMergedFileFullPathStableDQM_TEMP = outputMergedFolder + "/" + outMergedFile + "_temp"
-      outMergedJSONFullPathStableDQM_TEMP = outputMergedFolder + "/" + outMergedJSON + "_temp"
-      outMergedFileFullPathStableDQM      = outputMergedFolder + "/../" + outMergedFile
-      outMergedJSONFullPathStableDQM      = outputMergedFolder + "/../" + outMergedJSON
-      shutil.copy(outMergedFileFullPath,outMergedFileFullPathStableDQM_TEMP)
-      shutil.copy(outMergedJSONFullPath,outMergedJSONFullPathStableDQM_TEMP)
-      shutil.move(outMergedFileFullPathStableDQM_TEMP,outMergedFileFullPathStableDQM)
-      shutil.move(outMergedJSONFullPathStableDQM_TEMP,outMergedJSONFullPathStableDQM)
+      #outMergedFileFullPathStableDQM_TEMP = outputMergedFolder + "/" + outMergedFile + "_temp"
+      #outMergedJSONFullPathStableDQM_TEMP = outputMergedFolder + "/" + outMergedJSON + "_temp"
+      #outMergedFileFullPathStableDQM      = outputMergedFolder + "/../" + outMergedFile
+      #outMergedJSONFullPathStableDQM      = outputMergedFolder + "/../" + outMergedJSON
+      #shutil.copy(outMergedFileFullPath,outMergedFileFullPathStableDQM_TEMP)
+      #shutil.copy(outMergedJSONFullPath,outMergedJSONFullPathStableDQM_TEMP)
+      #shutil.move(outMergedFileFullPathStableDQM_TEMP,outMergedFileFullPathStableDQM)
+      #shutil.move(outMergedJSONFullPathStableDQM_TEMP,outMergedJSONFullPathStableDQM)
 
    if (mergeType == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
       outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)

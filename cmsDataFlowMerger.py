@@ -244,73 +244,99 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
       raise RuntimeError, msg
 
 """
-Function to copy files
+Function to move files
 """
-def copyFiles(debug, inputDataFolder, outputMergedFolder, fileName, jsonName, theRunNumber):
-   if(float(debug) >= 10): log.info("moving parameters files: {0} {1} {2} {3}".format(inputDataFolder, outputMergedFolder, fileName, jsonName))
-   inpMergedFileFullPath       = os.path.join(inputDataFolder,    fileName)
-   inpMergedJSONFullPath       = os.path.join(inputDataFolder,    jsonName)
+def moveFiles(debug, theInputDataFolder, theOutputDataFolder, jsonName, theSettings):
+   try:
 
-   outputMergedFolderFullPath      = outputMergedFolder + "/../" + theRunNumber
-   outputMergedFolderFullPathOpen  = outputMergedFolder + "/../" + theRunNumber + "/open"
+      initMergingTime = time.time()
+      now = datetime.datetime.now()
+      if(float(debug) > 0): log.info("{0}: Start moving of {1}".format(now.strftime("%H:%M:%S"), jsonName))
 
-   outMergedFileFullPath       = outputMergedFolderFullPath + "/open/" + fileName
-   outMergedJSONFullPath       = outputMergedFolderFullPath + "/open/" + jsonName
-   outMergedFileFullPathStable = outputMergedFolderFullPath + "/"      + fileName
-   outMergedJSONFullPathStable = outputMergedFolderFullPath + "/"      + jsonName.replace("_TEMP.jsn",".jsn")
+      if(float(debug) >= 10): log.info("moving parameters files: {0} {1} {2}".format(theInputDataFolder, theOutputDataFolder, jsonName))
 
-   initMergingTime = time.time()
-   now = datetime.datetime.now()
-   if(float(debug) > 0): log.info("{0}: Start moving of {1}".format(now.strftime("%H:%M:%S"), outMergedFileFullPathStable))
+      eventsInput       = int(theSettings['data'][0])
+      eventsOutput      = int(theSettings['data'][1])
+      eventsOutputError = int(theSettings['data'][2])
+      errorCode         = int(theSettings['data'][3])
+      fileName          = str(theSettings['data'][4])
+      fileSize          = int(theSettings['data'][5])
+      checkSum          = int(theSettings['data'][7]) 	       
+      transferDest      = "dummy"
+      if(len(theSettings['data']) >= 9):
+         transferDest   = str(theSettings['data'][8])
 
-   if not os.path.exists(outputMergedFolderFullPathOpen):
-      log.warning("Moving operation, folder did not exist, {0}, creating it".format(outputMergedFolderFullPathOpen))
+      inpMergedFileFullPath = os.path.join(theInputDataFolder, fileName)
+      inpMergedJSONFullPath = os.path.join(theInputDataFolder, jsonName)
+
+      theOutputDataFolderFullPath      = theOutputDataFolder + "/../"
+      theOutputDataFolderFullPathOpen  = theOutputDataFolder
+
+      outMergedFileFullPath       = theOutputDataFolderFullPathOpen + "/" + fileName
+      outMergedJSONFullPath       = theOutputDataFolderFullPathOpen + "/" + jsonName
+      outMergedFileFullPathStable = theOutputDataFolderFullPath     + "/" + fileName
+      outMergedJSONFullPathStable = theOutputDataFolderFullPath     + "/" + jsonName.replace("_TEMP.jsn",".jsn")
+
+      if not os.path.exists(theOutputDataFolderFullPathOpen):
+         log.warning("Moving operation, folder did not exist, {0}, creating it".format(theOutputDataFolderFullPathOpen))
+         try:
+   	    os.makedirs(theOutputDataFolderFullPathOpen)
+         except Exception, e:
+   	    log.warning("Looks like the directory {0} has just been created by someone else...".format(theOutputDataFolderFullPathOpen))
+
+      if(float(debug) >= 10): log.info("moving info: {0} {1} {2} {3} {2} {3}".format(inpMergedFileFullPath, outMergedFileFullPath, outMergedFileFullPathStable, 
+                                                                                     inpMergedJSONFullPath, outMergedJSONFullPath, outMergedJSONFullPathStable))
+
+      # first thing we do is to delete the input jsn file, no second try will happen
       try:
-   	 os.makedirs(outputMergedFolderFullPathOpen)
+         os.remove(inpMergedJSONFullPath)
       except Exception, e:
-   	 log.warning("Looks like the directory {0} has just been created by someone else...".format(outputMergedFolderFullPathOpen))
+         log.error("remove json file failed: {0} - {1}".format(inpMergedJSONFullPath,e))
 
-   if(float(debug) >= 10): log.info("moving info: {0} {1} {2} {3} {2} {3}".format(inpMergedFileFullPath, outMergedFileFullPath, outMergedFileFullPathStable, 
-                                                                                  inpMergedJSONFullPath, outMergedJSONFullPath, outMergedJSONFullPathStable))
+      # moving dat files
+      if not os.path.exists(inpMergedFileFullPath):
+         log.error("MOVE PROBLEM, inpMergedFileFullPath does not exist: {0}".format(inpMergedFileFullPath))
 
-   # moving dat files
-   if not os.path.exists(inpMergedFileFullPath):
-      log.error("COPY PROBLEM, inpMergedFileFullPath does not exist: {0}".format(inpMergedFileFullPath))
+      try:
+         shutil.move(inpMergedFileFullPath,outMergedFileFullPath)
+      except Exception, e:
+         log.error("copy dat file failed: {0}, {1}".format(inpMergedFileFullPath,outMergedFileFullPath))
 
-   try:
-      shutil.move(inpMergedFileFullPath,outMergedFileFullPath)
+      if not os.path.exists(outMergedFileFullPath):
+         log.error("MOVE PROBLEM, outMergedFileFullPath does not exist: {0}".format(outMergedFileFullPath))
+
+      try:
+         shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+      except Exception, e:
+         log.error("move dat file failed: {0}, {1}".format(outMergedFileFullPath,outMergedFileFullPathStable))
+
+      # making json files
+      theMergedJSONfile = open(outMergedJSONFullPath, 'w')
+      theMergedJSONfile.write(json.dumps({'data': (eventsInput, eventsOutput, errorCode, fileName, fileSize, checkSum, 1, eventsInput, 0, transferDest)}))
+      theMergedJSONfile.close()
+
+      if not os.path.exists(outMergedJSONFullPath):
+         log.error("COPY PROBLEM, outMergedJSONFullPath does not exist: {0}".format(outMergedJSONFullPath))
+
+      # moving json files
+      try:
+         shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
+      except Exception, e:
+         log.error("move json file failed: {0}, {1}".format(outMergedJSONFullPath,outMergedJSONFullPathStable))
+
+      # Removing BoLS file, the last step
+      fileNameString = jsonName.split('_')
+      BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
+      BoLSFileNameFullPath = os.path.join(theInputDataFolder, BoLSFileName)
+      if os.path.exists(BoLSFileNameFullPath):
+         os.remove(BoLSFileNameFullPath)
+
+      endMergingTime = time.time() 
+      now = datetime.datetime.now()
+      if(float(debug) > 0): log.info("{0}, : Time for moving({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedFileFullPathStable, endMergingTime-initMergingTime))
+
    except Exception, e:
-      log.error("copy dat file failed: {0}, {1}".format(inpMergedFileFullPath,outMergedFileFullPath))
-
-   if not os.path.exists(outMergedFileFullPath):
-      log.error("COPY PROBLEM, outMergedFileFullPath does not exist: {0}".format(outMergedFileFullPath))
-
-   try:
-      shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
-   except Exception, e:
-      log.error("move dat file failed: {0}, {1}".format(outMergedFileFullPath,outMergedFileFullPathStable))
-
-   # moving json files
-   if not os.path.exists(inpMergedJSONFullPath):
-      log.error("COPY PROBLEM, inpMergedJSONFullPath does not exist: {0}".format(inpMergedJSONFullPath))
-
-   try:
-      shutil.move(inpMergedJSONFullPath,outMergedJSONFullPath)
-   except Exception, e:
-      log.error("copy json file failed: {0}, {1}".format(inpMergedJSONFullPath,outMergedJSONFullPath))
-
-   # moving json files
-   if not os.path.exists(outMergedJSONFullPath):
-      log.error("COPY PROBLEM, outMergedJSONFullPath does not exist: {0}".format(outMergedJSONFullPath))
-
-   try:
-      shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
-   except Exception, e:
-      log.error("move json file failed: {0}, {1}".format(outMergedJSONFullPath,outMergedJSONFullPathStable))
-
-   endMergingTime = time.time() 
-   now = datetime.datetime.now()
-   if(float(debug) > 0): log.info("{0}, : Time for moving({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedFileFullPathStable, endMergingTime-initMergingTime))
+      log.error("copyFile failed: {0} - {1}".format(outMergedJSONFullPath,e))
 
 """
 Functions to handle errors properly
@@ -360,9 +386,11 @@ def doTheRecovering(paths_to_watch, streamType, debug):
       for i in range(0, len(afterString)):
          if(streamType != "0" and (afterString[i].endswith(".jsn") or afterString[i].endswith(".ini"))):
             fileString = afterString[i].split('_')
-            if  (streamType == "onlyDQM" and "DQM" not in fileString[2]): continue
-            elif(streamType == "onlyECAL" and "EcalCalibration" not in fileString[2]): continue
-            elif(streamType == "noDQMnoECAL" and ("DQM" in fileString[2] or "EcalCalibration" in fileString[2])): continue
+            isOnlyDQMRates = ("DQM" in fileString[2] or "Rates" in fileString[2])
+            isStreamAE = isOnlyDQMRates == False and ("streamA" in fileString[2] or "streamE" in fileString[2])
+            if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
+            elif(streamType == "onlyStreamAE" and isStreamAE == False): continue
+            elif(streamType == "noDQMRatesnoStreamAE" and (isOnlyDQMRates == True or isStreamAE == True)): continue
       
          if afterString[i].endswith("_TEMP.jsn"):
             inputJsonFile = os.path.join(inputDataFolder, afterString[i])
@@ -496,7 +524,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           except Exception, e:
              log.error("os.listdir operation failed: {0} - {1}".format(inputDataFolder,e))
 
-          afterString = [f for f in after]
+          afterStringNoSorted = [f for f in after]
+          afterString = sorted(afterStringNoSorted, reverse=False)
           if(float(debug) >= 50): log.info("afterString: {0}".format(afterString))
 
 	  # loop over ini files, needs to be done first of all
@@ -507,9 +536,11 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
 
                 fileIniString = afterString[i].split('_')
-                if  (streamType == "onlyDQM" and "DQM" not in fileIniString[2]): continue
-                elif(streamType == "onlyECAL" and "EcalCalibration" not in fileIniString[2]): continue
-                elif(streamType == "noDQMnoECAL" and ("DQM" in fileIniString[2] or "EcalCalibration" in fileIniString[2])): continue
+		isOnlyDQMRates = ("DQM" in fileIniString[2] or "Rates" in fileIniString[2])
+		isStreamAE = isOnlyDQMRates == False and ("streamA" in fileIniString[2] or "streamE" in fileIniString[2])
+                if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
+                elif(streamType == "onlyStreamAE" and isStreamAE == False): continue
+                elif(streamType == "noDQMRatesnoStreamAE" and (isOnlyDQMRates == True or isStreamAE == True)): continue
 
           	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2]) or ("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
           	    theIniOutputFolder = outputSMMergedFolder
@@ -636,9 +667,11 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     if "TEMP" in afterString[i]: continue
 
              fileNameString = afterString[i].split('_')
-             if  (streamType == "onlyDQM" and "DQM" not in fileNameString[2]): continue
-             elif(streamType == "onlyECAL" and "EcalCalibration" not in fileNameString[2]): continue
-             elif(streamType == "noDQMnoECAL" and ("DQM" in fileNameString[2] or "EcalCalibration" in fileNameString[2])): continue
+             isOnlyDQMRates = ("DQM" in fileNameString[2] or "Rates" in fileNameString[2])
+             isStreamAE = isOnlyDQMRates == False and ("streamA" in fileNameString[2] or "streamE" in fileNameString[2])
+             if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
+             elif(streamType == "onlyStreamAE" and isStreamAE == False): continue
+             elif(streamType == "noDQMRatesnoStreamAE" and (isOnlyDQMRates == True or isStreamAE == True)): continue
 
 	     if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
@@ -655,12 +688,11 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
              # This is just for streamEvD files
              if  ("bad" not in settings and fileNameString[2] == "streamEvDOutput"):
-                settings = "bad"
-		fileName = str(settings['data'][4])
-                jsonName = afterString[i].replace(".jsn","_TEMP.jsn")
-                theRunNumber = afterString[i].split('_')[0]
 
-                process = thePool.apply_async(copyFiles, [debug, inputDataFolder, outputMergedFolder, fileName, jsonName, theRunNumber])
+                jsonName = afterString[i].replace(".jsn","_TEMP.jsn")
+                process = thePool.apply_async(moveFiles, [debug, inputDataFolder, outputSMMergedFolder, jsonName, settings])
+
+                settings = "bad"
 
              # avoid corrupted files or streamEvD files
 	     if("bad" in settings): continue
@@ -870,31 +902,6 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	  # clean-up work is done here
           EoRFileName = path_eol + "/" + theRunNumber + "/" + theRunNumber + "_ls0000_EoR.jsn"
           if(os.path.exists(EoRFileName) and os.path.getsize(EoRFileName) > 0):
-	     # need to copy the file to DQM downstream
-	     #EoRFileNameDQMOutput       = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
-	     #EoRFileNameDQMOutputFinal  = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
-	     #EoRFileNameECALOutput      = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
-	     #EoRFileNameECALOutputFinal = outputMergedFolder + "/../" + theRunNumber + "_ls0000_EoR.jsn"
-	     #if(mergeType == "macro"):
-	     #   EoRFileNameDQMOutput       = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
-	     #   EoRFileNameDQMOutputFinal  = outputDQMMergedFolder  + "/" + theRunNumber + "_ls0000_EoR.jsn"
-	     #   EoRFileNameECALOutput      = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR_" + outputEndName + ".jsn"
-	     #   EoRFileNameECALOutputFinal = outputECALMergedFolder + "/" + theRunNumber + "_ls0000_EoR.jsn"
-	     # DQM guys don't want to receive the EoR file for now
-	     #if((streamType != "0" or streamType == "onlyDQM") and not os.path.exists(EoRFileNameDQMOutputFinal)):
-             #   if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameDQMOutputFinal))
-             #   try:
-	     #     shutil.copy(EoRFileName,EoRFileNameDQMOutput)
-             #     shutil.move(EoRFileNameDQMOutput,EoRFileNameDQMOutputFinal)
-             #   except Exception, e:
-             #      log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameDQMOutputFinal))
-	     #if((streamType != "0" or streamType == "onlyECAL") and not os.path.exists(EoRFileNameECALOutputFinal)):
-             #   if(float(debug) >= 10): log.info("copying file: {0} to {1}".format(EoRFileName,EoRFileNameECALOutputFinal))
-             #   try:
-	     #     shutil.copy(EoRFileName,EoRFileNameECALOutput)
-             #     shutil.move(EoRFileNameECALOutput,EoRFileNameECALOutputFinal)
-             #   except Exception, e:
-             #      log.warning("copying {0} to {1} failed".format(EoRFileName,EoRFileNameECALOutputFinal))
 
 	     if(doRemoveFiles == "True" and mergeType == "mini"):
 	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
