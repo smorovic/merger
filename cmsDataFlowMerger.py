@@ -395,11 +395,11 @@ def doTheRecovering(paths_to_watch, streamType, debug):
          if afterString[i].endswith("_TEMP.jsn"):
             inputJsonFile = os.path.join(inputDataFolder, afterString[i])
             inputJsonRenameFile = inputJsonFile.replace("_TEMP.jsn",".jsn")
-            shutil.move(inputJsonFile,inputJsonRenameFile)
+            os.rename(inputJsonFile,inputJsonRenameFile)
          if afterString[i].endswith("_TEMP.ini"):
             inputIniFile = os.path.join(inputDataFolder, afterString[i])
             inputIniRenameFile = inputIniFile.replace("_TEMP.ini",".ini")
-            shutil.move(inputIniFile,inputIniRenameFile)
+            os.rename(inputIniFile,inputIniRenameFile)
 
 """
 Check if file is completed
@@ -445,7 +445,7 @@ def readJsonFile(inputJsonFile, debug):
                except Exception, e:
                   log.warning("Looks like the file {0} failed for good (3rd try)...".format(inputJsonFile))
                   inputJsonFailedFile = inputJsonFile.replace("_TEMP.jsn","_FAILED.bad")
-                  shutil.move(inputJsonFile,inputJsonFailedFile)
+                  os.rename(inputJsonFile,inputJsonFailedFile)
 
       return settingsLS
    except Exception, e:
@@ -556,7 +556,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	   outputIniNameToCompareTEMP = theIniOutputFolder +    "/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini_TMP2"
           	   outputIniNameToCompare     = theIniOutputFolder +    "/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + "StorageManager" + ".ini"
 	     	   inputNameRename  = inputName.replace(".ini","_TEMP.ini")
-          	   shutil.move(inputName,inputNameRename)
+          	   os.rename(inputName,inputNameRename)
           	   if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
 	  	   # getting the ini file, just once per stream
 	     	   if (not os.path.exists(outputIniNameToCompare) or (fileIniString[2] != "streamError" and fileIniString[2] != "streamDQMHistograms" and os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
@@ -677,12 +677,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
 
-             # avoid empty files
-	     if(os.path.exists(inputJsonFile) and os.path.getsize(inputJsonFile) == 0): continue
-
-             # moving the file to avoid issues
+             # renaming the file to avoid issues
 	     inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
-             shutil.move(inputJsonFile,inputJsonRenameFile)
+             os.rename(inputJsonFile,inputJsonRenameFile)
 
              settings = readJsonFile(inputJsonRenameFile,debug)
 
