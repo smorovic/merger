@@ -4,7 +4,8 @@ import logging.config
 import inspect
 from configobj import ConfigObj
 
-mergeConfigFileName = "/opt/merger/dataFlowMerger.conf"
+#mergeConfigFileName = "/opt/merger/dataFlowMerger.conf"
+mergeConfigFileName = "/nfshome0/ceballos/merger/dataFlowMergerMini.conf"
 try:
     if os.path.isfile(mergeConfigFileName):
         config = ConfigObj(mergeConfigFileName)
