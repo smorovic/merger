@@ -684,7 +684,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              settings = readJsonFile(inputJsonRenameFile,debug)
 
              # This is just for streamEvD files
-             if  ("bad" not in settings and fileNameString[2] == "streamEvDOutput"):
+             if  ("bad" not in settings and "streamEvDOutput" in fileNameString[2]):
 
                 jsonName = afterString[i].replace(".jsn","_TEMP.jsn")
                 process = thePool.apply_async(moveFiles, [debug, inputDataFolder, outputSMMergedFolder, jsonName, settings])
