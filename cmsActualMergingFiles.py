@@ -543,6 +543,17 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
       else:
          outMergedFileFullPathStable = outputSMMergedFolder + "/../" + outMergedFile
+         if(fileNameString[2] != "streamError"):
+	    # expected checksum
+            with open(lockNameFullPath, 'r+w') as filelock:
+               lockFullString = filelock.readline().split(',')
+	    checkSum = int(lockFullString[0].split(':')[1])
+	    for nf in range(1, len(lockFullString)):
+               fileSizeAux = int(lockFullString[nf].split(':')[0].split('=')[1])-int(lockFullString[nf-1].split(':')[0].split('=')[1])
+               checkSumAux = int(lockFullString[nf].split(':')[1])
+	       checkSum = zlibextras.adler32_combine(checkSum,checkSumAux,fileSizeAux)
+               checkSum = checkSum & 0xffffffff
+
          if(doCheckSum == "True" and fileNameString[2] != "streamError"):
             # observed checksum
             adler32c=1
@@ -555,15 +566,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                   adler32c=zlib.adler32(buf,adler32c)
 
 	    adler32c = adler32c & 0xffffffff
-	    # expected checksum
-            with open(lockNameFullPath, 'r+w') as filelock:
-               lockFullString = filelock.readline().split(',')
-	    checkSum = int(lockFullString[0].split(':')[1])
-	    for nf in range(1, len(lockFullString)):
-               fileSizeAux = int(lockFullString[nf].split(':')[0].split('=')[1])-int(lockFullString[nf-1].split(':')[0].split('=')[1])
-               checkSumAux = int(lockFullString[nf].split(':')[1])
-	       checkSum = zlibextras.adler32_combine(checkSum,checkSumAux,fileSizeAux)
-               checkSum = checkSum & 0xffffffff
 
             if(adler32c != checkSum):
 	       checkSumFailed = True
