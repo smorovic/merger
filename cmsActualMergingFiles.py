@@ -464,6 +464,11 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 	 with open(lockNameFullPath, 'r+w') as filelock:
             fcntl.flock(filelock, fcntl.LOCK_EX)
             lockFullString = filelock.readline().split(',')
+            if(len(lockFullString) == 0):
+               log.warning("lockFullString == 0 {0}".format(lockNameFullPath))
+               time.sleep(1)
+               filelock.seek(0)
+               lockFullString = filelock.readline().split(',')
             ini = int(lockFullString[len(lockFullString)-1].split(':')[0].split('=')[1])
             filelock.write(",%s=%d:%d" %(socket.gethostname(),ini+sum,checkSum))
             filelock.flush()
