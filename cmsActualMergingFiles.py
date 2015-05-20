@@ -197,11 +197,13 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          outMergedFileFullPathStable = outputMergedFolder + "/../bad/" + outMergedFile
          outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
 
+   if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPath)):
+      log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,os.path.getsize(outMergedFileFullPath)))
+      outMergedFileFullPathStable = outputMergedFolder + "/../bad/" + outMergedFile
+      outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
+
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
-
-   if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPathStable)):
-      log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPathStable,fileSize,os.path.getsize(outMergedFileFullPathStable)))
 
    if (mergeType == "macro" and ("DQM" in fileNameString[2])):
       outMergedFileFullPathStableFinal = outputDQMMergedFolder + "/../" + outMergedFile
@@ -464,13 +466,20 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 	 with open(lockNameFullPath, 'r+w') as filelock:
             fcntl.flock(filelock, fcntl.LOCK_EX)
             lockFullString = filelock.readline().split(',')
-            if(len(lockFullString) == 0):
-               log.warning("lockFullString == 0 {0}".format(lockNameFullPath))
+            ini = 0
+            try:
+               ini = int(lockFullString[len(lockFullString)-1].split(':')[0].split('=')[1])
+            except Exception,e:
+               log.warning("lockFullString1 problem({0}): {1} - {2}".format(lockNameFullPath,lockFullString,e))
                time.sleep(1)
                filelock.seek(0)
                lockFullString = filelock.readline().split(',')
-            ini = int(lockFullString[len(lockFullString)-1].split(':')[0].split('=')[1])
-            filelock.write(",%s=%d:%d" %(socket.gethostname(),ini+sum,checkSum))
+               try:
+                  ini = int(lockFullString[len(lockFullString)-1].split(':')[0].split('=')[1])
+               except Exception,e:
+                  log.error("lockFullString2 problem({0}): {1} - {2}".format(lockNameFullPath,lockFullString,e))
+
+	    filelock.write(",%s=%d:%d" %(socket.gethostname(),ini+sum,checkSum))
             filelock.flush()
             if(float(debug) > 0): log.info("Writing in lock file ({0}): {1}".format(lockNameFullPath,(ini+sum)))
             #os.fdatasync(filelock)
