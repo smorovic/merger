@@ -390,11 +390,13 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 	    outLockedFileSize = os.path.getsize(lockNameFullPath)
          if(float(debug) > 0): log.info("{0}: Making lock file if needed({1}-{2}-{3}) {4}".format(datetime.datetime.now().strftime("%H:%M:%S"), os.path.exists(outMergedFileFullPath), outLockedFileSize, eventsO, outMergedJSONFullPath))
          if (not os.path.exists(outMergedFileFullPath)):
-            time.sleep(random.random()*0.1)
+            time.sleep(random.random()*0.3)
          if (not os.path.exists(outMergedFileFullPath)):
 
             # file is generated, but do not fill it
-            with open(outMergedFileFullPath, 'w') as fout:
+            try:
+               fd = os.open(outMergedFileFullPath, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+               fout = os.fdopen(fd, "w")
                fcntl.flock(fout, fcntl.LOCK_EX)
                fout.truncate(maxSizeMergedFile)
                fout.seek(0)
@@ -402,7 +404,9 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                #append_files(filenameIni, fout)
                if(float(debug) > 0): log.info("outMergedFile {0} being generated".format(outMergedFileFullPath))
                fcntl.flock(fout, fcntl.LOCK_UN)
-            fout.close()
+               fout.close()
+            except Exception,e:
+               log.warning("cmsActualMergingFilesC dat file exists {0} - {1}".format(outMergedFileFullPath,e))
 
             checkSumIni=1
             with open(iniNameFullPath, 'r') as fsrc:
@@ -416,17 +420,21 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 	    checkSumIni = checkSumIni & 0xffffffff
 
             if (not os.path.exists(lockNameFullPath)):
-   	       with open(lockNameFullPath, 'w') as filelock:
-   	          fcntl.flock(filelock, fcntl.LOCK_EX)
+               try:
+                  fd = os.open(lockNameFullPath, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+                  filelock = os.fdopen(fd, "w")
+                  fcntl.flock(filelock, fcntl.LOCK_EX)
 
                   if(float(debug) > 0): log.info("lockFile {0} being generated".format(lockNameFullPath))
                   filelock.write("%s=%d:%d" %(socket.gethostname(),os.path.getsize(iniNameFullPath),checkSumIni))
 
-   	          filelock.flush()
-   	          #os.fdatasync(filelock)
-	          #os.chmod(lockNameFullPath, 0666)
-   	          fcntl.flock(filelock, fcntl.LOCK_UN)
-   	       filelock.close()
+                  filelock.flush()
+                  #os.fdatasync(filelock)
+                  #os.chmod(lockNameFullPath, 0666)
+                  fcntl.flock(filelock, fcntl.LOCK_UN)
+                  filelock.close()
+               except Exception,e:
+                  log.warning("cmsActualMergingFilesC lock file exists {0} - {1}".format(lockNameFullPath,e))
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
 	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
@@ -486,6 +494,17 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
             fcntl.flock(filelock, fcntl.LOCK_UN)
 	 filelock.close()
 	 if(float(debug) > 0): log.info("{0}: Unlocking file {1} - {2}/{3}".format(datetime.datetime.now().strftime("%H:%M:%S"), outMergedJSONFullPath, ini, sum))
+
+	 nDataCount = 0
+	 dataFileExist = os.path.exists(outMergedFileFullPath)
+	 while ((dataFileExist == False) or (dataFileExist == True and os.path.getsize(outMergedFileFullPath) == 0)):
+            nDataCount = nDataCount + 1
+            if(nDataCount%60 == 1): log.info("Waiting for the dat file to unlock: {0}".format(outMergedFileFullPath))
+            time.sleep(1)
+	    dataFileExist = os.path.exists(outMergedFileFullPath)
+	    if(nDataCount == 180):
+	       log.info("Not possible to unlock dat file after 3 minutes!!!: {0}".format(outMergedFileFullPath))
+               return
 
 	 with open(outMergedFileFullPath, 'r+w') as fout:
             fout.seek(ini)
