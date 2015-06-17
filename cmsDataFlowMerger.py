@@ -466,7 +466,6 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
    checkSumDict     = dict()
    eventsLDict      = dict()
    transferDestDict = dict()
-   iniIDict         = dict()
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
    # < 0 == will always use ThreadPool option
    nWithPollMax = -1
@@ -739,7 +738,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              # procedure to remove DQM left-behind files
              try:
                 if("DQM" in fileNameString[2] and doRemoveFiles == "True" and 
-                   key in filesDict.keys() and eventsIDict[key][0] < 0):
+                   key in eventsIDict.keys() and eventsIDict[key][0] < 0):
                    settings = "bad"
                    os.remove(inputJsonRenameFile)
                    inputDataFile = os.path.join(inputDataFolder, file)
@@ -863,13 +862,34 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       eventsIDict.update({key:[-1.01*eventsTotalInput-1.0]})
                       filesDATA = [word_in_list for word_in_list in filesDict[key]]
                       filesJSON = [word_in_list for word_in_list in jsonsDict[key]]
+		      varDictAux = []
+		      varDictAux.append(eventsODict[key][0])
+		      varDictAux.append(checkSumDict[key][0])
+		      varDictAux.append(fileSizeDict[key][0])
+		      varDictAux.append(errorCodeDict[key][0])
+		      varDictAux.append(transferDestDict[key][0])
                       if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                       if nWithPollMax < 0:
-                         process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDATA, checkSumDict[key][0], fileSizeDict[key][0], filesJSON, errorCodeDict[key][0], transferDestDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                         process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
 		      else:
-                         #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDATA, checkSumDict[key][0], fileSizeDict[key][0], filesJSON, errorCodeDict[key][0], transferDestDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, debug) )
-                         process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, eventsODict[key][0], filesDATA, checkSumDict[key][0], fileSizeDict[key][0], filesJSON, errorCodeDict[key][0], transferDestDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                         process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                          process.start()
+                      # delete dictionaries to avoid too large memory use
+                      try:
+                         del filesDict[key]
+                         del fileSizeDict[key]
+                         del errorCodeDict[key]
+                         del jsonsDict[key] 
+                         del eventsODict[key]
+                         del eventsEoLSDict[keyEoLS]
+                         del nFilesBUDict[key]
+                         del checkSumDict[key]
+                         del eventsLDict[key]
+                         del transferDestDict[key]
+                         if("DQM" not in fileNameString[2]):
+                            del eventsIDict[key]
+                      except Exception, e:
+                         log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
                    else:
                       if (float(debug) >= 20):
                 	  log.info("Events number does not match: EoL says {0} we have in the files: {1}".format(eventsEoLSDict[keyEoLS][0], eventsIDict[key][0]))
@@ -900,13 +920,34 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    eventsIDict.update({key:[-1.01*eventsTotalInput-1.0]})
                    filesDATA = [word_in_list for word_in_list in filesDict[key]]
                    filesJSON = [word_in_list for word_in_list in jsonsDict[key]]
+		   varDictAux = []
+		   varDictAux.append(eventsODict[key][0])
+		   varDictAux.append(checkSumDict[key][0])
+		   varDictAux.append(fileSizeDict[key][0])
+		   varDictAux.append(errorCodeDict[key][0])
+		   varDictAux.append(transferDestDict[key][0])
                    if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                    if nWithPollMax < 0:
-                      process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDATA, checkSumDict[key][0], fileSizeDict[key][0], filesJSON, errorCodeDict[key][0], transferDestDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                      process = thePool.apply_async(         mergeFiles,            [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                    else:
-                      #thread.start_new_thread( mergeFiles,                          (outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDATA, checkSumDict[key][0], fileSizeDict[key][0], filesJSON, errorCodeDict[key][0], transferDestDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, debug) )
-                      process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, eventsODict[key][0], filesDATA, checkSumDict[key][0], fileSizeDict[key][0], filesJSON, errorCodeDict[key][0], transferDestDict[key][0], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                      process = multiprocessing.Process(target = mergeFiles, args = [outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                       process.start()
+                   # delete dictionaries to avoid too large memory use
+                   try:
+                      del filesDict[key]
+                      del fileSizeDict[key]
+                      del errorCodeDict[key]
+                      del jsonsDict[key] 
+                      del eventsODict[key]
+                      del eventsEoLSDict[keyEoLS]
+                      del nFilesBUDict[key]
+                      del checkSumDict[key]
+                      del eventsLDict[key]
+                      del transferDestDict[key]
+                      if("DQM" not in fileNameString[2]):
+                         del eventsIDict[key]
+                   except Exception, e:
+                      log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
                 else:
                    if (float(debug) >= 20):
                        log.info("Events number does not match: EoL says {0}, we have in the files: {1}".format(eventsOutput, eventsIDict[key][0]))
