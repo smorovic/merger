@@ -387,10 +387,10 @@ def doTheRecovering(paths_to_watch, streamType, debug):
          if(streamType != "0" and (afterString[i].endswith(".jsn") or afterString[i].endswith(".ini"))):
             fileString = afterString[i].split('_')
             isOnlyDQMRates = ("DQM" in fileString[2] or "Rates" in fileString[2])
-            isStreamAE = isOnlyDQMRates == False and ("streamA" in fileString[2] or "streamE" in fileString[2])
+            isStreamAP = isOnlyDQMRates == False and ("streamP" in fileString[2] or "streamE" in fileString[2])
             if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
-            elif(streamType == "onlyStreamAE" and isStreamAE == False): continue
-            elif(streamType == "noDQMRatesnoStreamAE" and (isOnlyDQMRates == True or isStreamAE == True)): continue
+            elif(streamType == "onlyStreamAP" and isStreamAP == False): continue
+            elif(streamType == "noDQMRatesnoStreamAP" and (isOnlyDQMRates == True or isStreamAP == True)): continue
       
          if afterString[i].endswith("_TEMP.jsn"):
             inputJsonFile = os.path.join(inputDataFolder, afterString[i])
@@ -536,10 +536,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
                 fileIniString = afterString[i].split('_')
 		isOnlyDQMRates = ("DQM" in fileIniString[2] or "Rates" in fileIniString[2])
-		isStreamAE = isOnlyDQMRates == False and ("streamA" in fileIniString[2] or "streamE" in fileIniString[2])
+		isStreamAP = isOnlyDQMRates == False and ("streamP" in fileIniString[2] or "streamE" in fileIniString[2])
                 if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
-                elif(streamType == "onlyStreamAE" and isStreamAE == False): continue
-                elif(streamType == "noDQMRatesnoStreamAE" and (isOnlyDQMRates == True or isStreamAE == True)): continue
+                elif(streamType == "onlyStreamAP" and isStreamAP == False): continue
+                elif(streamType == "noDQMRatesnoStreamAP" and (isOnlyDQMRates == True or isStreamAP == True)): continue
 
           	if((mergeType == "mini") or (optionMerging == "optionA") or ("DQM" in fileIniString[2]) or ("streamError" in fileIniString[2]) or ("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
           	    theIniOutputFolder = outputSMMergedFolder
@@ -667,10 +667,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
              fileNameString = afterString[i].split('_')
              isOnlyDQMRates = ("DQM" in fileNameString[2] or "Rates" in fileNameString[2])
-             isStreamAE = isOnlyDQMRates == False and ("streamA" in fileNameString[2] or "streamE" in fileNameString[2])
+             isStreamAP = isOnlyDQMRates == False and ("streamP" in fileNameString[2] or "streamE" in fileNameString[2])
              if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
-             elif(streamType == "onlyStreamAE" and isStreamAE == False): continue
-             elif(streamType == "noDQMRatesnoStreamAE" and (isOnlyDQMRates == True or isStreamAE == True)): continue
+             elif(streamType == "onlyStreamAP" and isStreamAP == False): continue
+             elif(streamType == "noDQMRatesnoStreamAP" and (isOnlyDQMRates == True or isStreamAP == True)): continue
 
 	     if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
