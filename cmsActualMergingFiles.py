@@ -124,7 +124,10 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       os.system(msg)
 
    else:
-      msg = "fastHadd add -o %s " % (outMergedFileFullPath)
+      if (mergeType == "macro"):
+         msg = "fastHadd add -j 7 -o %s " % (outMergedFileFullPath)
+      else:
+         msg = "fastHadd add -o %s " % (outMergedFileFullPath)
       for nfile in range(0, len(filenames)):
          if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile]))):
             msg = msg + filenames[nfile] + " "
