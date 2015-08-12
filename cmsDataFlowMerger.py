@@ -220,7 +220,7 @@ def mergeFiles(outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, 
    # streamDQMHistograms stream uses always with optionA
    fileNameString = filesJSON[0].replace(inputDataFolder,"").replace("/","").split('_')
 
-   if ((optionMerging == "optionA") or ("DQM" in fileNameString[2]) or ("streamError" in fileNameString[2]) or ("streamHLTRates" in fileNameString[2]) or ("streamL1Rates" in fileNameString[2])):
+   if ((optionMerging == "optionA") or ("DQM" in fileNameString[2]) or ("streamError" in fileNameString[2]) or ("streamHLTRates" in fileNameString[2]) or ("streamL1Rates" in fileNameString[2]) or (infoEoLS[0] == 0)):
       try:
          cmsActualMergingFiles.mergeFilesA(outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
       except Exception, e:
@@ -737,15 +737,17 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              key = (fileNameString[0],fileNameString[1],fileNameString[2])
              # procedure to remove DQM left-behind files
              try:
-                if("DQM" in fileNameString[2] and doRemoveFiles == "True" and 
+                if(doRemoveFiles == "True" and 
                    key in eventsIDict.keys() and eventsIDict[key][0] < 0):
                    settings = "bad"
                    os.remove(inputJsonRenameFile)
                    inputDataFile = os.path.join(inputDataFolder, file)
-                   os.remove(inputDataFile)
+                   if(os.path.isfile(inputDataFile)):
+                      os.remove(inputDataFile)
              except Exception, e:
-                log.error("Deleting DQM file failed {0} {1}".format(inputJsonRenameFile,e))
+                log.error("Deleting file failed {0} {1}".format(inputJsonRenameFile,e))
              if("bad" in settings): continue
+
              if key in filesDict.keys():
 	        if fileErrorString != None and len(fileErrorString) >= 2:
 	           for theFiles in range(0, len(fileErrorString)):
@@ -796,7 +798,12 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	jsonsDict.update({key:[inputJsonRenameFile]})
                 errorCodeDict.update({key:[errorCode]})
 
-	     	eventsIDict.update({key:[eventsInput]})
+                if key in eventsIDict.keys():
+                   eventsInput = eventsIDict[key][0] + eventsInput
+                   eventsIDict[key].remove(eventsIDict[key][0])
+                   eventsIDict.update({key:[eventsInput]})
+                else:
+                   eventsIDict.update({key:[eventsInput]})
 
 	     	eventsODict.update({key:[eventsOutput]})
 
@@ -886,7 +893,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                          del checkSumDict[key]
                          del eventsLDict[key]
                          del transferDestDict[key]
-                         if("DQM" not in fileNameString[2]):
+                         if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1):
                             del eventsIDict[key]
                       except Exception, e:
                          log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
@@ -944,7 +951,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       del checkSumDict[key]
                       del eventsLDict[key]
                       del transferDestDict[key]
-                      if("DQM" not in fileNameString[2]):
+                      if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1):
                          del eventsIDict[key]
                    except Exception, e:
                       log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))

@@ -121,7 +121,10 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile]))):
             msg = msg + filenames[nfile] + " "
       if(float(debug) > 20): log.info("running {0}".format(msg))
-      os.system(msg)
+      if(infoEoLS[0] != 0):
+         os.system(msg)
+      else:
+         open(outMergedFileFullPath, 'w').close()
 
    else:
       if (mergeType == "macro"):
@@ -132,7 +135,10 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile]))):
             msg = msg + filenames[nfile] + " "
       if(float(debug) > 20): log.info("running {0}".format(msg))
-      os.system(msg)
+      if(infoEoLS[0] != 0):
+         os.system(msg)
+      else:
+         open(outMergedFileFullPath, 'w').close()
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
