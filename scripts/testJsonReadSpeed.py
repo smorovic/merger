@@ -52,8 +52,8 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
       diffTime = endReadingTime-initReadingTime
       if(theMaxTime > 0 and diffTime > theMaxTime):
          msg  = "Maximum time (%f) has passed %f\n" % (diffTime,theMaxTime)
-         msg += "Average time: %f\n" % (totalTimeFiles/totalReadFiles)
-         msg += "Total too slow read files(%f ms): %d out of %d\n" % (theTooSlowTime,totalTooSlowFiles,totalReadFiles)
+         msg += "Average time: %f msec\n" % (totalTimeFiles/totalReadFiles)
+         msg += "Total too slow read files(%f msec): %d out of %d\n" % (theTooSlowTime,totalTooSlowFiles,totalReadFiles)
          raise RuntimeError, msg
 
       inputDataFolders = glob.glob(theInput)
@@ -98,8 +98,8 @@ Main
 valid = ['input=', 'maxTime=', 'tooSlowTime=', 'debug=', 'help']
 
 usage =  "Usage: testJsonReadSpeed.py --input=<input_folder>\n"
-usage += "                            --maxTime<-1>\n"
-usage += "                            --tooSlowTime<10>\n"
+usage += "                            --maxTime<-1 sec>\n"
+usage += "                            --tooSlowTime<10 msec>\n"
 usage += "                            --debug<0>\n"
 
 try:
