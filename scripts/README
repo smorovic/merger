@@ -1,0 +1,17 @@
+- testIntegrity.sh --> macro to check the integrity of files for given folder
+
+- checkFiles.py --> macro to check the integrity of files for given folder (better version)
+
+- setCMSSW.sh --> macro to set CMSSW (used in testIntegrity.sh, but it works standalone)
+
+- isGoodChecksum.py --> macro to test if the checksum of a files agrees with the expectation
+
+- run_allBUs.sh --> macro to run a given command in all BUs (62, harcoded)
+
+- copyIni.csh --> macro to copy ini files in a run
+
+- recoverFiles.py --> macro to recover dat files using dat and lock information, together with slastic search information
+
+- checkRLS.py --> macro to sum the events in a given run/LS/stream, it works both for mini-merger and macro-merger
+
+- testJsonReadSpeed.py --> macro to test the json reading speed on any given set of folder(s)
