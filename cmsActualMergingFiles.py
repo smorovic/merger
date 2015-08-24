@@ -17,6 +17,7 @@ import requests
 
 from Logging import getLogger
 log = getLogger()
+max_size = 30 * 1024 * 1024 * 1024
 
 def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, maxConnectionAttempts, debug):
    # here the merge action is monitored by inserting a record into Elastic Search database
@@ -189,6 +190,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
       outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
       outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outMergedJSON)
 
+   checksum_status = True
    # checkSum checking
    if(doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False):
       adler32c=1
@@ -205,11 +207,18 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          log.error("BIG PROBLEM, checkSum failed != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,adler32c,checkSum))
          outMergedFileFullPathStable = outputMergedFolder + "/../bad/" + outMergedFile
          outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
+         checksum_status = False
 
-   if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPath)):
-      log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,os.path.getsize(outMergedFileFullPath)))
-      outMergedFileFullPathStable = outputMergedFolder + "/../bad/" + outMergedFile
-      outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
+   if(checksum_status == True):
+      if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPath)):
+         log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,os.path.getsize(outMergedFileFullPath)))
+         outMergedFileFullPathStable = outputMergedFolder + "/../bad/" + outMergedFile
+         outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
+
+      elif(mergeType == "macro" and fileSize > max_size):
+         log.error("BIG PROBLEM, fileSize is too large!: {0} --> {1}".format(outMergedFileFullPath,fileSize))
+         outMergedFileFullPathStable = outputMergedFolder + "/../recovery/" + outMergedFile
+         outMergedJSONFullPathStable = outputMergedFolder + "/../recovery/" + outMergedJSON
 
    shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
@@ -576,6 +585,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       checkSumFailed = False
 
       if(fileNameString[2] != "streamError" and fileSize != totalSize):
+         checkSumFailed = True
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,totalSize))
          outMergedFileFullPathStable = outputSMMergedFolder + "/../bad/" + outMergedFile
 
@@ -622,8 +632,13 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
             if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
                os.remove(lockNameFullPath)
 
-      if (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2])):
+      if ((("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2])) and checkSumFailed == False):
          outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outMergedFile)
+
+      if(checkSumFailed == False and fileSize > max_size):
+         log.error("BIG PROBLEM, fileSize is too large!: {0} --> {1}".format(outMergedFileFullPath,fileSize))
+         outMergedFileFullPathStable = outputSMMergedFolder + "/../recovery/" + outMergedFile
+
       if(float(debug) >= 10): log.info("outMergedFileFullPath/outMergedFileFullPathStable: {0}, {1}".format(outMergedFileFullPath, outMergedFileFullPathStable))
       try:
          shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
@@ -642,8 +657,13 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    theMergedJSONfile.close()
    #os.chmod(outMergedJSONFullPath, 0666)
 
-   if(mergeType == "macro" and fileNameString[2] != "streamError" and (fileSize != totalSize or checkSumFailed == True)):
-      outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
+   if(mergeType == "macro" and fileNameString[2] != "streamError"):
+      if(fileSize != totalSize or checkSumFailed == True):
+         outMergedJSONFullPathStable = outputMergedFolder + "/../bad/" + outMergedJSON
+      elif(fileSize > max_size):
+         outMergedJSONFullPathStable = outputMergedFolder + "/../recovery/" + outMergedJSON
+      else:
+         outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
    else:
       outMergedJSONFullPathStable = outputMergedFolder + "/../" + outMergedJSON
 

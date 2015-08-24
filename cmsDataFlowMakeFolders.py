@@ -9,7 +9,7 @@ making theOutput folders
 """
 def doMakeFolders(theOutputMergedFolder, theOutputSMMergedFolder, 
       theOutputDQMMergedFolder, theOutputECALMergedFolder, theOutputBadFolder, 
-      theOutputSMBadFolder):
+      theOutputSMBadFolder, theOutputSMRecoveryFolder):
 
    if not os.path.exists(theOutputMergedFolder):
       try:
@@ -58,3 +58,11 @@ def doMakeFolders(theOutputMergedFolder, theOutputSMMergedFolder,
           log.warning(
           "Directory {0} has just been created by someone else...".format(
           theOutputSMBadFolder))
+
+   if not os.path.exists(theOutputSMRecoveryFolder):
+      try:
+          os.makedirs(theOutputSMRecoveryFolder)
+      except Exception, e:
+          log.warning(
+          "Directory {0} has just been created by someone else...".format(
+          theOutputSMRecoveryFolder))
