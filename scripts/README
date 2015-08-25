@@ -10,7 +10,7 @@
 
 - copyIni.csh --> macro to copy ini files in a run
 
-- recoverFiles.py --> macro to recover dat files using dat and lock information, together with slastic search information
+- recoverFiles.py --> macro to recover dat files using dat and lock information, together with elastic search information
 
 - checkRLS.py --> macro to sum the events in a given run/LS/stream, it works both for mini-merger and macro-merger
 

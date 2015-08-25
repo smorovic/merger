@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import os, time, sys, getopt, fcntl, shutil, json, zlib, requests
+import os, time, sys, getopt, fcntl, shutil, json, zlib
 
-valid = ['inp=', "eols=", "file=", "type=", 'help']
+valid = ['input=', "eols=", "file=", "type=", 'help']
 
-usage  =  "Usage: checkRLS.py --inp=</fff/output>\n"
+usage  =  "Usage: checkRLS.py --input=</fff/output>\n"
 usage +=  "                   --eols=</fff/ramdisk>\n"
 usage +=  "                   --file=<a_b_c>\n"
 usage +=  "                   --type=<mini>\n"
@@ -25,7 +25,7 @@ for opt, arg in opts:
    if opt == "--help":
       print usage
       sys.exit(1)
-   if opt == "--inp":
+   if opt == "--input":
       inputDataFolder = arg
    if opt == "--out":
       outputDataFolder = arg

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, time, sys, getopt, fcntl, shutil, json, zlib, requests
+import os, time, sys, getopt, fcntl, shutil, json, zlib
 
 def append_files(ifnames, ofile):
     '''
