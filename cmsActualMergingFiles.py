@@ -61,6 +61,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
    outMergedJSONFullPath = os.path.join(outputMergedFolder, outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
+   timeReadWrite = [0, 0]
    initMergingTime = time.time()
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}: Start merge of {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
@@ -98,7 +99,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
          fileSize = os.path.getsize(iniNameFullPath) + fileSize
          filenames = [iniNameFullPath]
          with open(outMergedFileFullPath, 'w') as fout:
-            append_files(filenames, fout)
+            append_files(filenames, fout, debug, timeReadWrite)
          fout.close()
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
@@ -111,7 +112,7 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 
    if (specialStreams == False):
       with open(outMergedFileFullPath, 'a') as fout:
-         append_files(filenames, fout)
+         append_files(filenames, fout, debug, timeReadWrite)
       fout.close()
       if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
       #os.chmod(outMergedFileFullPath, 0666)
@@ -242,7 +243,8 @@ def mergeFilesA(outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolde
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
-   if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
+   if(float(debug) > 1): log.info("{0}, : Time for read/write({1}): {2:.3f}/{3:.3f}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, timeReadWrite[0], timeReadWrite[1]))
+   if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2:.3f}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
 
  except Exception,e:
    log.error("mergeFilesA failed {0} - {1}".format(outMergedJSON,e))
@@ -259,6 +261,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    outMergedJSONFullPath = os.path.join(outputMergedFolder,   outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
+   timeReadWrite = [0, 0]
    initMergingTime = time.time()
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}: Start merge of {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
@@ -281,7 +284,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                fileSize = os.path.getsize(iniNameFullPath) + fileSize
                #os.chmod(outMergedFileFullPath, 0666)
                filenames = [iniNameFullPath]
-               append_files(filenames, fout)
+               append_files(filenames, fout, debug, timeReadWrite)
                fcntl.flock(fout, fcntl.LOCK_UN)
             fout.close()
       else:
@@ -302,7 +305,7 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
       with open(outMergedFileFullPath, 'a') as fout:
          fcntl.flock(fout, fcntl.LOCK_EX)
-         append_files(filenames, fout)
+         append_files(filenames, fout, debug, timeReadWrite)
          fcntl.flock(fout, fcntl.LOCK_UN)
       fout.close()
 
@@ -366,7 +369,8 @@ def mergeFilesB(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
-   if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
+   if(float(debug) > 1): log.info("{0}, : Time for read/write({1}): {2:.3f}/{3:.3f}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, timeReadWrite[0], timeReadWrite[1]))
+   if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2:.3f}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
 
  except Exception,e:
    log.error("mergeFilesB failed {0} - {1}".format(outMergedJSON,e))
@@ -383,6 +387,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
    outMergedJSONFullPath = os.path.join(outputMergedFolder,   outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
+   timeReadWrite = [0, 0]
    initMergingTime = time.time()
    now = datetime.datetime.now()
    if(float(debug) > 0): log.info("{0}: Start merge of {1}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath))
@@ -419,7 +424,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
                fout.truncate(maxSizeMergedFile)
                fout.seek(0)
                #filenameIni = [iniNameFullPath]
-               #append_files(filenameIni, fout)
+               #append_files(filenameIni, fout, debug, timeReadWrite)
                if(float(debug) > 0): log.info("outMergedFile {0} being generated".format(outMergedFileFullPath))
                fcntl.flock(fout, fcntl.LOCK_UN)
                fout.close()
@@ -461,13 +466,6 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
 
       if(float(debug) > 20): log.info("Will merge: {0}".format(filenames))
-
-      # first renaming the files (INTENTIONAL WRONG FOR THE TIME BEING)
-      for nfile in range(0, len(filesJSON)):
-   	 inputFile       = filesJSON[nfile]
-   	 inputFileRename = filesJSON[nfile].replace("_TEMPNO.jsn","_DONE.jsn")
-         shutil.move(inputFile,inputFileRename)
-	 filesJSON[nfile] = filesJSON[nfile].replace("_TEMPNO.jsn","_DONE.jsn")
 
       sum = 0
       for nFile in range(0,len(filenames)):
@@ -526,7 +524,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
 	 with open(outMergedFileFullPath, 'r+w') as fout:
             fout.seek(ini)
-            append_files(filenames, fout)
+            append_files(filenames, fout, debug, timeReadWrite)
 	 fout.close()
 	 if(float(debug) > 1): log.info("{0}: Actual merging of {1} happened".format(datetime.datetime.now().strftime("%H:%M:%S"), outMergedJSONFullPath))
 
@@ -534,7 +532,7 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
       with open(outMergedFileFullPath, 'r+w') as fout:
          fout.seek(0)
          filenameIni = [iniNameFullPath]
-         append_files(filenameIni, fout)
+         append_files(filenameIni, fout, debug, timeReadWrite)
       fout.close()
       fileSize = fileSize + os.path.getsize(iniNameFullPath)
       if eventsO == 0:
@@ -682,13 +680,14 @@ def mergeFilesC(outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder
 
    endMergingTime = time.time() 
    now = datetime.datetime.now()
-   if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
+   if(float(debug) > 1): log.info("{0}, : Time for read/write({1}): {2:.3f}/{3:.3f}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, timeReadWrite[0], timeReadWrite[1]))
+   if(float(debug) > 0): log.info("{0}, : Time for merging({1}): {2:.3f}".format(now.strftime("%H:%M:%S"), outMergedJSONFullPath, endMergingTime-initMergingTime))
 
  except Exception,e:
    log.error("mergeFilesC failed {0} - {1}".format(outMergedJSON,e))
 
 #______________________________________________________________________________
-def append_files(ifnames, ofile):
+def append_files(ifnames, ofile, debug, theTimeReadWrite):
     '''
     Appends the contents of files given by a list of input file names `ifname'
     to the given output file object `ofile'. Returns None.
@@ -696,6 +695,26 @@ def append_files(ifnames, ofile):
     for ifname in ifnames:
         if (os.path.exists(ifname) and (not os.path.isdir(ifname))):
             with open(ifname) as ifile:
-                shutil.copyfileobj(ifile, ofile)
+                #shutil.copyfileobj(ifile, ofile)
+                copyfileobj(ifile, ofile, debug, theTimeReadWrite)
             ifile.close()
 # append_files
+
+#______________________________________________________________________________
+def copyfileobj(fsrc, fdst, theDebug, theTimeReadWrite, length=16*1024):
+   """copy data from file-like object fsrc to file-like object fdst"""
+   iniTimeRead = 0
+   iniTimeWrite = 0
+   while 1:
+
+      if(theDebug > 1): iniTimeRead = time.time()
+      buf = fsrc.read(length)
+      if(theDebug > 1): theTimeReadWrite[0] = theTimeReadWrite[0] + time.time()-iniTimeRead
+
+      if not buf:
+         break
+
+      if(theDebug > 1): iniTimeWrite = time.time()
+      fdst.write(buf)
+      if(theDebug > 1): theTimeReadWrite[1] = theTimeReadWrite[1] + time.time()-iniTimeWrite
+# copyfileobj

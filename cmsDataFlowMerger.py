@@ -449,7 +449,7 @@ def readJsonFile(inputJsonFile, debug):
 
       return settingsLS
    except Exception, e:
-      log.error("readJsonFile {0} failed {1}".format(inputJsonFile.e))
+      log.error("readJsonFile {0} failed {1}".format(inputJsonFile,e))
 
 """
 Do loops
@@ -713,7 +713,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		errorCode	  = int(settings['data'][3])
 		file              = str(settings['data'][4])
 		fileSize          = int(settings['data'][5])
-		checkSum          = int(settings['data'][7])                
+		checkSum          = int(settings['data'][7])
+		# Avoid wrongly reported checksum values
+		if(checkSum == -1):
+		   checkSum = 0
 		if(len(settings['data']) >= 9):
 		   transferDest   = str(settings['data'][8])
 		#else:
