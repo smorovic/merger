@@ -38,7 +38,7 @@ def readJsonFile(inputJsonFile):
 
       return settingsLS
    except Exception, e:
-      log.error("readJsonFile {0} failed {1}".format(inputJsonFile.e))
+      log.error("readJsonFile {0} failed {1}".format(inputJsonFile,e))
 
 def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
 
@@ -81,7 +81,7 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
 
              initJsonTime = time.time()
-             settings = readJsonFile(inputJsonFile)
+             settings = str(readJsonFile(inputJsonFile))
              endJsonTime = time.time()
 
              # avoid corrupted files
