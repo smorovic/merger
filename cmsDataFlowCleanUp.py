@@ -62,10 +62,10 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol,
       if(numberBoLSFiles == 0 and eventsInputBU == eventsInputFU):
          # This is needed to cleanUp the macroMerger later
          EoRFileNameMiniOutput       = (
-            outputSMMergedFolder + "/"    + theRunNumber + "_ls0000_MiniEoR_" + 
+            outputSMMergedFolder + "/" + theRunNumber + "_ls0000_MiniEoR_" + 
             outputEndName + ".jsn_TEMP")
          EoRFileNameMiniOutputStable = (
-            outputSMMergedFolder + "/../" + theRunNumber + "_ls0000_MiniEoR_" + 
+            outputSMMergedFolder + "/" + theRunNumber + "_ls0000_MiniEoR_" + 
             outputEndName + ".jsn")
 
          theEoRFileMiniOutput = open(EoRFileNameMiniOutput, 'w')
