@@ -388,6 +388,7 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
                return
 
          if(float(debug) > 1): log.info("Time after unlocking, before appending jsn({0}): {1:.3f}".format(outMergedJSONFullPath, time.time()-initMergingTime))
+
 	 with open(outMergedFileFullPath, 'r+w') as fout:
             fout.seek(ini)
             append_files(filenames, fout, debug, timeReadWrite)

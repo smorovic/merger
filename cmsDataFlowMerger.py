@@ -413,14 +413,17 @@ def doTheRecovering(paths_to_watch, streamType, mergeType, debug):
          if(mergeType == "macro"):
             inpSubFolder = fileString[2]
 
-         if afterString[i].endswith("_TEMP.jsn"):
-            inputJsonFile = os.path.join(inputDataFolder, inpSubFolder, afterString[i])
-            inputJsonRenameFile = inputJsonFile.replace("_TEMP.jsn",".jsn")
-            os.rename(inputJsonFile,inputJsonRenameFile)
-         if afterString[i].endswith("_TEMP.ini"):
-            inputIniFile = os.path.join(inputDataFolder, inpSubFolder, afterString[i])
-            inputIniRenameFile = inputIniFile.replace("_TEMP.ini",".ini")
-            os.rename(inputIniFile,inputIniRenameFile)
+         try:
+            if afterString[i].endswith("_TEMP.jsn"):
+               inputJsonFile = os.path.join(inputDataFolder, inpSubFolder, afterString[i])
+               inputJsonRenameFile = inputJsonFile.replace("_TEMP.jsn",".jsn")
+               os.rename(inputJsonFile,inputJsonRenameFile)
+            if afterString[i].endswith("_TEMP.ini"):
+               inputIniFile = os.path.join(inputDataFolder, inpSubFolder, afterString[i])
+               inputIniRenameFile = inputIniFile.replace("_TEMP.ini",".ini")
+               os.rename(inputIniFile,inputIniRenameFile)
+         except Exception, e:
+           log.error("file could not be renamed: {0} - {1}".format(inputJsonFile,e))
 
 """
 Check if file is completed
@@ -728,11 +731,15 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              inputJsonFile = os.path.join(inputDataFolder, inpSubFolder, afterString[i])
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
              
-             # renaming the file to avoid issues
-	     inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
-             os.rename(inputJsonFile,inputJsonRenameFile)
+             try:
+                # renaming the file to avoid issues
+                inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
+                os.rename(inputJsonFile,inputJsonRenameFile)
+                settings = readJsonFile(inputJsonRenameFile,debug)
 
-             settings = readJsonFile(inputJsonRenameFile,debug)
+             except Exception, e:
+                log.error("file could not be renamed: {0} - {1}".format(inputJsonFile,e))
+                settings = "bad"
 
              # This is just for streamEvD files
              if  ("bad" not in settings and "streamEvDOutput" in fileNameString[2]):
