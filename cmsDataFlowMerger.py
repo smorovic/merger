@@ -504,7 +504,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
       thePool = LoggingPool(processes=nThreadsMax)
 
    else:
-      onePool = multiprocessing.Pool(nThreadsMax)
+      thePool = multiprocessing.Pool(nThreadsMax)
 
 
    while 1:
@@ -741,7 +741,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 if nWithPollMax < 0:
                    process = thePool.apply_async(moveFiles, [debug, inputDataFolder, outputSMMergedFolder, jsonName, settings])
                 else:
-                   process = onePool.apply_async(moveFiles, [debug, inputDataFolder, outputSMMergedFolder, jsonName, settings])
+                   process = thePool.apply_async(moveFiles, [debug, inputDataFolder, outputSMMergedFolder, jsonName, settings])
 		
                 settings = "bad"
 
@@ -945,7 +945,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       if nWithPollMax < 0:
                          process = thePool.apply_async(         mergeFiles,            [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
 		      else:
-                         process = onePool.apply_async(         mergeFiles,            [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                         process = thePool.apply_async(         mergeFiles,            [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                          #process = multiprocessing.Process(target = mergeFiles, args = [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                          #process.start()
                       # delete dictionaries to avoid too large memory use
@@ -1004,7 +1004,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    if nWithPollMax < 0:
                       process = thePool.apply_async(         mergeFiles,            [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                    else:
-                      process = onePool.apply_async(         mergeFiles,            [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                      process = thePool.apply_async(         mergeFiles,            [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                       #process = multiprocessing.Process(target = mergeFiles, args = [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                       #process.start()
                    # delete dictionaries to avoid too large memory use
@@ -1035,8 +1035,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
 
    if nWithPollMax > 0:
-      aPool.close()
-      aPool.join()
+      thePool.close()
+      thePool.join()
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
