@@ -814,7 +814,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    key in eventsIDict.keys() and eventsIDict[key][0] < 0):
                    settings = "bad"
                    os.remove(inputJsonRenameFile)
-                   inputDataFile = os.path.join(inputDataFolder, file)
+                   inputDataFile = os.path.join(inputDataFolder, inpSubFolder, file)
                    if(os.path.isfile(inputDataFile)):
                       os.remove(inputDataFile)
              except Exception, e:
