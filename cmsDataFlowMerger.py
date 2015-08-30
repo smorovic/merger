@@ -36,7 +36,7 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
          if(float(debug) >= 10): log.info('found index '+esIndexName+' containing '+str(json.loads(checkIndexResponse.text)['_shards']['total'])+' total shards')
          indexExists = True
       else:
-         if(float(debug) >= 10): log.info('did not find existing index '+esIndexName+', attempting to create it now...')
+         if(float(debug) >= 10): log.info('did not find existing index '+esIndexName+', attempting to create it...')
          indexExists = False
    except requests.exceptions.ConnectionError as e:
       log.error('esMonitorMapping: Could not connect to ElasticSearch database!')
@@ -250,8 +250,7 @@ def moveFiles(debug, theInputDataFolder, theOutputDataFolder, jsonName, theSetti
    try:
 
       initMergingTime = time.time()
-      now = datetime.datetime.now()
-      if(float(debug) > 0): log.info("{0}: Start moving of {1}".format(now.strftime("%H:%M:%S"), jsonName))
+      if(float(debug) > 0): log.info("Start moving of {0}".format(jsonName))
 
       if(float(debug) >= 10): log.info("moving parameters files: {0} {1} {2}".format(theInputDataFolder, theOutputDataFolder, jsonName))
 
@@ -332,8 +331,7 @@ def moveFiles(debug, theInputDataFolder, theOutputDataFolder, jsonName, theSetti
          os.remove(BoLSFileNameFullPath)
 
       endMergingTime = time.time() 
-      now = datetime.datetime.now()
-      if(float(debug) > 0): log.info("{0}, : Time for moving({1}): {2}".format(now.strftime("%H:%M:%S"), outMergedFileFullPathStable, endMergingTime-initMergingTime))
+      if(float(debug) > 0): log.info("Time for moving({0}): {1}".format(outMergedFileFullPathStable, endMergingTime-initMergingTime))
 
    except Exception, e:
       log.error("copyFile failed: {0} - {1}".format(outMergedJSONFullPath,e))
@@ -494,7 +492,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
    # < 0 == will always use ThreadPool option
    nWithPollMax = 1
    # Maximum number of threads to be allowed with the pool option
-   nThreadsMax  = 50
+   nThreadsMax  = 40
    # Number of loops
    nLoops = 0
 
