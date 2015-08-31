@@ -265,11 +265,14 @@ def moveFiles(debug, theInputDataFolder, theOutputDataFolder, jsonName, theSetti
       if(len(theSettings['data']) >= 9):
          transferDest   = str(theSettings['data'][8])
 
+      jsonNameString = jsonName.split('_')
+      outSubFolder = jsonNameString[2]
+
       inpMergedFileFullPath = os.path.join(theInputDataFolder, fileName)
       inpMergedJSONFullPath = os.path.join(theInputDataFolder, jsonName)
 
-      theOutputDataFolderFullPath      = theOutputDataFolder + "/../"
-      theOutputDataFolderFullPathOpen  = theOutputDataFolder
+      theOutputDataFolderFullPath      = os.path.join(theOutputDataFolder,outSubFolder)
+      theOutputDataFolderFullPathOpen  = os.path.join(theOutputDataFolder,outSubFolder,"open")
 
       outMergedFileFullPath       = theOutputDataFolderFullPathOpen + "/" + fileName
       outMergedJSONFullPath       = theOutputDataFolderFullPathOpen + "/" + jsonName
@@ -492,7 +495,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
    # < 0 == will always use ThreadPool option
    nWithPollMax = 1
    # Maximum number of threads to be allowed with the pool option
-   nThreadsMax  = 40
+   nThreadsMax  = 30
    # Number of loops
    nLoops = 0
 
