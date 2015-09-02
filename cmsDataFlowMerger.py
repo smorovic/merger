@@ -928,7 +928,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
         	if keyEoLS in eventsEoLSDict.keys(): # and key in filesDict.keys():
         	#try:
 		   if(float(debug) >= 20): log.info("mini-EventsEoLS/EventsInput-LS/Stream: {0}, {1}, {2}, {3}".format(eventsEoLSDict[keyEoLS][0], eventsIDict[key][0], fileNameString[1], fileNameString[2]))
-                   if((eventsEoLSDict[keyEoLS][0] == eventsIDict[key][0]) or (eventsEoLSDict[keyEoLS][0]*triggerMergingThreshold <= eventsIDict[key][0] and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
+                   if((eventsEoLSDict[keyEoLS][0] == eventsIDict[key][0]) or
+                      (eventsEoLSDict[keyEoLS][0]*triggerMergingThreshold[0] <= eventsIDict[key][0] and                                fileNameString[2] == "streamDQMEventDisplay") or 
+                      (eventsEoLSDict[keyEoLS][0]*triggerMergingThreshold[1] <= eventsIDict[key][0] and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
 		      # merged files
 	              outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + extensionName;
 	              outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" +    outputEndName + ".jsn";
@@ -984,7 +986,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
              else:
 		if(float(debug) >= 20): log.info("macro-EventsTotalInput/EventsInput/NLostEvents-LS/Stream: {0}, {1}, {2}, {3}".format(eventsTotalInput,eventsIDict[key][0],eventsLDict[key][0],fileNameString[1],fileNameString[2]))
-                if((eventsTotalInput == (eventsIDict[key][0]+eventsLDict[key][0])) or (eventsTotalInput*triggerMergingThreshold <= (eventsIDict[key][0]+eventsLDict[key][0]) and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
+                if((eventsTotalInput == (eventsIDict[key][0]+eventsLDict[key][0])) or
+		   (eventsTotalInput*triggerMergingThreshold[0] <= (eventsIDict[key][0]+eventsLDict[key][0]) and                                fileNameString[2] == "streamDQMEventDisplay") or
+		   (eventsTotalInput*triggerMergingThreshold[1] <= (eventsIDict[key][0]+eventsLDict[key][0]) and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
 	           # merged files
 	           outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + extensionName;
 	           outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + ".jsn";
@@ -1051,7 +1055,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
-    triggerMergingThreshold = 0.80
+    triggerMergingThreshold = [0.51, 0.80] # DQMEventDisplay and DQM
     completeMergingThreshold = 1.0
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
