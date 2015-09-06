@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, time, sys, getopt, fcntl, shutil, json, zlib
+import os, time, sys, getopt, fcntl, shutil, json, zlib, glob
 
 valid = ['input=', "eols=", "file=", "type=", 'help']
 
@@ -42,7 +42,11 @@ if not os.path.exists(inputDataFolder):
 
 fileString = dataString.split('_')
 
-inputDataFolder = os.path.join(inputDataFolder, fileString[0])
+inpSubFolder = ""
+if(typeMerging == "macro"):
+   inpSubFolder = fileString[2]
+
+inputDataFolder = os.path.join(inputDataFolder, fileString[0], inpSubFolder)
 EoLSDataFolder  = os.path.join(EoLSDataFolder, fileString[0])
 eventsInput      = 0
 eventsInputFiles = 0
@@ -54,7 +58,12 @@ if(typeMerging == "mini"):
       msg = "BIG PROBLEM, EoLSName not found!: %s" % (EoLSName)
       raise RuntimeError, msg
 
-after = dict ([(f, None) for f in os.listdir (inputDataFolder)])     
+after = dict()
+try:
+   after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
+   after.update(after_temp)
+except Exception, e:
+   log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 afterStringNoSorted = [f for f in after]
 afterString = sorted(afterStringNoSorted, reverse=False)
 

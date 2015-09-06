@@ -51,10 +51,11 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
       endReadingTime = time.time()
       diffTime = endReadingTime-initReadingTime
       if(theMaxTime > 0 and diffTime > theMaxTime):
-         msg  = "Maximum time (%f) has passed %f\n" % (diffTime,theMaxTime)
+         msg  = "Maximum time (%f msec) has passed %f sec\n" % (diffTime,theMaxTime)
          msg += "Average time: %f msec\n" % (totalTimeFiles/totalReadFiles)
          msg += "Total too slow read files(%f msec): %d out of %d\n" % (theTooSlowTime,totalTooSlowFiles,totalReadFiles)
-         raise RuntimeError, msg
+         print msg
+	 return
 
       inputDataFolders = glob.glob(theInput)
 
@@ -63,12 +64,27 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
       for nf in range(0, len(inputDataFolders)):
           inputDataFolder = inputDataFolders[nf]
 	  
-          after = dict()
-          try:
-             after = dict ([(f, None) for f in os.listdir (inputDataFolder)])
-          except Exception, e:
-             log.error("os.listdir operation failed: {0} - {1}".format(inputDataFolder,e))
-          afterString = [f for f in after]
+	  after = dict()
+	  try:
+             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
+             after.update(after_temp)
+             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.ini'))])
+             after.update(after_temp)
+	  except Exception, e:
+             log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
+
+	  listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
+	  for nStr in range(0, len(listFolders)):
+             try:
+        	after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
+        	after.update(after_temp)
+        	after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
+        	after.update(after_temp)
+             except Exception, e:
+        	log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
+
+	  afterStringNoSorted = [f for f in after]
+	  afterString = sorted(afterStringNoSorted, reverse=False)
 
           for i in range(0, len(afterString)):
 	     if not afterString[i].endswith(".jsn"): continue
@@ -110,7 +126,7 @@ except getopt.GetoptError, ex:
    sys.exit(1)
 
 input        = "dummy"
-maxTime      = -1.0
+maxTime      = .0
 tooSlowTime = 10.0
 debug        = 0
 

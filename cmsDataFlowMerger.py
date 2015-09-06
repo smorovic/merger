@@ -382,18 +382,22 @@ def doTheRecovering(paths_to_watch, streamType, mergeType, debug):
 
       after = dict()
       try:
-         after = dict ([(f, None) for f in os.listdir (inputDataFolder)])
+         after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
+         after.update(after_temp)
+         after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.ini'))])
+         after.update(after_temp)
       except Exception, e:
-         log.error("os.listdir operation failed: {0} - {1}".format(inputDataFolder,e))
+         log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
       listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
       for nStr in range(0, len(listFolders)):
-         after_temp = dict()
          try:
-            after_temp = dict ([(f, None) for f in os.listdir (listFolders[nStr])])
+            after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
+            after.update(after_temp)
+            after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
+            after.update(after_temp)
          except Exception, e:
-            log.error("os.listdir operation failed: {0} - {1}".format(inputDataFolder,e))
-         after.update(after_temp)
+            log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
       afterStringNoSorted = [f for f in after]
       afterString = sorted(afterStringNoSorted, reverse=False)
@@ -410,19 +414,13 @@ def doTheRecovering(paths_to_watch, streamType, mergeType, debug):
             elif(streamType == "onlyStreamEP" and isStreamEP == False): continue
             elif(streamType == "noDQMRatesnoStreamEP" and (isOnlyDQMRates == True or isStreamEP == True)): continue
       
-         inpSubFolder = ""
-         if(mergeType == "macro"):
-            inpSubFolder = fileString[2]
-
          try:
             if afterString[i].endswith("_TEMP.jsn"):
-               inputJsonFile = os.path.join(inputDataFolder, inpSubFolder, afterString[i])
-               inputJsonRenameFile = inputJsonFile.replace("_TEMP.jsn",".jsn")
-               os.rename(inputJsonFile,inputJsonRenameFile)
+               inputJsonRenameFile = afterString[i].replace("_TEMP.jsn",".jsn")
+               os.rename(afterString[i],inputJsonRenameFile)
             if afterString[i].endswith("_TEMP.ini"):
-               inputIniFile = os.path.join(inputDataFolder, inpSubFolder, afterString[i])
-               inputIniRenameFile = inputIniFile.replace("_TEMP.ini",".ini")
-               os.rename(inputIniFile,inputIniRenameFile)
+               inputIniRenameFile = afterString[i].replace("_TEMP.ini",".ini")
+               os.rename(afterString[i],inputIniRenameFile)
          except Exception, e:
            log.error("file could not be renamed: {0} - {1}".format(inputJsonFile,e))
 
@@ -552,18 +550,22 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
           after = dict()
           try:
-             after = dict ([(f, None) for f in os.listdir (inputDataFolder)])
+             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
+             after.update(after_temp)
+             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.ini'))])
+             after.update(after_temp)
           except Exception, e:
-             log.error("os.listdir operation failed: {0} - {1}".format(inputDataFolder,e))
+             log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
           listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
           for nStr in range(0, len(listFolders)):
-             after_temp = dict()
              try:
-             	after_temp = dict ([(f, None) for f in os.listdir (listFolders[nStr])])
+                after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
+                after.update(after_temp)
+                after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
+                after.update(after_temp)
              except Exception, e:
-             	log.error("os.listdir operation failed: {0} - {1}".format(inputDataFolder,e))
-             after.update(after_temp)
+             	log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
           afterStringNoSorted = [f for f in after]
           afterString = sorted(afterStringNoSorted, reverse=False)
@@ -572,10 +574,11 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	  for i in range(0, len(afterString)):
 
 	     if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
-          	inputName  = os.path.join(inputDataFolder,afterString[i])
+                baseName = os.path.basename(afterString[i])
+          	inputName  = os.path.join(inputDataFolder,baseName)
           	if (float(debug) >= 10): log.info("inputName: {0}".format(inputName))
 
-                fileIniString = afterString[i].split('_')
+                fileIniString = baseName.split('_')
 		isOnlyDQMRates = ("DQM" in fileIniString[2] or "Rates" in fileIniString[2])
 		isStreamEP = isOnlyDQMRates == False and ("streamP" in fileIniString[2] or "streamE" in fileIniString[2])
                 if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
@@ -602,7 +605,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
           	if (is_completed(inputName) == True and (os.path.getsize(inputName) > 0 or fileIniString[2] == "streamError" or fileIniString[2] == "streamDQMHistograms")):
 	     	   # init name: runxxx_ls0000_streamY_HOST.ini
-	     	   inputNameString = afterString[i].split('_')
+	     	   inputNameString = baseName.split('_')
           	   # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
 	     	   outputIniNameTEMP          = theIniOutputFolder + "/" + outSubFolder + "/open/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini_TMP1"
 	     	   outputIniName              = theIniOutputFolder + "/" + outSubFolder +      "/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini"
@@ -610,7 +613,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           	   outputIniNameToCompare     = theIniOutputFolder + "/" + outSubFolder + "/open/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + "StorageManager" + ".ini"
 	     	   inputNameRename  = inputName.replace(".ini","_TEMP.ini")
           	   os.rename(inputName,inputNameRename)
-          	   if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
+          	   if(float(debug) >= 10): log.info("iniFile: {0}".format(baseName))
 	  	   # getting the ini file, just once per stream
 	     	   if (not os.path.exists(outputIniNameToCompare) or (fileIniString[2] != "streamError" and fileIniString[2] != "streamDQMHistograms" and os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
 	     	      try:
@@ -655,7 +658,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
                    # only for streamHLTRates and streamL1Rates, need another file
                    if(("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
-	     	      inputJsdNameString = afterString[i].split('_')
+	     	      inputJsdNameString = baseName.split('_')
 		      inputJsdName  = inputDataFolder + "/"  + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + ".jsd"
 		      if(os.path.exists(inputJsdName)):
           		 # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
@@ -663,7 +666,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     		 outputIniName              = outputMergedFolder + "/" + outSubFolder +      "/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2]                           + ".jsd"
           		 outputIniNameToCompareTEMP = outputMergedFolder + "/" + outSubFolder + "/open/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + "_" +    outputEndName  + ".jsd_TMP2"
           		 outputIniNameToCompare     = outputMergedFolder + "/" + outSubFolder + "/open/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2]                           + ".jsd"
-          		 if(float(debug) >= 10): log.info("iniFile: {0}".format(afterString[i]))
+          		 if(float(debug) >= 10): log.info("iniFile: {0}".format(baseName))
 	  		 # getting the ini file, just once per stream
 	     		 if (not os.path.exists(outputIniNameToCompare) or (os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
 	     		    try:
@@ -719,20 +722,21 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     if "EoR" in afterString[i]: continue
 	     if "TEMP" in afterString[i]: continue
 
-             fileNameString = afterString[i].split('_')
+             baseName = os.path.basename(afterString[i])
+             fileNameString = baseName.split('_')
              isOnlyDQMRates = ("DQM" in fileNameString[2] or "Rates" in fileNameString[2])
              isStreamEP = isOnlyDQMRates == False and ("streamP" in fileNameString[2] or "streamE" in fileNameString[2])
              if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
              elif(streamType == "onlyStreamEP" and isStreamEP == False): continue
              elif(streamType == "noDQMRatesnoStreamEP" and (isOnlyDQMRates == True or isStreamEP == True)): continue
 
-	     if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
-	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
+	     if(float(debug) >= 50): log.info("FILE: {0}".format(baseName))
+	     inputJsonFile = os.path.join(inputDataFolder, baseName)
              inpSubFolder = ""
              outSubFolder = fileNameString[2]
 	     if(mergeType == "macro"):
                  inpSubFolder = fileNameString[2]
-             inputJsonFile = os.path.join(inputDataFolder, inpSubFolder, afterString[i])
+             inputJsonFile = os.path.join(inputDataFolder, inpSubFolder, baseName)
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
              
              try:
@@ -748,7 +752,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              # This is just for streamEvD files
              if  ("bad" not in settings and "streamEvDOutput" in fileNameString[2]):
 
-                jsonName = afterString[i].replace(".jsn","_TEMP.jsn")
+                jsonName = baseName.replace(".jsn","_TEMP.jsn")
                 if nWithPollMax < 0:
                    process = thePool.apply_async(moveFiles, [debug, inputDataFolder, outputSMMergedFolder, jsonName, settings])
                 else:
@@ -792,7 +796,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		if(len(settings['data']) >= 9):
 		   transferDest   = str(settings['data'][8])
 		#else:
-                #   log.warning("wrong format for checksum: {0}".format(afterString[i]))
+                #   log.warning("wrong format for checksum: {0}".format(baseName))
 	        if(float(debug) >= 50): log.info("Info from json file(eventsInput, eventsOutput, eventsOutputError, errorCode, file, fileSize): {0}, {1}, {2}, {3}, {4}, {5}".format(eventsInput, eventsOutput, eventsOutputError, errorCode, file, fileSize))
 	        # processed events == input + error events
 		eventsInput = eventsInput + eventsOutputError
