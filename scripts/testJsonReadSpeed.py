@@ -51,7 +51,7 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
       endReadingTime = time.time()
       diffTime = endReadingTime-initReadingTime
       if(theMaxTime > 0 and diffTime > theMaxTime):
-         msg  = "Maximum time (%f msec) has passed %f sec\n" % (diffTime,theMaxTime)
+         msg  = "Maximum time (%f sec) has passed %f sec\n" % (diffTime,theMaxTime)
          msg += "Average time: %f msec\n" % (totalTimeFiles/totalReadFiles)
          msg += "Total too slow read files(%f msec): %d out of %d\n" % (theTooSlowTime,totalTooSlowFiles,totalReadFiles)
          print msg
