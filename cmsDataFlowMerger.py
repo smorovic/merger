@@ -517,8 +517,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
       nLoops = nLoops + 1
       inputDataFoldersNoSorted = glob.glob(paths_to_watch)
       inputDataFolders = sorted(inputDataFoldersNoSorted, reverse=True)
-      if(float(debug) >= 20 or nLoops%10000 == 1): log.info("***************NEW LOOP************** {0}".format(nLoops))
-      if(float(debug) >= 20 or nLoops%10000 == 1): log.info("inputDataFolders: {0}".format(inputDataFolders))
+      if(float(debug) >= 100 or nLoops%10000 == 1): log.info("***************NEW LOOP************** {0}".format(nLoops))
+      if(float(debug) >= 100 or nLoops%10000 == 1): log.info("inputDataFolders: {0}".format(inputDataFolders))
       # check the last 50 runs only
       for nf in range(0, min(len(inputDataFolders),50)):
           inputDataFolder = inputDataFolders[nf]
@@ -545,8 +545,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	    outputSMRecoveryFolder= os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1])
 
 	  # reading the list of files in the given folder
-          if(float(debug) >= 50): time.sleep (1)
-          if(float(debug) >= 20): log.info("Begin folder iteration")
+          if(float(debug) >= 100): time.sleep (1)
+          if(float(debug) >= 100): log.info("Begin folder iteration")
 
           after = dict()
           try:
@@ -899,7 +899,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 # This parameter is just filled the first time
 	     	transferDestDict.update({key:[transferDest]})
 
-             if(float(debug) >= 50): log.info("filesDict: {0}\njsonsDict: {1}\n, eventsIDict: {2}, eventsODict: {3}, checkSumDict: {4} fileSizeDict: {5}, nFilesBUDict: {6}, errorCodeDict: {7}".format(filesDict, jsonsDict, eventsIDict, eventsODict, checkSumDict, fileSizeDict, nFilesBUDict, errorCodeDict))
+             if(float(debug) >= 100): log.info("filesDict: {0}\njsonsDict: {1}\n, eventsIDict: {2}, eventsODict: {3}, checkSumDict: {4} fileSizeDict: {5}, nFilesBUDict: {6}, errorCodeDict: {7}".format(filesDict, jsonsDict, eventsIDict, eventsODict, checkSumDict, fileSizeDict, nFilesBUDict, errorCodeDict))
 
              theOutputEndName = outputEndName
 	     if (optionMerging != "optionA" and ("DQM" not in fileNameString[2]) and ("streamError" not in fileNameString[2]) and ("streamHLTRates" not in fileNameString[2]) and ("streamL1Rates" not in fileNameString[2])):
