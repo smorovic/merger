@@ -20,12 +20,12 @@ def doFiles(RUNNumber, timeEnd, rate, path_to_make, streamName, contentInputFile
       time.sleep (float(rate))
 
       if theNLoop == 1:
-         fileBoLSFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName)
+         fileBoLSFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName)
 	 msg = "touch %s" % fileBoLSFullPath
 	 os.system(msg)
 
-      fileOutputNameFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
-      fileOutputName =                              "run%d_ls%d_%s_%d.BU%s.dat" % (                       RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+      fileOutputNameFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+      fileOutputName =                                 "run%d_ls%d_%s_%d.BU%s.dat" % (                                  RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
 
       # making a symbolic link (sysadmins don't like it)
       #msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
@@ -50,7 +50,7 @@ def doFiles(RUNNumber, timeEnd, rate, path_to_make, streamName, contentInputFile
 
       emptyString = ""
       transferDest = "Tier0"
-      outMergedJSONFullPath = "%sunmergedDATA/run%d/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+      outMergedJSONFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
       with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
          theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName, fileSize, emptyString, adler32c, transferDest)}))
       theMergedJSONfile.close()
@@ -73,7 +73,7 @@ def createFiles(streamName = "streamA", contentInputFile = "", ls = 10, RUNNumbe
 
    print now.strftime("%H:%M:%S"), ": writing ls", ls, ", stream: ", streamName
  
-   myDir = "%sunmergedDATA" % (path_to_make)
+   myDir = "%sunmergedDATA/run%d/%s" % (path_to_make,RUNNumber,streamName)
    if not os.path.exists(myDir):
       try:
           os.makedirs(myDir)
