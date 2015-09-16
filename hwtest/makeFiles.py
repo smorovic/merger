@@ -50,10 +50,12 @@ def doFiles(RUNNumber, timeEnd, rate, path_to_make, streamName, contentInputFile
 
       emptyString = ""
       transferDest = "Tier0"
-      outMergedJSONFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_%d.BU%s.jsn" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+      outMergedJSONFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_%d.BU%s.BAK" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
       with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
          theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName, fileSize, emptyString, adler32c, transferDest)}))
       theMergedJSONfile.close()
+      inputJsonRenameFile = outMergedJSONFullPath.replace(".BAK",".jsn")
+      os.rename(outMergedJSONFullPath,inputJsonRenameFile)
       ###os.chmod(outMergedJSONFullPath, 0666)
 
       if(theNLoop%numberOfFilesPerLS == 0):

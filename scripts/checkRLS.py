@@ -42,9 +42,7 @@ if not os.path.exists(inputDataFolder):
 
 fileString = dataString.split('_')
 
-inpSubFolder = ""
-if(typeMerging == "macro"):
-   inpSubFolder = fileString[2]
+inpSubFolder = fileString[2]
 
 inputDataFolder = os.path.join(inputDataFolder, fileString[0], inpSubFolder)
 EoLSDataFolder  = os.path.join(EoLSDataFolder, fileString[0])

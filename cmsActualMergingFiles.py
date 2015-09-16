@@ -166,8 +166,6 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          BoLSFileNameFullPath = os.path.join(inputJsonFolder, BoLSFileName)
          if os.path.exists(BoLSFileNameFullPath):
 	    os.remove(BoLSFileNameFullPath)
-         else:
-	    log.error("BIG PROBLEM, BoLSFileNameFullPath {0} does not exist".format(BoLSFileNameFullPath))
 
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/stream/open/../."
    outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, outMergedFile)
