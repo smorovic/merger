@@ -19,6 +19,7 @@ import requests
 
 from Logging import getLogger
 log = getLogger()
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 # program to merge (cat) files given a list
 
@@ -756,8 +757,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 settings = "bad"
 
              # avoid corrupted files or streamEvD files
-	     if("bad" in settings): log.error("BAD FILE!!!: {0}".format(inputJsonRenameFile))
-	     if("bad" in settings): continue
+             if("bad" in settings):
+                log.error("BAD FILE!!!: {0}".format(inputJsonRenameFile))
+                continue
 
              if(float(debug) > 1): log.info("Try to create dirs under {0}/{1}".format(outputMergedFolder, outSubFolder))
              cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,     outSubFolder, "open"), 
@@ -946,7 +948,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                          del eventsEoLSDict[keyEoLS]
                          if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1):
                             del eventsIDict[key]
-			 if(float(debug) > 0): log.info("Dict sizes({0}): files/jsons/variables/eventsEoLS/eventsI: {1}/{2}/{3}/{4}/{5}".format(outMergedJSON,sys.getsizeof(filesDict)-280,sys.getsizeof(jsonsDict)-280,sys.getsizeof(variablesDict)-280,sys.getsizeof(eventsEoLSDict)-280,sys.getsizeof(eventsIDict)-280))
+			 if(float(debug) >= 1): log.info("Dict sizes({0}): files/jsons/variables/eventsEoLS/eventsI: {1}/{2}/{3}/{4}/{5} - {6}/{7}/{8}/{9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),sys.getsizeof(jsonsDict),sys.getsizeof(variablesDict),sys.getsizeof(eventsEoLSDict),sys.getsizeof(eventsIDict),len(filesDict),len(jsonsDict),len(variablesDict),len(eventsEoLSDict),len(eventsIDict)))
                       except Exception, e:
                          log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
                    else:
@@ -1001,7 +1003,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       del eventsEoLSDict[keyEoLS]
                       if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1):
                          del eventsIDict[key]
-                      if(float(debug) > 0): log.info("Dict sizes({0}): files/jsons/variables/eventsEoLS/eventsI: {1}/{2}/{3}/{4}/{5}".format(outMergedJSON,sys.getsizeof(filesDict)-280,sys.getsizeof(jsonsDict)-280,sys.getsizeof(variablesDict)-280,sys.getsizeof(eventsEoLSDict)-280,sys.getsizeof(eventsIDict)-280))
+                      if(float(debug) >= 1): log.info("Dict sizes({0}): files/jsons/variables/eventsEoLS/eventsI: {1}/{2}/{3}/{4}/{5} - {6}/{7}/{8}/{9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),sys.getsizeof(jsonsDict),sys.getsizeof(variablesDict),sys.getsizeof(eventsEoLSDict),sys.getsizeof(eventsIDict),len(filesDict),len(jsonsDict),len(variablesDict),len(eventsEoLSDict),len(eventsIDict)))
                    except Exception, e:
                       log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
                 else:
