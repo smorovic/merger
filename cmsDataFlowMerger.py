@@ -948,7 +948,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                          del eventsEoLSDict[keyEoLS]
                          if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1):
                             del eventsIDict[key]
-			 if(float(debug) >= 1): log.info("Dict sizes({0}): files/jsons/variables/eventsEoLS/eventsI: {1}/{2}/{3}/{4}/{5} - {6}/{7}/{8}/{9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),sys.getsizeof(jsonsDict),sys.getsizeof(variablesDict),sys.getsizeof(eventsEoLSDict),sys.getsizeof(eventsIDict),len(filesDict),len(jsonsDict),len(variablesDict),len(eventsEoLSDict),len(eventsIDict)))
+			 if(float(debug) >= 1): log.info("Dict length/size({0}): files = {1}/{2}, jsons = {3}/{4}, variables = {5}/{6}, eventsEoLS = {7}/{8}, eventsI = {9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),len(filesDict),sys.getsizeof(jsonsDict),len(jsonsDict),sys.getsizeof(variablesDict),len(variablesDict),sys.getsizeof(eventsEoLSDict),len(eventsEoLSDict),sys.getsizeof(eventsIDict),len(eventsIDict)))
                       except Exception, e:
                          log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
                    else:
@@ -1003,7 +1003,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       del eventsEoLSDict[keyEoLS]
                       if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1):
                          del eventsIDict[key]
-                      if(float(debug) >= 1): log.info("Dict sizes({0}): files/jsons/variables/eventsEoLS/eventsI: {1}/{2}/{3}/{4}/{5} - {6}/{7}/{8}/{9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),sys.getsizeof(jsonsDict),sys.getsizeof(variablesDict),sys.getsizeof(eventsEoLSDict),sys.getsizeof(eventsIDict),len(filesDict),len(jsonsDict),len(variablesDict),len(eventsEoLSDict),len(eventsIDict)))
+                      if(float(debug) >= 1): log.info("Dict length/size({0}): files = {1}/{2}, jsons = {3}/{4}, variables = {5}/{6}, eventsEoLS = {7}/{8}, eventsI = {9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),len(filesDict),sys.getsizeof(jsonsDict),len(jsonsDict),sys.getsizeof(variablesDict),len(variablesDict),sys.getsizeof(eventsEoLSDict),len(eventsEoLSDict),sys.getsizeof(eventsIDict),len(eventsIDict)))
                    except Exception, e:
                       log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
                 else:
