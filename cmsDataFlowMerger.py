@@ -750,15 +750,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
                 jsonName = baseName.replace(".jsn","_TEMP.jsn")
                 if nWithPollMax < 0:
-                   process = thePool.apply_async(moveFiles, [debug, inputDataFolder, outputSMMergedFolder, jsonName, settings])
+                   process = thePool.apply_async(moveFiles, [debug, inputDataFolder + "/" + inpSubFolder, outputSMMergedFolder, jsonName, settings])
                 else:
-                   process = thePool.apply_async(moveFiles, [debug, inputDataFolder, outputSMMergedFolder, jsonName, settings])
+                   process = thePool.apply_async(moveFiles, [debug, inputDataFolder + "/" + inpSubFolder, outputSMMergedFolder, jsonName, settings])
 		
                 settings = "bad"
 
              # avoid corrupted files or streamEvD files
              if("bad" in settings):
-                log.error("BAD FILE!!!: {0}".format(inputJsonRenameFile))
+                if("streamEvDOutput" not in fileNameString[2]):
+                   log.error("BAD FILE!!!: {0}".format(inputJsonRenameFile))
                 continue
 
              if(float(debug) > 1): log.info("Try to create dirs under {0}/{1}".format(outputMergedFolder, outSubFolder))
