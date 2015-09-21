@@ -762,15 +762,6 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    log.error("BAD FILE!!!: {0}".format(inputJsonRenameFile))
                 continue
 
-             if(float(debug) > 1): log.info("Try to create dirs under {0}/{1}".format(outputMergedFolder, outSubFolder))
-             cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,     outSubFolder, "open"), 
-	     					  os.path.join(outputSMMergedFolder,   outSubFolder, "open"), 
-	     					  os.path.join(outputDQMMergedFolder,  outSubFolder, "open"), 
-	     					  os.path.join(outputECALMergedFolder, outSubFolder), 
-	     					  os.path.join(outputBadFolder,        outSubFolder, "bad"),
-	     					  os.path.join(outputSMBadFolder,      outSubFolder, "bad"),
-	     					  os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
-
              # this is the number of input and output events, and the name of the dat file, something critical
 	     # eventsOutput is actually the total number of events to merge in the macromerged stage
              if(float(debug) > 1): log.info("Start building statistics {0}, {1}, {2}".format(fileNameString[0], fileNameString[1], fileNameString[2]))
@@ -935,6 +926,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		      varDictAux.append(variablesDict[key][3])
 		      varDictAux.append(variablesDict[key][0])
 		      varDictAux.append(variablesDict[key][6])
+
+                      if(float(debug) > 1): log.info("Try to create dirs under {0}/{1}".format(outputMergedFolder, outSubFolder))
+                      cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,                  outSubFolder, "open"), 
+                                                                        os.path.join(outputSMMergedFolder,   outSubFolder, "open"), 
+                                                                        os.path.join(outputDQMMergedFolder,  outSubFolder, "open"), 
+                                                                        os.path.join(outputECALMergedFolder, outSubFolder), 
+                                                                        os.path.join(outputBadFolder,        outSubFolder, "bad"),
+                                                                        os.path.join(outputSMBadFolder,      outSubFolder, "bad"),
+                                                                        os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
+
                       if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                       if("DQM" in fileNameString[2] or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
                          process = thePoolDQM.apply_async(mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
@@ -990,6 +991,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		   varDictAux.append(variablesDict[key][3])
 		   varDictAux.append(variablesDict[key][0])
 		   varDictAux.append(variablesDict[key][6])
+
+                   if(float(debug) > 1): log.info("Try to create dirs under {0}/{1}".format(outputMergedFolder, outSubFolder))
+                   cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,		  outSubFolder, "open"), 
+                   						     os.path.join(outputSMMergedFolder,   outSubFolder, "open"), 
+                   						     os.path.join(outputDQMMergedFolder,  outSubFolder, "open"), 
+                   						     os.path.join(outputECALMergedFolder, outSubFolder), 
+                   						     os.path.join(outputBadFolder,	  outSubFolder, "bad"),
+                   						     os.path.join(outputSMBadFolder,	  outSubFolder, "bad"),
+                   						     os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
+
                    if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                    if("DQM" in fileNameString[2] or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
                       process = thePoolDQM.apply_async(mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
