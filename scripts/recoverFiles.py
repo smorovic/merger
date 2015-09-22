@@ -13,9 +13,10 @@ def append_files(ifnames, ofile):
                 shutil.copyfileobj(ifile, ofile)
             ifile.close()
 
-valid = ['inputDataFolder=', 'help']
+valid = ['input=', 'type=', 'help']
 
-usage =  "Usage: recoverFiles.py --inputDataFolder=<inputDataFolder>\n"
+usage  = "Usage: recoverFiles.py --input=<input>\n"
+usage += "                       --type=<cdaq>\n"
 
 try:
    opts, args = getopt.getopt(sys.argv[1:], "", valid)
@@ -25,13 +26,16 @@ except getopt.GetoptError, ex:
    sys.exit(1)
 
 inputDataFolder = "/store/lustre/test/kkk"
+type = "cdaq"
 
 for opt, arg in opts:
    if opt == "--help":
       print usage
       sys.exit(1)
-   if opt == "--inputDataFolder":
+   if opt == "--input":
       inputDataFolder = arg
+   if opt == "--type":
+      type = arg
 
 if not os.path.exists(inputDataFolder):
    msg = "BIG PROBLEM, inputDataFolder not found!: %s" % (inputDataFolder)
@@ -93,7 +97,10 @@ for i in range(0, len(afterString)):
    eventsOutput = 0
 
    for ls in range(lsmin,lslimit):
-      res = requests.post('http://es-cdaq:9200/runindex_cdaq/minimerge/_search?pretty&size=1000','{"query":{ "bool":{"must":{"term":{"_parent":'+str(run)+'}},"must":{"term":{"ls":'+str(ls)+'}},"must":{"term":{"stream":"'+stream+'"}} }}}')
+      if(type == "cdaq"):
+         res = requests.post('http://es-cdaq:9200/runindex_cdaq/minimerge/_search?pretty&size=1000','{"query":{ "bool":{"must":{"term":{"_parent":'+str(run)+'}},"must":{"term":{"ls":'+str(ls)+'}},"must":{"term":{"stream":"'+stream+'"}} }}}')
+      else:
+         res = requests.post('http://es-cdaq:9200/runindex_minidaq/minimerge/_search?pretty&size=1000','{"query":{ "bool":{"must":{"term":{"_parent":'+str(run)+'}},"must":{"term":{"ls":'+str(ls)+'}},"must":{"term":{"stream":"'+stream+'"}} }}}')
       js = json.loads(res.content)
 
       hitlist = js['hits']['hits']#['_source']['in']
