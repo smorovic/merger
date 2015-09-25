@@ -1024,10 +1024,20 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
 	  # clean-up work is done here
           EoRFileName = path_eol + "/" + theRunNumber + "/" + theRunNumber + "_ls0000_EoR.jsn"
-          if(os.path.exists(EoRFileName) and os.path.getsize(EoRFileName) > 0):
+          try:
+             if(os.path.exists(EoRFileName) and os.path.getsize(EoRFileName) > 0):
 
-	     if(doRemoveFiles == "True" and mergeType == "mini"):
-	        cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
+                if(doRemoveFiles == "True" and mergeType == "mini"):
+                   if(float(debug) > 1): log.info("Try to create dirs under {0} before cleaning up folder".format(outputSMMergedFolder))
+                   if not os.path.exists(outputSMMergedFolder):
+                      try:
+                         os.makedirs(outputSMMergedFolder)
+                      except Exception, e:
+                         log.error("CleanUp-creadir dir folder error: {0}".format(e))
+
+                   cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
+          except Exception, e:
+             log.error("CleanUp folder error: {0}".format(e))
 
    if nWithPollMax > 0:
       thePool.close()

@@ -7,41 +7,10 @@ import logging
 import fileinput
 import socket
 import filecmp
+import cmsDataFlowMerger
 
 from Logging import getLogger
 log = getLogger()
-
-"""
-Read json files
-"""
-def readJsonFile(inputJsonFile, debug):
-   try:
-      settingsLS = "bad"
-      if(os.path.getsize(inputJsonFile) > 0):
-         try:
-            settings_textI = open(inputJsonFile, "r").read()
-            if(float(debug) >= 50): log.info("trying to load: {0}".format(inputJsonFile))
-            settingsLS = json.loads(settings_textI)
-         except Exception, e:
-            log.warning("Looks like the file {0} is not available, I'll try again...".format(inputJsonFile))
-            try:
-               time.sleep (0.1)
-               settings_textI = open(inputJsonFile, "r").read()
-   	       settingsLS = json.loads(settings_textI)
-            except Exception, e:
-               log.warning("Looks like the file {0} is not available (2nd try)...".format(inputJsonFile))
-               try:
-                  time.sleep (1.0)
-                  settings_textI = open(inputJsonFile, "r").read()
-   	          settingsLS = json.loads(settings_textI)
-               except Exception, e:
-                  log.warning("Looks like the file {0} failed for good (3rd try)...".format(inputJsonFile))
-                  inputJsonFailedFile = inputJsonFile.replace("_TEMP.jsn","_FAILED.bad")
-                  os.rename(inputJsonFile,inputJsonFailedFile)
-
-      return settingsLS
-   except Exception, e:
-      log.error("readJsonFile {0} failed {1}".format(inputJsonFile.e))
 
 def doTheChecking(paths_to_watch, path_eol, mergeType, debug):
    eventsIDict     = dict()
@@ -66,9 +35,22 @@ def doTheChecking(paths_to_watch, path_eol, mergeType, debug):
 
        after = dict()
        try:
-   	  after = dict ([(f, None) for f in os.listdir (inputDataFolder)])
+          after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
+          after.update(after_temp)
+          after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.ini'))])
+          after.update(after_temp)
        except Exception, e:
-   	  log.error("os.listdir operation failed: {0} - {1}".format(inputDataFolder,e))
+          log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
+
+       listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
+       for nStr in range(0, len(listFolders)):
+          try:
+             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
+             after.update(after_temp)
+             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
+             after.update(after_temp)
+          except Exception, e:
+             log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
        afterStringNoSorted = [f for f in after]
        afterString = sorted(afterStringNoSorted, reverse=False)
@@ -89,7 +71,7 @@ def doTheChecking(paths_to_watch, path_eol, mergeType, debug):
      	  inputJsonFile = os.path.join(inputDataFolder, afterString[i])
      	  if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
 
-   	  settings = readJsonFile(inputJsonFile,debug)
+   	  settings = cmsDataFlowMerger.readJsonFile(inputJsonFile,debug)
 
    	  # avoid corrupted files or streamEvD files
      	  if("bad" in settings): continue
@@ -187,7 +169,7 @@ def doTheChecking(paths_to_watch, path_eol, mergeType, debug):
 
    EoRFileName = path_eol + "/" + theRunNumber + "/" + theRunNumber + "_ls0000_EoR.jsn"
    if(os.path.exists(EoRFileName) and os.path.getsize(EoRFileName) > 0):
-      settingsEoR = readJsonFile(EoRFileName, debug)
+      settingsEoR = cmsDataFlowMerger.readJsonFile(EoRFileName, debug)
 
       if("bad" not in settingsEoR):
 
@@ -202,7 +184,7 @@ def doTheChecking(paths_to_watch, path_eol, mergeType, debug):
    	    if "BoLS" in afterString[nb]: continue
    	    if not "EoR" in afterString[nb]: continue
    	    inputEoRFUJsonFile = os.path.join(inputDataFolder, afterString[nb])
-   	    settingsLS = readJsonFile(inputEoRFUJsonFile, debug)
+   	    settingsLS = cmsDataFlowMerger.readJsonFile(inputEoRFUJsonFile, debug)
 
    	    if("bad" in settingsLS): continue
 
