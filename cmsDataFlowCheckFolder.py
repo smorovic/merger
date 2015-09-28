@@ -65,7 +65,7 @@ def doTheChecking(paths_to_watch, path_eol, mergeType, debug):
      	  if "BoLS" in afterString[i]: continue
      	  if "EoR" in afterString[i]: continue
 
-   	  fileNameString = afterString[i].split('_')
+   	  fileNameString = os.path.basename(afterString[i]).split('_')
 
      	  if(float(debug) >= 50): log.info("FILE: {0}".format(afterString[i]))
      	  inputJsonFile = os.path.join(inputDataFolder, afterString[i])
