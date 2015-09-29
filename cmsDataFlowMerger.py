@@ -1047,7 +1047,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
-    triggerMergingThreshold = [0.51, 0.80] # DQMEventDisplay and DQM
+    triggerMergingThreshold = [0.5001, 0.8000] # DQMEventDisplay and DQM
     completeMergingThreshold = 1.0
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
@@ -1062,6 +1062,8 @@ def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, 
           mergeType = "macro"
     
     if mergeType == "mini":
+       triggerMergingThreshold[0] = 0.80
+       triggerMergingThreshold[1] = 0.90
        if not os.path.exists(path_eol):
           msg = "End of Lumi folder Not Found: %s" % path_eol
           raise RuntimeError, msg
