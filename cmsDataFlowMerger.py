@@ -784,7 +784,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		checkSum          = int(settings['data'][7])
 		# Avoid wrongly reported checksum values
 		if(checkSum == -1):
-		   checkSum = 0
+		   checkSum = 1
 		if(len(settings['data']) >= 9):
 		   transferDest   = str(settings['data'][8])
 		#else:
