@@ -764,7 +764,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
              # this is the number of input and output events, and the name of the dat file, something critical
 	     # eventsOutput is actually the total number of events to merge in the macromerged stage
-             if(float(debug) > 1): log.info("Start building statistics {0}, {1}, {2}".format(fileNameString[0], fileNameString[1], fileNameString[2]))
+             if(float(debug) > 1): log.info("Start building statistics {0}".format(inputJsonRenameFile))
              eventsInput       = int(settings['data'][0])
              eventsOutput      = int(settings['data'][1])
              errorCode         = 0
@@ -826,7 +826,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              if("bad" in settings): continue
 
              if key in filesDict.keys():
-                if(float(debug) >= 1): log.info("{0} already exist in filesDict".format(key))
+                if(float(debug) >= 1): log.info("{0} already exist in filesDict".format(inputJsonRenameFile))
 	        if fileErrorString != None and len(fileErrorString) >= 2:
 	           for theFiles in range(0, len(fileErrorString)):
 		      filesDict[key].append(fileErrorString[theFiles])
@@ -850,7 +850,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 variablesDict.update({key:[errorCode,eventsOutput,checkSum,fileSize,nFilesBU,NLostEvents,transferDest]})
 
 	     else:
-                if(float(debug) >= 1): log.info("Adding {0} to filesDict".format(key))
+                if(float(debug) >= 1): log.info("Adding {0} to filesDict".format(inputJsonRenameFile))
 	        if fileErrorString != None and len(fileErrorString) >= 2:
 		   filesDict.update({key:[fileErrorString[0]]})
 	           for theFiles in range(1, len(fileErrorString)):
