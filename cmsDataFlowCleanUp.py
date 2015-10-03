@@ -17,7 +17,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol,
    
    settingsEoR = cmsDataFlowMerger.readJsonFile(EoRFileName, debug)
 
-   if("bad" in settingsEoR): return
+   if("bad" in settingsEoR): return False
 
    eventsInputBU = int(settingsEoR['data'][0])
 
@@ -101,6 +101,14 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol,
             shutil.rmtree(EoLSFolder)
          except Exception,e:
             log.error("Failed removing {0} - {1}".format(EoLSFolder,e))
+
+         return True
+
+      else:
+          return False
+
+   else:
+      return False
 
 def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS):
 

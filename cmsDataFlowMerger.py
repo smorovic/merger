@@ -372,6 +372,26 @@ class LoggingPool(ThreadPool):
         return ThreadPool.apply_async(self, LogExceptions(func), args, kwds, callback)
 
 """
+Functions to partial match dictionary keys
+"""
+def match(tup,target):
+   if len(tup) != len(target):
+      return False
+   for i in xrange(len(tup)):
+      if target[i] != "*" and tup[i] != target[i]:
+         return False
+   return True
+
+def get_tuples(mydict,target):
+   keys = filter(lambda x: match(x,target),mydict.keys())
+   return [mydict[key] for key in keys]
+
+def remove_key_tuples(mydict,target):
+   keys = filter(lambda x: match(x,target),mydict.keys())
+   for key in keys:
+      del mydict[key]
+
+"""
 Do recovering JSON files
 """
 def doTheRecovering(paths_to_watch, streamType, mergeType, debug):
@@ -948,7 +968,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                          del jsonsDict[key] 
                          del variablesDict[key]
                          del eventsEoLSDict[keyEoLS]
-                         if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1):
+                         if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1 and mergeType != "mini"):
                             del eventsIDict[key]
 			 if(float(debug) >= 1): log.info("Dict size/length({0}): files = {1}/{2}, jsons = {3}/{4}, variables = {5}/{6}, eventsEoLS = {7}/{8}, eventsI = {9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),len(filesDict),sys.getsizeof(jsonsDict),len(jsonsDict),sys.getsizeof(variablesDict),len(variablesDict),sys.getsizeof(eventsEoLSDict),len(eventsEoLSDict),sys.getsizeof(eventsIDict),len(eventsIDict)))
                       except Exception, e:
@@ -1013,7 +1033,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       del jsonsDict[key] 
                       del variablesDict[key]
                       del eventsEoLSDict[keyEoLS]
-                      if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1):
+                      if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1 and mergeType != "mini"):
                          del eventsIDict[key]
                       if(float(debug) >= 1): log.info("Dict size/length({0}): files = {1}/{2}, jsons = {3}/{4}, variables = {5}/{6}, eventsEoLS = {7}/{8}, eventsI = {9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),len(filesDict),sys.getsizeof(jsonsDict),len(jsonsDict),sys.getsizeof(variablesDict),len(variablesDict),sys.getsizeof(eventsEoLSDict),len(eventsEoLSDict),sys.getsizeof(eventsIDict),len(eventsIDict)))
                    except Exception, e:
@@ -1035,7 +1055,11 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       except Exception, e:
                          log.error("CleanUp-creadir dir folder error: {0}".format(e))
 
-                   cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
+                   isRunComplete = cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
+                   if(float(debug) >= 1): log.info("isRunComplete({0}): {1}".format(theRunNumber,isRunComplete))
+                   if(isRunComplete == True):
+                      remove_key_tuples(eventsIDict,(theRunNumber,'*','*'))
+                      if(float(debug) >= 1): log.info("Remaining keys in eventsIDict: {0}".format(eventsIDict))
           except Exception, e:
              log.error("CleanUp folder error: {0}".format(e))
 

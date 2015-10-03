@@ -18,8 +18,9 @@ isBU=False
 stream="*"
 lsPattern="*"
 
-def createJsnDict(run,lsPattern,stream):
-    jsnPattern = topDir+"/run"+run+"/run"+run+"_ls"+lsPattern+"_"+stream+"_*.jsn"
+def createJsnDict(pattern):
+    rundir = pattern.split('_',3)[0]
+    jsnPattern = topDir+"/"+rundir+"/"+pattern+".jsn"
     jsnFiles = glob.glob(jsnPattern)
     print("Considering "+str(len(jsnFiles))+" JSON files "+jsnPattern)
     jsnDict = {}
@@ -29,6 +30,7 @@ def createJsnDict(run,lsPattern,stream):
         (run,lsStr,stream,dummy) = filename.split('_',3)
         if stream == "streamError":
             continue
+
         ls = int(lsStr[2:])
         jsnDict[stream] = jsnDict.get(stream,{})
         jsnDict[stream][ls] = jsnDict[stream].get(ls,[])
@@ -38,25 +40,18 @@ def createJsnDict(run,lsPattern,stream):
     return jsnDict
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hr:l:s:b",["help","run=","ls=","stream=","bu"])
+    opts, args = getopt.getopt(sys.argv[1:],"hr:l:s:b",["help","pattern="])
 except getopt.GetoptError:
-    print("checkFiles.py -r <runNumber> -s -b -l")
+    print("checkFiles.py -p <pattern>")
     sys.exit(2)
 for opt,arg in opts:
-    if opt in ('-r','--run'):
-        run=arg
-    elif opt in ('-l','--ls'):
-        lsPattern=arg
-    elif opt in ('-s','--stream'):
-        stream=arg
-    elif opt in ('-b','--bu'):
-        isBU=True
-        topDir="/fff/BU0/output"
+    if opt in ('-p','--pattern'):
+        pattern=arg
     else:
-        print("checkFiles.py -r <runNumber> -s -b -l")
+        print("checkFiles.py -p <pattern>")
         sys.exit()
 
-jsnDict = createJsnDict(run,lsPattern,stream)
+jsnDict = createJsnDict(pattern)
 
 diagResult = re.compile(
     """.*
