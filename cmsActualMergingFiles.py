@@ -118,11 +118,13 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
    
    elif (fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
       msg = "jsonMerger %s " % (outMergedFileFullPath)
+      goodFiles = 0
       for nfile in range(0, len(filenames)):
-         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile]))):
+         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
             msg = msg + filenames[nfile] + " "
+            goodFiles = goodFiles + 1
       if(float(debug) > 20): log.info("running {0}".format(msg))
-      if(infoEoLS[0] != 0):
+      if(infoEoLS[0] != 0 and goodFiles > 0):
          os.system(msg)
       else:
          open(outMergedFileFullPath, 'w').close()
@@ -132,11 +134,13 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          msg = "fastHadd add -j 7 -o %s " % (outMergedFileFullPath)
       else:
          msg = "fastHadd add -o %s " % (outMergedFileFullPath)
+      goodFiles = 0
       for nfile in range(0, len(filenames)):
-         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile]))):
+         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
             msg = msg + filenames[nfile] + " "
+            goodFiles = goodFiles + 1
       if(float(debug) > 20): log.info("running {0}".format(msg))
-      if(infoEoLS[0] != 0):
+      if(infoEoLS[0] != 0 and goodFiles > 0):
          os.system(msg)
       else:
          open(outMergedFileFullPath, 'w').close()
@@ -161,11 +165,14 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	    os.remove(inputFileToRemove)
       if mergeType == "mini":
-         # Removing BoLS file, the last step
-         BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-         BoLSFileNameFullPath = os.path.join(inputJsonFolder, BoLSFileName)
-         if os.path.exists(BoLSFileNameFullPath):
-	    os.remove(BoLSFileNameFullPath)
+         try:
+            # Removing BoLS file, the last step
+            BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
+            BoLSFileNameFullPath = os.path.join(inputJsonFolder, BoLSFileName)
+            if os.path.exists(BoLSFileNameFullPath):
+	       os.remove(BoLSFileNameFullPath)
+         except Exception, e:
+            log.warning("Error deleting BoLS file {0}: {1}".format(BoLSFileNameFullPath,e))
 
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/stream/open/../."
    outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, outMergedFile)
@@ -417,13 +424,14 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
          if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	    os.remove(inputFileToRemove)
       if mergeType == "mini":
-         # Removing BoLS file, the last step
-         BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-         BoLSFileNameFullPath = os.path.join(inputJsonFolder, BoLSFileName)
-         if os.path.exists(BoLSFileNameFullPath):
-	    os.remove(BoLSFileNameFullPath)
-         else:
-	    log.error("BIG PROBLEM, BoLSFileNameFullPath {0} does not exist".format(BoLSFileNameFullPath))
+         try:
+            # Removing BoLS file, the last step
+            BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
+            BoLSFileNameFullPath = os.path.join(inputJsonFolder, BoLSFileName)
+            if os.path.exists(BoLSFileNameFullPath):
+	       os.remove(BoLSFileNameFullPath)
+         except Exception, e:
+            log.warning("Error deleting BoLS file {0}: {1}".format(BoLSFileNameFullPath,e))
 
    totalSize = 0
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/stream/open/../."

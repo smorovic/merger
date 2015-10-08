@@ -2,12 +2,13 @@
 
 import os, time, sys, getopt, fcntl, shutil, json, zlib, glob
 
-valid = ['input=', "eols=", "file=", "type=", 'help']
+valid = ['input=', "eols=", "file=", "type=", 'iniArea=', 'help']
 
 usage  =  "Usage: checkRLS.py --input=</fff/output>\n"
 usage +=  "                   --eols=</fff/ramdisk>\n"
-usage +=  "                   --file=<a_b_c>\n"
 usage +=  "                   --type=<mini>\n"
+usage +=  "                   --iniArea=</store/lustre/mergeMacro>\n"
+usage +=  "                   --file=<a_b_c>\n"
 
 try:
    opts, args = getopt.getopt(sys.argv[1:], "", valid)
@@ -20,6 +21,7 @@ inputDataFolder  = "/fff/output"
 EoLSDataFolder   = "/fff/ramdisk"
 dataString       = "run153_ls0_streamDQM1"
 typeMerging      = "mini"
+iniArea          = "/store/lustre/mergeMacro"
 
 for opt, arg in opts:
    if opt == "--help":
@@ -35,6 +37,8 @@ for opt, arg in opts:
       dataString = arg
    if opt == "--type":
       typeMerging = arg
+   if opt == "--iniArea":
+      iniArea = arg
 
 if not os.path.exists(inputDataFolder):
    msg = "BIG PROBLEM, inputDataFolder not found!: %s" % (inputDataFolder)
@@ -65,6 +69,7 @@ except Exception, e:
 afterStringNoSorted = [f for f in after]
 afterString = sorted(afterStringNoSorted, reverse=False)
 
+dataFiles = []
 for i in range(0, len(afterString)):
    if not afterString[i].endswith(".jsn"): continue
    if dataString not in afterString[i]: continue
@@ -81,6 +86,21 @@ for i in range(0, len(afterString)):
 
    if(typeMerging != "mini"):
       eventsTotalInput = int(settings['data'][7])
+
+   fileDataString = afterString[i].split('_')
+   dataFiles.append(fileDataString[3].split('.jsn')[0])
+
+iniFiles = []
+if(typeMerging == "macro"):
+   theStoreIniArea = os.path.join(iniArea, fileString[0], inpSubFolder)
+   jsnsIni = sorted(glob.glob(os.path.join(theStoreIniArea, '*.ini')))
+   for jsn_file in jsnsIni:
+      fileIniString = jsn_file.split('_')
+      iniFiles.append(fileIniString[3].split('.ini')[0])
+
+   missingBUs = list(set(iniFiles) - set(dataFiles))
+   if(len(missingBUs) != 0):
+      print "BUs with ini files and no data files: ",missingBUs
 
 filesEoLS     = 0
 eventsAllEoLS = 0
