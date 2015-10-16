@@ -1048,7 +1048,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              if(os.path.exists(EoRFileName) and os.path.getsize(EoRFileName) > 0):
 
                 if(doRemoveFiles == "True" and mergeType == "mini"):
-                   if(float(debug) > 1): log.info("Try to create dirs under {0} before cleaning up folder".format(outputSMMergedFolder))
+                   if(float(debug) >= 3): log.info("Try to create dirs under {0} before cleaning up folder".format(outputSMMergedFolder))
                    if not os.path.exists(outputSMMergedFolder):
                       try:
                          os.makedirs(outputSMMergedFolder)
@@ -1056,7 +1056,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                          log.error("CleanUp-creadir dir folder error: {0}".format(e))
 
                    isRunComplete = cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
-                   if(float(debug) >= 1): log.info("isRunComplete({0}): {1}".format(theRunNumber,isRunComplete))
+                   if(float(debug) >= 3): log.info("isRunComplete({0}): {1}".format(theRunNumber,isRunComplete))
                    if(isRunComplete == True):
                       remove_key_tuples(eventsIDict,(theRunNumber,'*','*'))
                       if(float(debug) >= 1): log.info("Remaining keys in eventsIDict: {0}".format(eventsIDict))
