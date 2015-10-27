@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, time, sys, getopt, fcntl, shutil, json, zlib, glob
+import cmsDataFlowMerger
 
 valid = ['input=', "eols=", "file=", "type=", 'iniArea=', 'help']
 
@@ -78,8 +79,11 @@ for i in range(0, len(afterString)):
    if "EoR" in afterString[i]: continue
 
    jsonFile = os.path.join(inputDataFolder, afterString[i])
-   settings_textI = open(jsonFile, "r").read()
-   settings = json.loads(settings_textI)
+   settings = cmsDataFlowMerger.readJsonFile(jsonFile,0)
+      
+   if  ("bad" in settings):
+      print "corrupted file: ",jsonFile
+      continue
 
    eventsInput      = eventsInput + int(settings['data'][0])
    eventsInputFiles = eventsInputFiles + 1
