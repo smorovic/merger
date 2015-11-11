@@ -23,13 +23,6 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol,
 
    eventsInputFU = 0
    for nb in range(0, len(afterString)):
-      if not afterString[nb].endswith(".jsn"): continue
-      if "index" in afterString[nb]: continue
-      if afterString[nb].endswith("recv"): continue
-      if "EoLS" in afterString[nb]: continue
-      if "BoLS" in afterString[nb]: continue
-      if not "EoR" in afterString[nb]: continue
-      if "TEMP" in afterString[nb]: continue
       inputEoRFUJsonFile = afterString[nb]
       settingsLS = cmsDataFlowMerger.readJsonFile(inputEoRFUJsonFile, debug)
 
@@ -113,7 +106,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol,
 def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS):
 
    after = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
-   afterStringNoSorted = [f for f in after]
+   afterStringNoSorted = [f for f in after if (f.endswith("EoLS.jsn"))]
 
    afterString = sorted(afterStringNoSorted, reverse=True)
    numberLS = 0
@@ -134,7 +127,6 @@ def doSumEoLS(inputDataFolder, eventsEoLS, eventsEoLS_noLastLS):
    # total number of lost events in a given BU
    eventsEoLS[2] = 0
    for nb in range(0, len(afterString)):
-      if not afterString[nb].endswith("EoLS.jsn"): continue
 
       EoLSFileName = afterString[nb]
 

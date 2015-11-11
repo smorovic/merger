@@ -425,7 +425,6 @@ def doTheRecovering(paths_to_watch, streamType, mergeType, debug):
 
       # loop over JSON files, which will give the list of files to be recovered
       for i in range(0, len(afterString)):
-         if((not afterString[i].endswith(".jsn") and not afterString[i].endswith(".ini"))): continue
 
 	 fileString = afterString[i].split('_')
          if(streamType != "0" and (afterString[i].endswith(".jsn") or afterString[i].endswith(".ini"))):
@@ -582,15 +581,19 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              except Exception, e:
              	log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
-          afterStringNoSorted = [f for f in after]
-          afterString = sorted(afterStringNoSorted, reverse=False)
+          afterStringNoSortedINI = [f for f in after if ( (f.endswith(".ini")) and ("TEMP" not in f) and ("EoR" not in f) and ("index" not in f)  and ("EoLS" not in f) and ("BoLS" not in f))]
+          afterStringNoSortedJSN = [f for f in after if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR" not in f) and ("index" not in f)  and ("EoLS" not in f) and ("BoLS" not in f))]
+          afterStringNoSortedEOR = [f for f in after if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR"     in f) and ("index" not in f)  and ("EoLS" not in f) and ("BoLS" not in f))]
+          afterStringINI = sorted(afterStringNoSortedINI, reverse=False)
+          afterStringJSN = sorted(afterStringNoSortedJSN, reverse=False)
+          afterStringEOR = sorted(afterStringNoSortedEOR, reverse=False)
 
 	  # loop over ini files, needs to be done first of all
-	  for i in range(0, len(afterString)):
+	  for i in range(0, len(afterStringINI)):
 
-	     if(afterString[i].endswith(".ini") and "TEMP" not in afterString[i]):
-                baseName = os.path.basename(afterString[i])
-          	inputName  = afterString[i]
+	     if(afterStringINI[i].endswith(".ini")):
+                baseName = os.path.basename(afterStringINI[i])
+          	inputName  = afterStringINI[i]
           	if (float(debug) > 1): log.info("inputName: {0}".format(inputName))
 
                 fileIniString = baseName.split('_')
@@ -729,17 +732,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	   log.info("Looks like the file {0} is being copied by someone else...".format(inputName))
 
 	  # loop over JSON files, which will give the list of files to be merged
-	  for i in range(0, len(afterString)):
-	     if not afterString[i].endswith(".jsn"): continue
-	     if "index" in afterString[i]: continue
-	     if afterString[i].endswith("recv"): continue
-	     if "EoLS" in afterString[i]: continue
-	     if "BoLS" in afterString[i]: continue
-	     if "EoR" in afterString[i]: continue
-	     if "TEMP" in afterString[i]: continue
+	  for i in range(0, len(afterStringJSN)):
 
-             if(float(debug) > 1): log.info("Working on {0}".format(afterString[i]))
-             baseName = os.path.basename(afterString[i])
+             if(float(debug) > 1): log.info("Working on {0}".format(afterStringJSN[i]))
+             baseName = os.path.basename(afterStringJSN[i])
              fileNameString = baseName.split('_')
              isOnlyDQMRates = ("DQM" in fileNameString[2] or "Rates" in fileNameString[2])
              isStreamEP = isOnlyDQMRates == False and ("streamP" in fileNameString[2] or "streamE" in fileNameString[2])
@@ -846,7 +842,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              if("bad" in settings): continue
 
              if key in filesDict.keys():
-                if(float(debug) >= 1): log.info("{0} already exist in filesDict".format(inputJsonRenameFile))
+                if(float(debug) > 1): log.info("{0} already exist in filesDict".format(inputJsonRenameFile))
 	        if fileErrorString != None and len(fileErrorString) >= 2:
 	           for theFiles in range(0, len(fileErrorString)):
 		      filesDict[key].append(fileErrorString[theFiles])
@@ -870,7 +866,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 variablesDict.update({key:[errorCode,eventsOutput,checkSum,fileSize,nFilesBU,NLostEvents,transferDest]})
 
 	     else:
-                if(float(debug) >= 1): log.info("Adding {0} to filesDict".format(inputJsonRenameFile))
+                if(float(debug) > 1): log.info("Adding {0} to filesDict".format(inputJsonRenameFile))
 	        if fileErrorString != None and len(fileErrorString) >= 2:
 		   filesDict.update({key:[fileErrorString[0]]})
 	           for theFiles in range(1, len(fileErrorString)):
@@ -906,7 +902,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	           EoLSName = path_eol + "/" + fileNameString[0] + "/" + fileNameString[0] + "_" + fileNameString[1] + "_EoLS.jsn"
                    if(float(debug) >= 10): log.info("EoLSName: {0}".format(EoLSName))
                    if os.path.exists(EoLSName) and os.path.getsize(EoLSName) > 0:
-                      if(float(debug) >= 1): log.info("Got EoLSName: {0}".format(EoLSName))
+                      if(float(debug) > 1): log.info("Got EoLSName: {0}".format(EoLSName))
                       inputEoLSName = open(EoLSName, "r").read()
                       settingsEoLS  = json.loads(inputEoLSName)
                       eventsEoLS    = int(settingsEoLS['data'][0])
@@ -1055,7 +1051,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       except Exception, e:
                          log.error("CleanUp-creadir dir folder error: {0}".format(e))
 
-                   isRunComplete = cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
+                   isRunComplete = cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterStringEOR, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
                    if(float(debug) >= 3): log.info("isRunComplete({0}): {1}".format(theRunNumber,isRunComplete))
                    if(isRunComplete == True):
                       remove_key_tuples(eventsIDict,(theRunNumber,'*','*'))

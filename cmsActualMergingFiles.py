@@ -109,41 +109,42 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
 
    if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
-   if (specialStreams == False):
-      with open(outMergedFileFullPath, 'a') as fout:
-         append_files(filenames, fout, debug, timeReadWrite)
-      fout.close()
-      if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
-      #os.chmod(outMergedFileFullPath, 0666)
+   if(infoEoLS[0] != 0):
+      if (specialStreams == False):
+         with open(outMergedFileFullPath, 'a') as fout:
+            append_files(filenames, fout, debug, timeReadWrite)
+         fout.close()
+         if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
+         #os.chmod(outMergedFileFullPath, 0666)
    
-   elif (fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
-      msg = "jsonMerger %s " % (outMergedFileFullPath)
-      goodFiles = 0
-      for nfile in range(0, len(filenames)):
-         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
-            msg = msg + filenames[nfile] + " "
-            goodFiles = goodFiles + 1
-      if(float(debug) > 20): log.info("running {0}".format(msg))
-      if(infoEoLS[0] != 0 and goodFiles > 0):
-         os.system(msg)
-      else:
-         open(outMergedFileFullPath, 'w').close()
+      elif (fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
+         msg = "jsonMerger %s " % (outMergedFileFullPath)
+         goodFiles = 0
+         for nfile in range(0, len(filenames)):
+            if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
+               msg = msg + filenames[nfile] + " "
+               goodFiles = goodFiles + 1
+         if(float(debug) > 20): log.info("running {0}".format(msg))
+         if(goodFiles > 0):
+            os.system(msg)
+         else:
+            open(outMergedFileFullPath, 'w').close()
 
-   else:
-      if (mergeType == "macro"):
-         msg = "fastHadd add -j 7 -o %s " % (outMergedFileFullPath)
       else:
-         msg = "fastHadd add -o %s " % (outMergedFileFullPath)
-      goodFiles = 0
-      for nfile in range(0, len(filenames)):
-         if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
-            msg = msg + filenames[nfile] + " "
-            goodFiles = goodFiles + 1
-      if(float(debug) > 20): log.info("running {0}".format(msg))
-      if(infoEoLS[0] != 0 and goodFiles > 0):
-         os.system(msg)
-      else:
-         open(outMergedFileFullPath, 'w').close()
+         if (mergeType == "macro"):
+            msg = "fastHadd add -j 7 -o %s " % (outMergedFileFullPath)
+         else:
+            msg = "fastHadd add -o %s " % (outMergedFileFullPath)
+         goodFiles = 0
+         for nfile in range(0, len(filenames)):
+            if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
+               msg = msg + filenames[nfile] + " "
+               goodFiles = goodFiles + 1
+         if(float(debug) > 20): log.info("running {0}".format(msg))
+         if(goodFiles > 0):
+            os.system(msg)
+         else:
+            open(outMergedFileFullPath, 'w').close()
 
    # input events in that file, all input events, file name, output events in that files, number of merged files
    # only the first three are important
@@ -188,7 +189,7 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
 
    checksum_status = True
    # checkSum checking
-   if(doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False):
+   if(doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False and infoEoLS[0] != 0):
       adler32c=1
       with open(outMergedFileFullPath, 'r') as fsrc:
          length=16*1024
@@ -205,7 +206,7 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedJSON)
          checksum_status = False
 
-   if(checksum_status == True):
+   if(checksum_status == True and infoEoLS[0] != 0):
       if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPath)):
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,os.path.getsize(outMergedFileFullPath)))
          outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedFile)
@@ -218,13 +219,15 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "recovery", outMergedJSON)
          checksum_status = False
 
-   shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
+   if(infoEoLS[0] != 0):
+      shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
    if (mergeType == "macro" and ("DQM" in fileNameString[2]) and checksum_status == True):
       outMergedFileFullPathStableFinal = os.path.join(outputDQMMergedFolder, outSubFolder, outMergedFile)
       outMergedJSONFullPathStableFinal = os.path.join(outputDQMMergedFolder, outSubFolder, outMergedJSON)
-      shutil.move(outMergedFileFullPathStable,outMergedFileFullPathStableFinal)
+      if(infoEoLS[0] != 0):
+         shutil.move(outMergedFileFullPathStable,outMergedFileFullPathStableFinal)
       shutil.move(outMergedJSONFullPathStable,outMergedJSONFullPathStableFinal)
 
    # monitor the merger by inserting record into elastic search database:

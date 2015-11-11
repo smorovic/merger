@@ -67,18 +67,15 @@ try:
    after.update(after_temp)
 except Exception, e:
    log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
-afterStringNoSorted = [f for f in after]
+afterStringNoSorted = [f for f in after if ((dataString in f) and ("EoLS" not in f) and ("BoLS" not in f) and ("EoR" not in f))]
 afterString = sorted(afterStringNoSorted, reverse=False)
+print afterString
 
 dataFiles = []
 for i in range(0, len(afterString)):
-   if not afterString[i].endswith(".jsn"): continue
-   if dataString not in afterString[i]: continue
-   if "EoLS" in afterString[i]: continue
-   if "BoLS" in afterString[i]: continue
-   if "EoR" in afterString[i]: continue
 
    jsonFile = os.path.join(inputDataFolder, afterString[i])
+   print jsonFile
    settings = cmsDataFlowMerger.readJsonFile(jsonFile,0)
       
    if  ("bad" in settings):

@@ -27,26 +27,29 @@ def doFiles(RUNNumber, timeEnd, rate, path_to_make, streamName, contentInputFile
       fileOutputNameFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
       fileOutputName =                                 "run%d_ls%d_%s_%d.BU%s.dat" % (                                  RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
 
+      fileSize = 0
+      adler32c = 1
       # making a symbolic link (sysadmins don't like it)
       #msg = "ln -s %s %s" %(contentInputFile,fileOutputNameFullPath)
       #os.system(msg)
       # creating/copying the file (default)
-      with open(fileOutputNameFullPath, 'w') as thefile:
-     	 thefile.write(contentInputFile)
-      thefile.close()
+      if(nInput > 0):
+         with open(fileOutputNameFullPath, 'w') as thefile:
+     	    thefile.write(contentInputFile)
+         thefile.close()
 
-      fileSize = os.path.getsize(fileOutputNameFullPath)
-      adler32c=1
-      #calculate checksum on the fly
-      with open(fileOutputNameFullPath, 'r') as fsrc:
-         length=16*1024
-         while 1:
-            buf = fsrc.read(length)
-            if not buf:
-               break
-            adler32c=zlib.adler32(buf,adler32c)
-      # need to make it unsigned
-      adler32c = adler32c & 0xffffffff
+         fileSize = os.path.getsize(fileOutputNameFullPath)
+
+         #calculate checksum on the fly
+         with open(fileOutputNameFullPath, 'r') as fsrc:
+            length=16*1024
+            while 1:
+               buf = fsrc.read(length)
+               if not buf:
+                  break
+               adler32c=zlib.adler32(buf,adler32c)
+         # need to make it unsigned
+         adler32c = adler32c & 0xffffffff
 
       emptyString = ""
       transferDest = "Tier0"
