@@ -5,44 +5,15 @@ import json
 import glob
 import datetime
 import logging
+import cmsDataFlowMerger
 
 from Logging import getLogger
 log = getLogger()
 
-"""
-Read json files
-"""
-def readJsonFile(inputJsonFile):
-   try:
-      settingsLS = "bad"
-      if(os.path.getsize(inputJsonFile) > 0):
-         try:
-            settings_textI = open(inputJsonFile, "r").read()
-            settingsLS = json.loads(settings_textI)
-         except Exception, e:
-            log.warning("Looks like the file {0} is not available, I'll try again...".format(inputJsonFile))
-            try:
-               time.sleep (0.1)
-               settings_textI = open(inputJsonFile, "r").read()
-   	       settingsLS = json.loads(settings_textI)
-            except Exception, e:
-               log.warning("Looks like the file {0} is not available (2nd try)...".format(inputJsonFile))
-               try:
-                  time.sleep (1.0)
-                  settings_textI = open(inputJsonFile, "r").read()
-   	          settingsLS = json.loads(settings_textI)
-               except Exception, e:
-                  log.warning("Looks like the file {0} failed for good (3rd try)...".format(inputJsonFile))
-                  inputJsonFailedFile = inputJsonFile.replace("_TEMP.jsn","_FAILED.bad")
-                  os.rename(inputJsonFile,inputJsonFailedFile)
-
-      return settingsLS
-   except Exception, e:
-      log.error("readJsonFile {0} failed {1}".format(inputJsonFile,e))
-
 def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
 
    initReadingTime = time.time()
+   endReadingTime = 0
    totalReadFiles    = 0
    totalTimeFiles    = 0
    totalTooSlowFiles = 0
@@ -55,7 +26,7 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
          msg += "Average time: %f msec\n" % (totalTimeFiles/totalReadFiles)
          msg += "Total too slow read files(%f msec): %d out of %d\n" % (theTooSlowTime,totalTooSlowFiles,totalReadFiles)
          print msg
-	 return
+         return
 
       inputDataFolders = glob.glob(theInput)
 
@@ -97,7 +68,7 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
 	     inputJsonFile = os.path.join(inputDataFolder, afterString[i])
 
              initJsonTime = time.time()
-             settings = str(readJsonFile(inputJsonFile))
+             settings = str(cmsDataFlowMerger.readJsonFile(inputJsonFile, theDebug))
              endJsonTime = time.time()
 
              # avoid corrupted files
@@ -108,13 +79,27 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
 	     if(diffProcessTime > tooSlowTime): totalTooSlowFiles = totalTooSlowFiles + 1
              if(theDebug >= 1): log.info("Time in ms({0}): {1:5.1f}".format(inputJsonFile,diffProcessTime))
 
+             endReadingTime = time.time()
+             diffTime = endReadingTime-initReadingTime
+             if(theMaxTime > 0 and diffTime > theMaxTime):
+                break
+
+   endReadingTime = time.time()
+   diffTime = endReadingTime-initReadingTime
+   if(theMaxTime > 0 and diffTime > theMaxTime):
+      msg  = "Maximum time (%f sec) has passed %f sec\n" % (diffTime,theMaxTime)
+      msg += "Average time: %f msec\n" % (totalTimeFiles/totalReadFiles)
+      msg += "Total too slow read files(%f msec): %d out of %d\n" % (theTooSlowTime,totalTooSlowFiles,totalReadFiles)
+      print msg
+      return
+
 """
 Main
 """
 valid = ['input=', 'maxTime=', 'tooSlowTime=', 'debug=', 'help']
 
 usage =  "Usage: testJsonReadSpeed.py --input=<input_folder>\n"
-usage += "                            --maxTime<-1 sec>\n"
+usage += "                            --maxTime<10 sec>\n"
 usage += "                            --tooSlowTime<10 msec>\n"
 usage += "                            --debug<0>\n"
 
@@ -126,7 +111,7 @@ except getopt.GetoptError, ex:
    sys.exit(1)
 
 input        = "dummy"
-maxTime      = .0
+maxTime      = 10
 tooSlowTime = 10.0
 debug        = 0
 

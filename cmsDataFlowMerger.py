@@ -470,21 +470,18 @@ def readJsonFile(inputJsonFile, debug):
       settingsLS = "bad"
       if(os.path.getsize(inputJsonFile) > 0):
          try:
-            settings_textI = open(inputJsonFile, "r").read()
             if(float(debug) >= 50): log.info("trying to load: {0}".format(inputJsonFile))
-            settingsLS = json.loads(settings_textI)
+            settingsLS = json.loads(open(inputJsonFile, "r").read())
          except Exception, e:
             log.warning("Looks like the file {0} is not available, I'll try again...".format(inputJsonFile))
             try:
                time.sleep (0.1)
-               settings_textI = open(inputJsonFile, "r").read()
-   	       settingsLS = json.loads(settings_textI)
+   	       settingsLS = json.loads(open(inputJsonFile, "r").read())
             except Exception, e:
                log.warning("Looks like the file {0} is not available (2nd try)...".format(inputJsonFile))
                try:
                   time.sleep (1.0)
-                  settings_textI = open(inputJsonFile, "r").read()
-   	          settingsLS = json.loads(settings_textI)
+   	          settingsLS = json.loads(open(inputJsonFile, "r").read())
                except Exception, e:
                   log.warning("Looks like the file {0} failed for good (3rd try)...".format(inputJsonFile))
                   inputJsonFailedFile = inputJsonFile.replace("_TEMP.jsn","_FAILED.bad")
@@ -503,6 +500,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
    eventsIDict    = dict()
    variablesDict  = dict()
    eventsEoLSDict = dict()
+   # Maximum time to analyze json file to be considered standard
+   tooSlowTime = 200
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
    # < 0 == will always use ThreadPool option
    nWithPollMax = 1
@@ -734,6 +733,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	  # loop over JSON files, which will give the list of files to be merged
 	  for i in range(0, len(afterStringJSN)):
 
+             iniReadingTotalTime = time.time()
              if(float(debug) > 1): log.info("Working on {0}".format(afterStringJSN[i]))
              baseName = os.path.basename(afterStringJSN[i])
              fileNameString = baseName.split('_')
@@ -751,6 +751,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              inputJsonFile = os.path.join(inputDataFolder, inpSubFolder, baseName)
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
              
+             iniReadingJsonTime = time.time()
              try:
                 # renaming the file to avoid issues
                 inputJsonRenameFile = inputJsonFile.replace(".jsn","_TEMP.jsn")
@@ -760,6 +761,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              except Exception, e:
                 log.error("file could not be renamed: {0} - {1}".format(inputJsonFile,e))
                 settings = "bad"
+             endReadingJsonTime = time.time()
 
              # This is just for streamEvD files
              if  ("bad" not in settings and "streamEvDOutput" in fileNameString[2]):
@@ -1037,6 +1039,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 else:
                    if (float(debug) >= 20):
                        log.info("Events number does not match: EoL says {0}, we have in the files: {1}".format(eventsOutput, eventsIDict[key][0]))
+
+             endReadingTotalTime = time.time()
+	     if((endReadingTotalTime-iniReadingTotalTime)*1000 > tooSlowTime):
+                log.warning("Too slow analyzing json({0}): total({1} msecs) - reading({2} msecs)".format(inputJsonRenameFile,(endReadingTotalTime-iniReadingTotalTime)*1000,(endReadingJsonTime-iniReadingJsonTime)*1000))
 
 	  # clean-up work is done here
           EoRFileName = path_eol + "/" + theRunNumber + "/" + theRunNumber + "_ls0000_EoR.jsn"

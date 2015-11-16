@@ -18,6 +18,7 @@ import requests
 from Logging import getLogger
 log = getLogger()
 max_size = 30 * 1024 * 1024 * 1024
+max_retries = 10
 
 def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, maxConnectionAttempts, debug):
    # here the merge action is monitored by inserting a record into Elastic Search database
@@ -83,23 +84,39 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
       if os.path.exists(iniNameFullPath):
 
          checkSumIni=1
-         with open(iniNameFullPath, 'r') as fsrc:
-            length=16*1024
-      	    while 1:
-   	       buf = fsrc.read(length)
-   	       if not buf:
-   	    	  break
-   	       checkSumIni=zlib.adler32(buf,checkSumIni)
+	 n_retries=0
+	 while n_retries < max_retries:
+            try:
+               checkSumIni=1
+               with open(iniNameFullPath, 'r') as fsrc:
+        	  length=16*1024
+      		  while 1:
+   		     buf = fsrc.read(length)
+   		     if not buf:
+   	    		break
+   		     checkSumIni=zlib.adler32(buf,checkSumIni)
 
-         checkSumIni = checkSumIni & 0xffffffff
-         checkSum = zlibextras.adler32_combine(checkSumIni,checkSum,fileSize)
-         checkSum = checkSum & 0xffffffff
+               checkSumIni = checkSumIni & 0xffffffff
+               checkSum = zlibextras.adler32_combine(checkSumIni,checkSum,fileSize)
+               checkSum = checkSum & 0xffffffff
 
-         fileSize = os.path.getsize(iniNameFullPath) + fileSize
-         filenames = [iniNameFullPath]
-         with open(outMergedFileFullPath, 'w') as fout:
-            append_files(filenames, fout, debug, timeReadWrite)
-         fout.close()
+               fileSize = os.path.getsize(iniNameFullPath) + fileSize
+               filenames = [iniNameFullPath]
+
+               with open(outMergedFileFullPath, 'w') as fout:
+                  append_files(filenames, fout, debug, timeReadWrite)
+               fout.close()
+	       break
+            except Exception, e:
+               log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
+               n_retries+=1
+               time.sleep(30)
+
+         if(n_retries == max_retries):
+            log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
+            msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
+            raise RuntimeError, msg
+
       else:
          log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
 	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
@@ -110,12 +127,28 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
    if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
    if(infoEoLS[0] != 0):
-      if (specialStreams == False):
+      if (specialStreams == False and mergeType == "macro"):
          with open(outMergedFileFullPath, 'a') as fout:
             append_files(filenames, fout, debug, timeReadWrite)
          fout.close()
-         if(float(debug) > 5): log.info("Merged: {0}".format(filenames))
-         #os.chmod(outMergedFileFullPath, 0666)
+   
+      elif (specialStreams == False):
+	 n_retries=0
+	 while n_retries < max_retries:
+            try:
+               with open(outMergedFileFullPath, 'w') as fout:
+                  append_files(filenames, fout, debug, timeReadWrite)
+               fout.close()
+	       break
+            except Exception, e:
+               log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
+               n_retries+=1
+               time.sleep(30)
+
+         if(n_retries == max_retries):
+            log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
+            msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
+            raise RuntimeError, msg
    
       elif (fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
          msg = "jsonMerger %s " % (outMergedFileFullPath)
@@ -302,15 +335,31 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
                log.warning("cmsActualMergingFilesC dat file exists {0} - {1}".format(outMergedFileFullPath,e))
 
             checkSumIni=1
-            with open(iniNameFullPath, 'r') as fsrc:
-               length=16*1024
-      	       while 1:
-   	    	  buf = fsrc.read(length)
-            	  if not buf:
-            	     break
-            	  checkSumIni=zlib.adler32(buf,checkSumIni)
+	    n_retries=0
+	    while n_retries < max_retries:
+               try:
 
-	    checkSumIni = checkSumIni & 0xffffffff
+                  checkSumIni=1
+                  with open(iniNameFullPath, 'r') as fsrc:
+                     length=16*1024
+      	             while 1:
+   	                buf = fsrc.read(length)
+                  	if not buf:
+            	           break
+            	        checkSumIni=zlib.adler32(buf,checkSumIni)
+
+	          checkSumIni = checkSumIni & 0xffffffff
+
+	          break
+               except Exception, e:
+                  log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
+                  n_retries+=1
+                  time.sleep(30)
+
+            if(n_retries == max_retries):
+               log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
+               msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
+               raise RuntimeError, msg
 
             if (not os.path.exists(lockNameFullPath)):
                try:
@@ -394,18 +443,46 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
 
          if(float(debug) > 5): log.info("Time after unlocking, before appending jsn({0}): {1:.3f}".format(outMergedJSONFullPath, time.time()-initMergingTime))
 
-	 with open(outMergedFileFullPath, 'r+w') as fout:
-            fout.seek(ini)
-            append_files(filenames, fout, debug, timeReadWrite)
-	 fout.close()
+	 n_retries=0
+	 while n_retries < max_retries:
+            try:
+               with open(outMergedFileFullPath, 'r+w') as fout:
+                  fout.seek(ini)
+                  append_files(filenames, fout, debug, timeReadWrite)
+	       fout.close()
+	       break
+            except Exception, e:
+               log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
+               n_retries+=1
+               time.sleep(30)
+
+         if(n_retries == max_retries):
+            log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
+            msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
+            raise RuntimeError, msg
+
 	 if(float(debug) > 1): log.info("Actual merging of {0} happened".format(outMergedJSONFullPath))
 
    if(mergeType == "macro" and os.path.exists(iniNameFullPath)):
-      with open(outMergedFileFullPath, 'r+w') as fout:
-         fout.seek(0)
-         filenameIni = [iniNameFullPath]
-         append_files(filenameIni, fout, debug, timeReadWrite)
-      fout.close()
+      n_retries=0
+      while n_retries < max_retries:
+         try:
+            with open(outMergedFileFullPath, 'r+w') as fout:
+               fout.seek(0)
+               filenameIni = [iniNameFullPath]
+               append_files(filenameIni, fout, debug, timeReadWrite)
+            fout.close()
+            break
+         except Exception, e:
+            log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
+            n_retries+=1
+            time.sleep(30)
+
+      if(n_retries == max_retries):
+         log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
+         msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
+         raise RuntimeError, msg
+
       fileSize = fileSize + os.path.getsize(iniNameFullPath)
       if eventsO == 0:
          fileSize = os.path.getsize(iniNameFullPath)
