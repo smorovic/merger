@@ -69,13 +69,11 @@ except Exception, e:
    log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 afterStringNoSorted = [f for f in after if ((dataString in f) and ("EoLS" not in f) and ("BoLS" not in f) and ("EoR" not in f))]
 afterString = sorted(afterStringNoSorted, reverse=False)
-print afterString
 
 dataFiles = []
 for i in range(0, len(afterString)):
 
    jsonFile = os.path.join(inputDataFolder, afterString[i])
-   print jsonFile
    settings = cmsDataFlowMerger.readJsonFile(jsonFile,0)
       
    if  ("bad" in settings):

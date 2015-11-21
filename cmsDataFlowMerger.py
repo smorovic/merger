@@ -429,7 +429,7 @@ def doTheRecovering(paths_to_watch, streamType, mergeType, debug):
 	 fileString = afterString[i].split('_')
          if(streamType != "0" and (afterString[i].endswith(".jsn") or afterString[i].endswith(".ini"))):
             isOnlyDQMRates = ("DQM" in fileString[2] or "Rates" in fileString[2])
-            isStreamEP = isOnlyDQMRates == False and ("streamP" in fileString[2] or "streamE" in fileString[2])
+            isStreamEP = isOnlyDQMRates == False and ("streamP" in fileString[2] or "streamH" in fileString[2])
             if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
             elif(streamType == "onlyStreamEP" and isStreamEP == False): continue
             elif(streamType == "noDQMRatesnoStreamEP" and (isOnlyDQMRates == True or isStreamEP == True)): continue
@@ -597,7 +597,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
                 fileIniString = baseName.split('_')
 		isOnlyDQMRates = ("DQM" in fileIniString[2] or "Rates" in fileIniString[2])
-		isStreamEP = isOnlyDQMRates == False and ("streamP" in fileIniString[2] or "streamE" in fileIniString[2])
+		isStreamEP = isOnlyDQMRates == False and ("streamP" in fileIniString[2] or "streamH" in fileIniString[2])
                 if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
                 elif(streamType == "onlyStreamEP" and isStreamEP == False): continue
                 elif(streamType == "noDQMRatesnoStreamEP" and (isOnlyDQMRates == True or isStreamEP == True)): continue
@@ -738,7 +738,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              baseName = os.path.basename(afterStringJSN[i])
              fileNameString = baseName.split('_')
              isOnlyDQMRates = ("DQM" in fileNameString[2] or "Rates" in fileNameString[2])
-             isStreamEP = isOnlyDQMRates == False and ("streamP" in fileNameString[2] or "streamE" in fileNameString[2])
+             isStreamEP = isOnlyDQMRates == False and ("streamP" in fileNameString[2] or "streamH" in fileNameString[2])
              if  (streamType == "onlyDQMRates" and isOnlyDQMRates == False): continue
              elif(streamType == "onlyStreamEP" and isStreamEP == False): continue
              elif(streamType == "noDQMRatesnoStreamEP" and (isOnlyDQMRates == True or isStreamEP == True)): continue

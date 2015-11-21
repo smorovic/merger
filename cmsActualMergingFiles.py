@@ -19,6 +19,7 @@ from Logging import getLogger
 log = getLogger()
 max_size = 30 * 1024 * 1024 * 1024
 max_retries = 10
+max_size_checksum = 2 * 1024 * 1024 * 1024
 
 def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, maxConnectionAttempts, debug):
    # here the merge action is monitored by inserting a record into Elastic Search database
@@ -222,7 +223,7 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
 
    checksum_status = True
    # checkSum checking
-   if(doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False and infoEoLS[0] != 0):
+   if(doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False and infoEoLS[0] != 0 and fileSize < max_size_checksum):
       adler32c=1
       with open(outMergedFileFullPath, 'r') as fsrc:
          length=16*1024
