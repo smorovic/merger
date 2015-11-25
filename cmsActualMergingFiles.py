@@ -79,7 +79,7 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
    if(fileNameString[2] == "streamDQMHistograms" or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
       specialStreams = True
 
-   if (mergeType == "macro" and specialStreams == False):
+   if (mergeType == "macro" and specialStreams == False and infoEoLS[0] != 0):
       iniName = fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + "StorageManager" + ".ini"
       iniNameFullPath = os.path.join(outputMergedFolder, outSubFolder, "open", iniName)
       if os.path.exists(iniNameFullPath):
@@ -465,24 +465,25 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
 	 if(float(debug) > 1): log.info("Actual merging of {0} happened".format(outMergedJSONFullPath))
 
    if(mergeType == "macro" and os.path.exists(iniNameFullPath)):
-      n_retries=0
-      while n_retries < max_retries:
-         try:
-            with open(outMergedFileFullPath, 'r+w') as fout:
-               fout.seek(0)
-               filenameIni = [iniNameFullPath]
-               append_files(filenameIni, fout, debug, timeReadWrite)
-            fout.close()
-            break
-         except Exception, e:
-            log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
-            n_retries+=1
-            time.sleep(30)
+      if(infoEoLS[0] != 0):
+	 n_retries=0
+	 while n_retries < max_retries:
+            try:
+               with open(outMergedFileFullPath, 'r+w') as fout:
+        	  fout.seek(0)
+        	  filenameIni = [iniNameFullPath]
+        	  append_files(filenameIni, fout, debug, timeReadWrite)
+               fout.close()
+               break
+            except Exception, e:
+               log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
+               n_retries+=1
+               time.sleep(30)
 
-      if(n_retries == max_retries):
-         log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
-         msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
-         raise RuntimeError, msg
+	 if(n_retries == max_retries):
+            log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
+            msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
+            raise RuntimeError, msg
 
       fileSize = fileSize + os.path.getsize(iniNameFullPath)
       if eventsO == 0:
