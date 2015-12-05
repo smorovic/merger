@@ -508,6 +508,9 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
    # Maximum number of threads to be allowed with the pool option
    nThreadsMax    = 20
    nThreadsMaxDQM = 10
+   if mergeType == "macro":
+      nThreadsMax    = 25
+      nThreadsMaxDQM = 25
    # Number of loops
    nLoops = 0
 
@@ -1073,7 +1076,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
-    triggerMergingThreshold = [0.5001, 0.8000] # DQMEventDisplay and DQM
+    triggerMergingThreshold = [0.5001, 0.7000] # DQMEventDisplay and DQM
     completeMergingThreshold = 1.0
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
