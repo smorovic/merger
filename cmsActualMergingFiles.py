@@ -19,7 +19,7 @@ from Logging import getLogger
 log = getLogger()
 max_size = 30 * 1024 * 1024 * 1024
 max_retries = 10
-max_size_checksum = 2 * 1024 * 1024 * 1024
+max_size_checksum = 2.5 * 1024 * 1024 * 1024
 
 def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, maxConnectionAttempts, debug):
    # here the merge action is monitored by inserting a record into Elastic Search database

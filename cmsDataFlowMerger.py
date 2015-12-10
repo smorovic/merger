@@ -20,6 +20,7 @@ import requests
 from Logging import getLogger
 log = getLogger()
 logging.getLogger("urllib3").setLevel(logging.WARNING)
+merging_threshold_size = 2.5 * 1024 * 1024 * 1024
 
 # program to merge (cat) files given a list
 
@@ -922,8 +923,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
         	#try:
 		   if(float(debug) > 1): log.info("mini expected events: {0}, mini received events: {1}, LS: {2}, stream: {3}, run: {4}".format(eventsEoLSDict[keyEoLS][0], eventsIDict[key][0], fileNameString[1], fileNameString[2], fileNameString[0]))
                    if((eventsEoLSDict[keyEoLS][0] == eventsIDict[key][0]) or
-                      (eventsEoLSDict[keyEoLS][0]*triggerMergingThreshold[0] <= eventsIDict[key][0] and                                fileNameString[2] == "streamDQMEventDisplay") or 
-                      (eventsEoLSDict[keyEoLS][0]*triggerMergingThreshold[1] <= eventsIDict[key][0] and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
+                     ((eventsEoLSDict[keyEoLS][0]*triggerMergingThreshold[0] <= eventsIDict[key][0] or variablesDict[key][3] > merging_threshold_size)                                and fileNameString[2] == "streamDQMEventDisplay") or 
+                     ((eventsEoLSDict[keyEoLS][0]*triggerMergingThreshold[1] <= eventsIDict[key][0] or variablesDict[key][3] > merging_threshold_size) and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
 		      # merged files
 	              outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + extensionName;
 	              outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" +    outputEndName + ".jsn";
@@ -985,8 +986,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              else:
 		if(float(debug) >= 20): log.info("macro-EventsTotalInput/EventsInput/NLostEvents-LS/Stream: {0}, {1}, {2}, {3}".format(eventsTotalInput,eventsIDict[key][0],variablesDict[key][5],fileNameString[1],fileNameString[2]))
                 if((eventsTotalInput == (eventsIDict[key][0]+variablesDict[key][5])) or
-		   (eventsTotalInput*triggerMergingThreshold[0] <= (eventsIDict[key][0]+variablesDict[key][5]) and                                fileNameString[2] == "streamDQMEventDisplay") or
-		   (eventsTotalInput*triggerMergingThreshold[1] <= (eventsIDict[key][0]+variablesDict[key][5]) and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
+		  ((eventsTotalInput*triggerMergingThreshold[0] <= (eventsIDict[key][0]+variablesDict[key][5]) or variablesDict[key][3] > merging_threshold_size) and                                fileNameString[2] == "streamDQMEventDisplay") or
+		  ((eventsTotalInput*triggerMergingThreshold[1] <= (eventsIDict[key][0]+variablesDict[key][5]) or variablesDict[key][3] > merging_threshold_size) and "DQM" in fileNameString[2] and fileNameString[2] != "streamDQMHistograms")):
 	           # merged files
 	           outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + extensionName;
 	           outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + ".jsn";
