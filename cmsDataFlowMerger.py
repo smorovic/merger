@@ -16,6 +16,7 @@ import cmsDataFlowCleanUp
 import cmsDataFlowMakeFolders
 import zlibextras
 import requests
+import threading
 
 from Logging import getLogger
 log = getLogger()
@@ -565,36 +566,38 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           if(float(debug) >= 50): time.sleep (1)
           if(float(debug) >= 20): log.info("Begin folder iteration")
 
-          after = dict()
+          after_eor = dict()
           try:
-             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
-             after.update(after_temp)
-             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.ini'))])
-             after.update(after_temp)
+             after_temp_eor = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
+             after_eor.update(after_temp_eor)
           except Exception, e:
              log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
+          afterStringNoSortedEOR = [f for f in after_eor if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR"     in f)) ]
+          afterStringEOR =sorted(afterStringNoSortedEOR, reverse=False)
+
           listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
-          for nStr in range(0, len(listFolders)):
-             try:
-                after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
-                after.update(after_temp)
-                after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
-                after.update(after_temp)
-             except Exception, e:
-             	log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
+          tlock  = threading.Lock()
 
-          afterStringNoSortedINI = [f for f in after if ( (f.endswith(".ini")) and ("TEMP" not in f) and ("EoR" not in f) and ("index" not in f)  and ("EoLS" not in f) and ("BoLS" not in f))]
-          afterStringNoSortedJSN = [f for f in after if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR" not in f) and ("index" not in f)  and ("EoLS" not in f) and ("BoLS" not in f))]
-          afterStringNoSortedEOR = [f for f in after if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR"     in f) and ("index" not in f)  and ("EoLS" not in f) and ("BoLS" not in f))]
-          afterStringINI = sorted(afterStringNoSortedINI, reverse=False)
-          afterStringJSN = sorted(afterStringNoSortedJSN, reverse=False)
-          afterStringEOR = sorted(afterStringNoSortedEOR, reverse=False)
+          def loop_func(nStr):
+            after = dict()
+            try:
+               after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
+               after.update(after_temp)
+               after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
+               after.update(after_temp)
+            except Exception, e:
+               log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
-	  # loop over ini files, needs to be done first of all
-	  for i in range(0, len(afterStringINI)):
+            afterStringNoSortedINI = [f for f in after if ( (f.endswith(".ini")) and ("TEMP" not in f) and ("EoR" not in f) and ("index" not in f)  and ("EoLS" not in f) and ("BoLS" not in f))]
+            afterStringNoSortedJSN = [f for f in after if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR" not in f) and ("index" not in f)  and ("EoLS" not in f) and ("BoLS" not in f))]
+            afterStringINI = sorted(afterStringNoSortedINI, reverse=False)
+            afterStringJSN = sorted(afterStringNoSortedJSN, reverse=False)
 
-	     if(afterStringINI[i].endswith(".ini")):
+	    # loop over ini files, needs to be done first of all
+	    for i in range(0, len(afterStringINI)):
+
+	      if(afterStringINI[i].endswith(".ini")):
                 baseName = os.path.basename(afterStringINI[i])
           	inputName  = afterStringINI[i]
           	if (float(debug) > 1): log.info("inputName: {0}".format(inputName))
@@ -640,12 +643,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	   if (not os.path.exists(outputIniNameToCompare) or (fileIniString[2] != "streamError" and fileIniString[2] != "streamDQMHistograms" and os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
 	     	      try:
           		 with open(outputIniNameToCompareTEMP, 'a', 1) as file_object:
+                            tlock.acquire()
           		    fcntl.flock(file_object, fcntl.LOCK_EX)
 	     		    shutil.copy(inputNameRename,outputIniNameToCompareTEMP)
           		    fcntl.flock(file_object, fcntl.LOCK_UN)
+                            tlock.release()
 	     		 file_object.close()
                          shutil.move(outputIniNameToCompareTEMP,outputIniNameToCompare)
 	     	      except Exception, e:
+                         try:tlock.release()
+                         except:pass
 	     		 log.warning("Looks like the outputIniNameToCompare file {0} has just been created by someone else...".format(outputIniNameToCompare))
 
 	  	   # otherwise, checking if they are identical
@@ -659,12 +666,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	   if (not os.path.exists(outputIniName) or (fileIniString[2] != "streamError" and fileIniString[2] != "streamDQMHistograms" and os.path.exists(outputIniName) and os.path.getsize(outputIniName) == 0)):
 	     	      try:
           		 with open(outputIniNameTEMP, 'a', 1) as file_object:
+                            tlock.acquire()
           		    fcntl.flock(file_object, fcntl.LOCK_EX)
 	     		    shutil.copy(inputNameRename,outputIniNameTEMP)
           		    fcntl.flock(file_object, fcntl.LOCK_UN)
+                            tlock.release()
 	     		 file_object.close()
                          shutil.move(outputIniNameTEMP,outputIniName)
 	     	      except Exception, e:
+                         try:tlock.release()
+                         except:pass
 	     		 log.warning("Looks like the outputIniName file {0} has just been created by someone else...".format(outputIniName))
 
 	  	   # otherwise, checking if they are identical
@@ -693,12 +704,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     		 if (not os.path.exists(outputIniNameToCompare) or (os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
 	     		    try:
           		       with open(outputIniNameToCompareTEMP, 'a', 1) as file_object:
+                                  tlock.acquire()
           			  fcntl.flock(file_object, fcntl.LOCK_EX)
 	     			  shutil.copy(inputJsdName,outputIniNameToCompareTEMP)
           			  fcntl.flock(file_object, fcntl.LOCK_UN)
+                                  tlock.release()
 	     		       file_object.close()
                                shutil.move(outputIniNameToCompareTEMP,outputIniNameToCompare)
 	     		    except Exception, e:
+                               try:tlock.release()
+                               except:pass
 	     		       log.warning("Looks like the outputIniNameToCompare-Rates file {0} has just been created by someone else...".format(outputIniNameToCompare))
 
 	  		 # otherwise, checking if they are identical
@@ -712,12 +727,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     		 if (not os.path.exists(outputIniName) or (os.path.exists(outputIniName) and os.path.getsize(outputIniName) == 0)):
 	     		    try:
           		       with open(outputIniNameTEMP, 'a', 1) as file_object:
+                                  tlock.acquire()
           			  fcntl.flock(file_object, fcntl.LOCK_EX)
 	     			  shutil.copy(inputJsdName,outputIniNameTEMP)
           			  fcntl.flock(file_object, fcntl.LOCK_UN)
+                                  tlock.release()
 	     		       file_object.close()
                                shutil.move(outputIniNameTEMP,outputIniName)
 	     		    except Exception, e:
+                               try:tlock.release()
+                               except:pass
 	     		       log.warning("Looks like the outputIniName-Rates file {0} has just been created by someone else...".format(outputIniName))
 
 	  		 # otherwise, checking if they are identical
@@ -734,8 +753,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	else:
 	     	   log.info("Looks like the file {0} is being copied by someone else...".format(inputName))
 
-	  # loop over JSON files, which will give the list of files to be merged
-	  for i in range(0, len(afterStringJSN)):
+	    # loop over JSON files, which will give the list of files to be merged
+	    for i in range(0, len(afterStringJSN)):
 
              iniReadingTotalTime = time.time()
              if(float(debug) > 1): log.info("Working on {0}".format(afterStringJSN[i]))
@@ -903,7 +922,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 extensionName = ".jsndata"
 
 	     if mergeType == "mini": 
-        	keyEoLS = (fileNameString[0],fileNameString[1])
+        	keyEoLS = (fileNameString[0],fileNameString[1],fileNameString[2])
 		if keyEoLS not in eventsEoLSDict.keys():
 	           EoLSName = path_eol + "/" + fileNameString[0] + "/" + fileNameString[0] + "_" + fileNameString[1] + "_EoLS.jsn"
                    if(float(debug) >= 10): log.info("EoLSName: {0}".format(EoLSName))
@@ -992,7 +1011,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	           outMergedFile = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + extensionName;
 	           outMergedJSON = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + theOutputEndName + ".jsn";
 
-        	   keyEoLS = (fileNameString[0],fileNameString[1])
+        	   keyEoLS = (fileNameString[0],fileNameString[1],fileNameString[2])
                    eventsEoLS	 = eventsIDict[key][0]
                    filesEoLS	 = variablesDict[key][4]
                    eventsAllEoLS = eventsTotalInput
@@ -1048,6 +1067,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     if((endReadingTotalTime-iniReadingTotalTime)*1000 > tooSlowTime):
                 log.warning("Too slow analyzing json({0}): total({1} msecs) - reading({2} msecs)".format(inputJsonRenameFile,(endReadingTotalTime-iniReadingTotalTime)*1000,(endReadingJsonTime-iniReadingJsonTime)*1000))
 
+          loop_pool=[]
+          for nStr in range(0, len(listFolders)):
+            loop_thread = threading.Thread(target=loop_func, args = [nStr])
+            loop_thread.start()
+	    loop_pool.append(loop_thread)
+
+          #join all threads
+          for loop_thread in loop_pool:
+            loop_thread.join()
+
 	  # clean-up work is done here
           EoRFileName = path_eol + "/" + theRunNumber + "/" + theRunNumber + "_ls0000_EoR.jsn"
           try:
@@ -1077,7 +1106,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
-    triggerMergingThreshold = [0.5001, 0.7000] # DQMEventDisplay and DQM
+    triggerMergingThreshold = [0.5001, 0.8000] # DQMEventDisplay and DQM
     completeMergingThreshold = 1.0
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
