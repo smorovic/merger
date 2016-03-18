@@ -55,6 +55,8 @@ eventsInput      = 0
 eventsInputFiles = 0
 eventsTotalInput = 0
 
+inputDataFolder = os.path.join(inputDataFolder, "jsns")
+
 EoLSName = EoLSDataFolder + "/" + fileString[0] + "_" + fileString[1] + "_EoLS.jsn"
 if(typeMerging == "mini"):
    if not os.path.exists(EoLSName):
@@ -91,7 +93,7 @@ for i in range(0, len(afterString)):
 
 iniFiles = []
 if(typeMerging == "macro"):
-   theStoreIniArea = os.path.join(iniArea, fileString[0], inpSubFolder)
+   theStoreIniArea = os.path.join(iniArea, fileString[0], inpSubFolder, "data")
    jsnsIni = sorted(glob.glob(os.path.join(theStoreIniArea, '*.ini')))
    for jsn_file in jsnsIni:
       fileIniString = jsn_file.split('_')

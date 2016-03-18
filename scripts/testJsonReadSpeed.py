@@ -36,20 +36,16 @@ def doReading(theInput,theMaxTime,theTooSlowTime,theDebug):
           inputDataFolder = inputDataFolders[nf]
 	  
 	  after = dict()
-	  try:
-             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
-             after.update(after_temp)
-             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.ini'))])
-             after.update(after_temp)
-	  except Exception, e:
-             log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
-
 	  listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
 	  for nStr in range(0, len(listFolders)):
              try:
         	after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
         	after.update(after_temp)
         	after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
+        	after.update(after_temp)
+        	after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], 'jsns', '*.jsn'))])
+        	after.update(after_temp)
+        	after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], 'data', '*.ini'))])
         	after.update(after_temp)
              except Exception, e:
         	log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))

@@ -20,12 +20,19 @@ def doFiles(RUNNumber, timeEnd, rate, path_to_make, streamName, contentInputFile
       time.sleep (float(rate))
 
       if theNLoop == 1:
-         fileBoLSFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName)
+         fileBoLSFullPath = "%sunmergedDATA/run%d/%s/jsns/run%d_ls%d_%s_BoLS.jsn" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName)
 	 msg = "touch %s" % fileBoLSFullPath
 	 os.system(msg)
 
-      fileOutputNameFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
-      fileOutputName =                                 "run%d_ls%d_%s_%d.BU%s.dat" % (                                  RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+      fileOutputNameFullPath = "%sunmergedDATA/run%d/%s/data/run%d_ls%d_%s_%d.BU%s.dat" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+      fileOutputName =                                      "run%d_ls%d_%s_%d.BU%s.dat" % (                                  RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+
+      if(streamName == "streamError"):
+         fileOutputNameFullPath = "%sunmergedMON/run%d/run%d_ls%d_%s_%d.BU%s.raw" % (path_to_make,RUNNumber,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+         fileOutputName =                             "run%d_ls%d_%s_%d.BU%s_file1.raw,run%d_ls%d_%s_%d.BU%s_file2.raw,run%d_ls%d_%s_%d.BU%s_file3.raw" % (
+	                    RUNNumber,LSNumber,streamName,theNLoop,theBUNumber,
+			    RUNNumber,LSNumber,streamName,theNLoop,theBUNumber,
+			    RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)         
 
       fileSize = 0
       adler32c = 1
@@ -52,8 +59,18 @@ def doFiles(RUNNumber, timeEnd, rate, path_to_make, streamName, contentInputFile
          adler32c = adler32c & 0xffffffff
 
       emptyString = ""
+      if(streamName == "streamError"):
+         fileOutputNameFullPath_file1 =  fileOutputNameFullPath.replace(".raw","_file1.raw")
+         fileOutputNameFullPath_file2 =  fileOutputNameFullPath.replace(".raw","_file2.raw")
+         fileOutputNameFullPath_file3 =  fileOutputNameFullPath.replace(".raw","_file3.raw")
+         shutil.copy(fileOutputNameFullPath,fileOutputNameFullPath_file1)
+         shutil.copy(fileOutputNameFullPath,fileOutputNameFullPath_file2)
+         shutil.move(fileOutputNameFullPath,fileOutputNameFullPath_file3)
+         emptyString = fileOutputName
+	 fileOutputName = ""
+
       transferDest = "Tier0"
-      outMergedJSONFullPath = "%sunmergedDATA/run%d/%s/run%d_ls%d_%s_%d.BU%s.BAK" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
+      outMergedJSONFullPath = "%sunmergedDATA/run%d/%s/jsns/run%d_ls%d_%s_%d.BU%s.BAK" % (path_to_make,RUNNumber,streamName,RUNNumber,LSNumber,streamName,theNLoop,theBUNumber)
       with  open(outMergedJSONFullPath, 'w') as theMergedJSONfile:
          theMergedJSONfile.write(json.dumps({'data': (nInput, nOutput, 0, 0, fileOutputName, fileSize, emptyString, adler32c, transferDest)}))
       theMergedJSONfile.close()
@@ -78,7 +95,14 @@ def createFiles(streamName = "streamA", contentInputFile = "", ls = 10, RUNNumbe
 
    print now.strftime("%H:%M:%S"), ": writing ls", ls, ", stream: ", streamName
  
-   myDir = "%sunmergedDATA/run%d/%s" % (path_to_make,RUNNumber,streamName)
+   myDir = "%sunmergedDATA/run%d/%s/data" % (path_to_make,RUNNumber,streamName)
+   if not os.path.exists(myDir):
+      try:
+          os.makedirs(myDir)
+      except OSError, e:
+          print "Looks like the directory " + myDir + " has just been created by someone else..."
+
+   myDir = "%sunmergedDATA/run%d/%s/jsns" % (path_to_make,RUNNumber,streamName)
    if not os.path.exists(myDir):
       try:
           os.makedirs(myDir)

@@ -56,6 +56,7 @@ for i in range(0, len(afterString)):
    outMergedFileFullPath = os.path.join(inputDataFolder , outMergedFileFullPath)
    lockNameFullPath      = outMergedFileFullPath.replace(".dat",".lock")
    outMergedJSONFullPath = outMergedFileFullPath.replace(".dat",".jsn")
+   outMergedJSONFullPath = outMergedJSONFullPath.replace("/data","/jsns")
 
    if not os.path.exists(iniNameFullPath):
       msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)

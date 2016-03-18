@@ -18,6 +18,7 @@ import requests
 from Logging import getLogger
 log = getLogger()
 max_size = 30 * 1024 * 1024 * 1024
+host = os.uname()[1]
 max_retries = 10
 max_size_checksum = 2.5 * 1024 * 1024 * 1024
 
@@ -25,20 +26,22 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
    # here the merge action is monitored by inserting a record into Elastic Search database
    connectionAttempts=0 #initialize
    # make dictionary to be JSON-ified and inserted into the Elastic Search DB as a document
-   keys = ["processed","accepted","errorEvents","fname","size","eolField1","eolField2","fm_date","ls","stream","id"]
+   keys = ["processed","accepted","errorEvents","fname","size","eolField1","eolField2","fm_date","ls","stream"]
    values = [int(f) if str(f).isdigit() else str(f) for f in mergeMonitorData]
    mergeMonitorDict=dict(zip(keys,values))
-   mergeMonitorDict['fm_date']=float(mergeMonitorDict['fm_date'])
+   #mergeMonitorDict['fm_date']=float(mergeMonitorDict['fm_date'])
+   documentId = mergeMonitorData[-1]
+   mergeMonitorDict["host"]=host
    while True:
       try:
-  #requests.post(esServerUrl+'/_bulk','{"index": {"_parent": '+str(self.runnumber)+', "_type": "macromerge", "_index": "'+esIndexName+'"}}\n'+json.dumps(mergeMonitorDict)+'\n')
+  #requests.post(esServerUrl+'/_bulk','{"_type": "macromerge", "_index": "'+esIndexName+'"}}\n'+json.dumps(mergeMonitorDict)+'\n')
          documentType=mergeType+'merge'
          if(float(debug) >= 10):
             log.info("About to try to insert into ES with the following info:")
             log.info('Server: "' + esServerUrl+'/'+esIndexName+'/'+documentType+'/' + '"')
             log.info("Data: '"+json.dumps(mergeMonitorDict)+"'")
          #attempt to record the merge, 1s timeout!
-         monitorResponse=requests.post(esServerUrl+'/'+esIndexName+'/'+documentType+'?parent='+runnumber,data=json.dumps(mergeMonitorDict),timeout=1)
+         monitorResponse=requests.post(esServerUrl+'/'+esIndexName+'/'+documentType+'/'+documentId,data=json.dumps(mergeMonitorDict),timeout=1)
          if(float(debug) >= 10): log.info("Merger monitor produced response: {0}".format(monitorResponse.text))
          break
       except (requests.exceptions.ConnectionError,requests.exceptions.Timeout) as e:
@@ -55,12 +58,12 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
  try:
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
    
-   outMergedFileFullPath = os.path.join(outputMergedFolder, outSubFolder, "open", outMergedFile)
-   outMergedJSONFullPath = os.path.join(outputMergedFolder, outSubFolder, "open", outMergedJSON)
+   outMergedFileFullPath = os.path.join(outputMergedFolder, outSubFolder, "data", "open", outMergedFile)
+   outMergedJSONFullPath = os.path.join(outputMergedFolder, outSubFolder, "jsns", "open", outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
    timeReadWrite = [0, 0]
@@ -76,12 +79,12 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
    specialStreams = False
-   if(fileNameString[2] == "streamDQMHistograms" or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
+   if(fileNameString[2] == "streamDQMHistograms" or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates" or fileNameString[2] == "streamError"):
       specialStreams = True
 
    if (mergeType == "macro" and specialStreams == False and infoEoLS[0] != 0):
       iniName = fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + "StorageManager" + ".ini"
-      iniNameFullPath = os.path.join(outputMergedFolder, outSubFolder, "open", iniName)
+      iniNameFullPath = os.path.join(outputMergedFolder, outSubFolder, "data", "open", iniName)
       if os.path.exists(iniNameFullPath):
 
          checkSumIni=1
@@ -123,7 +126,7 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
 	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
 	 raise RuntimeError, msg
 
-   filenames = [inputDataFolder + "/" + inpSubFolder + "/" + word_in_list for word_in_list in files]
+   filenames = [inputDataFolder + "/" + inpSubFolder + "/data/" + word_in_list for word_in_list in files]
 
    if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
@@ -164,6 +167,15 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          else:
             open(outMergedFileFullPath, 'w').close()
 
+      elif (fileNameString[2] == "streamError"):
+         if (mergeType == "mini"):
+             filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
+         filenamesOut = [os.path.join(outputMergedFolder, outSubFolder, "data") + "/" + word_in_list for word_in_list in files]
+         for nfile in range(0, len(filenames)):
+	    outMergedFile = files[nfile] + "," + outMergedFile
+            if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
+               shutil.move(filenames[nfile],filenamesOut[nfile])
+
       else:
          if (mergeType == "macro"):
             msg = "fastHadd add -j 7 -o %s " % (outMergedFileFullPath)
@@ -177,6 +189,10 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          if(float(debug) > 20): log.info("running {0}".format(msg))
          if(goodFiles > 0):
             os.system(msg)
+            try:
+               fileSize = os.path.getsize(outMergedFileFullPath)
+            except Exception, e:
+               log.warning("Error computing histogram filesize {0}: {1}".format(outMergedFileFullPath,e))
          else:
             open(outMergedFileFullPath, 'w').close()
 
@@ -191,7 +207,7 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
    if(doRemoveFiles == "True"):
       for nfile in range(0, len(files)):
          if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
-   	 inputFileToRemove = os.path.join(inputDataFolder, inpSubFolder, files[nfile])
+         inputFileToRemove = os.path.join(inputDataFolder, inpSubFolder, "data", files[nfile])
          if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	    os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
@@ -210,16 +226,13 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
             log.warning("Error deleting BoLS file {0}: {1}".format(BoLSFileNameFullPath,e))
 
    # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/stream/open/../."
-   outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, outMergedFile)
-   outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, outMergedJSON)
+   if (fileNameString[2] != "streamError"):
+      outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "data", outMergedFile)
+   outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "jsns", outMergedJSON)
 
    if (mergeType == "macro" and ("DQM" in fileNameString[2])):
-      outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "open", outMergedFile)
-      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "open", outMergedJSON)
-
-   if (mergeType == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
-      outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outSubFolder, "open", outMergedFile)
-      outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outSubFolder, "open", outMergedJSON)
+      outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "data", "open", outMergedFile)
+      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "jsns", "open", outMergedJSON)
 
    checksum_status = True
    # checkSum checking
@@ -240,7 +253,7 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedJSON)
          checksum_status = False
 
-   if(checksum_status == True and infoEoLS[0] != 0):
+   if(checksum_status == True and infoEoLS[0] != 0 and fileNameString[2] != "streamError"):
       if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPath)):
          log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,os.path.getsize(outMergedFileFullPath)))
          outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedFile)
@@ -253,13 +266,13 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "recovery", outMergedJSON)
          checksum_status = False
 
-   if(infoEoLS[0] != 0):
+   if(infoEoLS[0] != 0 and fileNameString[2] != "streamError"):
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
 
    if (mergeType == "macro" and ("DQM" in fileNameString[2]) and checksum_status == True):
-      outMergedFileFullPathStableFinal = os.path.join(outputDQMMergedFolder, outSubFolder, outMergedFile)
-      outMergedJSONFullPathStableFinal = os.path.join(outputDQMMergedFolder, outSubFolder, outMergedJSON)
+      outMergedFileFullPathStableFinal = os.path.join(outputDQMMergedFolder, outSubFolder, "data", outMergedFile)
+      outMergedJSONFullPathStableFinal = os.path.join(outputDQMMergedFolder, outSubFolder, "jsns", outMergedJSON)
       if(infoEoLS[0] != 0):
          shutil.move(outMergedFileFullPathStable,outMergedFileFullPathStableFinal)
       shutil.move(outMergedJSONFullPathStable,outMergedJSONFullPathStableFinal)
@@ -270,7 +283,7 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
       stream=fileNameString[2][6:]
       runnumber=fileNameString[0][3:]
       id=outMergedJSON.replace(".jsn","")
-      mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], time.time(), ls, stream, id]
+      mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], int(time.time()*1000), ls, stream, id]
       elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, 5, debug)
 
    endMergingTime = time.time() 
@@ -283,13 +296,13 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
 """
 merging option C: merging unmerged files to same file for different BUs without locking the merged file 
 """
-def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
  try:
    if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outputSMMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    # we will merge file at the BU level only!
-   outMergedFileFullPath = os.path.join(outputSMMergedFolder, outSubFolder, "open", outMergedFile)
-   outMergedJSONFullPath = os.path.join(outputMergedFolder,   outSubFolder, "open", outMergedJSON)
+   outMergedFileFullPath = os.path.join(outputSMMergedFolder, outSubFolder, "data", "open", outMergedFile)
+   outMergedJSONFullPath = os.path.join(outputMergedFolder,   outSubFolder, "jsns", "open", outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
 
    timeReadWrite = [0, 0]
@@ -303,12 +316,12 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
 
    lockName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_" + "StorageManager" + ".lock"
-   lockNameFullPath = os.path.join(outputSMMergedFolder, outSubFolder, "open", lockName)
+   lockNameFullPath = os.path.join(outputSMMergedFolder, outSubFolder, "data", "open", lockName)
 
    iniName = fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + outputEndName + ".ini"
    if mergeType == "macro":
       iniName = "open/" + fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + "StorageManager" + ".ini"
-   iniNameFullPath = os.path.join(outputSMMergedFolder, outSubFolder, iniName)
+   iniNameFullPath = os.path.join(outputSMMergedFolder, outSubFolder, "data", iniName)
    if mergeType == "mini":
       maxSizeMergedFile = 50 * 1024 * 1024 * 1024
       if os.path.exists(iniNameFullPath):
@@ -383,7 +396,7 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
 	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
 	 raise RuntimeError, msg
 
-      filenames = [inputDataFolder + "/" + inpSubFolder + "/" + word_in_list for word_in_list in files]
+      filenames = [inputDataFolder + "/" + inpSubFolder + "/data/" + word_in_list for word_in_list in files]
 
       if(float(debug) > 20): log.info("Will merge: {0}".format(filenames))
 
@@ -497,7 +510,7 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
       if mergeType == "mini":
          for nfile in range(0, len(files)):
             if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
-   	    inputFileToRemove = os.path.join(inputDataFolder, inpSubFolder, files[nfile])
+            inputFileToRemove = os.path.join(inputDataFolder, inpSubFolder, "data", files[nfile])
             if (os.path.exists(inputFileToRemove) and (not os.path.isdir(inputFileToRemove))):
    	       os.remove(inputFileToRemove)
       for nfile in range(0, len(filesJSON)):
@@ -544,7 +557,7 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
          shutil.move(lockNameFullPath,lockNameFullPathStable)
 
       else:
-   	 outMergedFileFullPathStable = os.path.join(outputSMMergedFolder, outSubFolder, outMergedFile)
+   	 outMergedFileFullPathStable = os.path.join(outputSMMergedFolder, outSubFolder, "data", outMergedFile)
          if(fileNameString[2] != "streamError"):
 	    # expected checksum
             with open(lockNameFullPath, 'r+w') as filelock:
@@ -582,9 +595,6 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
             if (os.path.exists(lockNameFullPath) and (not os.path.isdir(lockNameFullPath))):
                os.remove(lockNameFullPath)
 
-      if ((("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2])) and checkSumFailed == False):
-         outMergedFileFullPathStable = os.path.join(outputECALMergedFolder, outSubFolder, outMergedFile)
-
       if(checkSumFailed == False and fileSize > max_size):
          log.error("BIG PROBLEM, fileSize is too large!: {0} --> {1}".format(outMergedFileFullPath,fileSize))
          outMergedFileFullPathStable = os.path.join(outputSMMergedFolder, outSubFolder, "recovery", outMergedFile)
@@ -613,12 +623,9 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
       elif(fileSize > max_size):
          outMergedJSONFullPathStable = os.path.join(outputSMMergedFolder, outSubFolder, "recovery", outMergedJSON)
       else:
-         outMergedJSONFullPathStable = os.path.join(outputSMMergedFolder, outSubFolder, outMergedJSON)
+         outMergedJSONFullPathStable = os.path.join(outputSMMergedFolder, outSubFolder, "jsns", outMergedJSON)
    else:
-      outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, outMergedJSON)
-
-   if (mergeType == "macro" and (("EcalCalibration" in fileNameString[2]) or ("EcalNFS" in fileNameString[2]))):
-      outMergedJSONFullPathStable = os.path.join(outputECALMergedFolder, outSubFolder, outMergedJSON)
+      outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "jsns", outMergedJSON)
 
    if(float(debug) > 5): log.info("Time before move of jsn({0}): {1:.3f}".format(outMergedJSONFullPath,time.time()-initMergingTime))
    shutil.move(outMergedJSONFullPath,outMergedJSONFullPathStable)
@@ -630,7 +637,7 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
       stream=fileNameString[2][6:]
       runnumber=fileNameString[0][3:]
       id=outMergedJSON.replace(".jsn","")
-      mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], time.time(), ls, stream, id]
+      mergeMonitorData = [ infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, infoEoLS[1], infoEoLS[2], int(time.time()*1000), ls, stream, id]
       elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, 5, debug)
 
    endMergingTime = time.time() 

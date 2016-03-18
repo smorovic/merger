@@ -46,77 +46,50 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
    if indexExists:
       # if the index already exists, we put the mapping in the index for redundancy purposes:
       # JSON follows:
-      run_mapping = {
-         'run' : {
-            '_routing' :{
-               'required' : True,
-               'path'     : 'runNumber'
-            },
-            '_id' : {
-               'path' : 'runNumber'
-            },
-            'properties' : {
-               'runNumber':{
-                  'type':'integer'
-                  },
-               'startTimeRC':{
-                  'type':'date'
-                  },
-               'stopTimeRC':{
-                  'type':'date'
-                  },
-               'startTime':{
-                  'type':'date'
-                  },
-               'endTime':{
-                  'type':'date'
-                  },
-               'completedTime' : {
-                  'type':'date'
-                  }
-            },
-            '_timestamp' : {
-               'enabled' : True,
-               'store'   : 'yes'
-               }
-         }
-      }
       minimerge_mapping = {
          'minimerge' : {
-            '_id'        :{'path':'id'},
-            '_parent'    :{'type':'run'},
+	    '_all'       : {'enabled' : 'false'},
+            '_timestamp' : {'enabled' : 'true'},
             'properties' : {
                'fm_date'       :{'type':'date'},
-               'id'            :{'type':'string'}, #run+appliance+stream+ls
-               'appliance'     :{'type':'string'},
+               'id'            :{'type':'string','index' : 'not_analyzed'}, #run+appliance+stream+ls
+               'appliance'     :{'type':'string','index' : 'not_analyzed'},
+               'host'          :{'type':'string','index' : 'not_analyzed'},
                'stream'        :{'type':'string','index' : 'not_analyzed'},
+               'fname'         :{'type':'string','index' : 'not_analyzed'},
                'ls'            :{'type':'integer'},
                'processed'     :{'type':'integer'},
                'accepted'      :{'type':'integer'},
                'errorEvents'   :{'type':'integer'},
                'size'          :{'type':'long'},
+               'eolField1'     :{'type':'integer'},
+               'eolField2'     :{'type':'integer'},
+               'adler32'       :{'type':'long'}
             }
          }
       }
       macromerge_mapping = {
          'macromerge' : {
-            '_id'        :{'path':'id'},
-            '_parent'    :{'type':'run'},
+	    '_all'       : {'enabled' : 'false'},
+            '_timestamp' : {'enabled' : 'true'},
             'properties' : {
                'fm_date'       :{'type':'date'},
-               'id'            :{'type':'string'}, #run+appliance+stream+ls
-               'appliance'     :{'type':'string'},
+               'id'            :{'type':'string','index' : 'not_analyzed'}, #run+appliance+stream+ls
+               'appliance'     :{'type':'string','index' : 'not_analyzed'},
+               'host'          :{'type':'string','index' : 'not_analyzed'},
                'stream'        :{'type':'string','index' : 'not_analyzed'},
+               'fname'         :{'type':'string','index' : 'not_analyzed'},
                'ls'            :{'type':'integer'},
                'processed'     :{'type':'integer'},
                'accepted'      :{'type':'integer'},
                'errorEvents'   :{'type':'integer'},
                'size'          :{'type':'long'},
+               'eolField1'     :{'type':'integer'},
+               'eolField2'     :{'type':'integer'}
             }
          }
       }
       try:
-         putMappingResponse=requests.put(esServerUrl+'/'+esIndexName+'/_mapping/run',data=json.dumps(run_mapping))
          putMappingResponse=requests.put(esServerUrl+'/'+esIndexName+'/_mapping/minimerge',data=json.dumps(minimerge_mapping))
          putMappingResponse=requests.put(esServerUrl+'/'+esIndexName+'/_mapping/macromerge',data=json.dumps(macromerge_mapping))
       except requests.exceptions.ConnectionError as e:
@@ -145,67 +118,43 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
          },
       }
       mapping = {
-         'run' : {
-            '_routing' :{
-               'required' : True,
-               'path'     : 'runNumber'
-            },
-            '_id' : {
-               'path' : 'runNumber'
-            },
-            'properties' : {
-               'runNumber':{
-                  'type':'integer'
-                  },
-               'startTimeRC':{
-                  'type':'date'
-                  },
-               'stopTimeRC':{
-                  'type':'date'
-                  },
-               'startTime':{
-                  'type':'date'
-                  },
-               'endTime':{
-                  'type':'date'
-                  },
-               'completedTime' : {
-                  'type':'date'
-                  }
-            },
-            '_timestamp' : {
-               'enabled' : True,
-               'store'   : 'yes'
-               }
-         },
          'minimerge' : {
-            '_id'        :{'path':'id'},
-            '_parent'    :{'type':'run'},
             'properties' : {
+               '_all'          :{'enabled': 'false'},
+               '_timestamp'    :{'enabled': 'true'},
                'fm_date'       :{'type':'date'},
-               'id'            :{'type':'string'}, #run+appliance+stream+ls
-               'appliance'     :{'type':'string'},
+               'id'            :{'type':'string','index' : 'not_analyzed'}, #run+appliance+stream+ls
+               'appliance'     :{'type':'string','index' : 'not_analyzed'},
+               'host'          :{'type':'string','index' : 'not_analyzed'},
                'stream'        :{'type':'string','index' : 'not_analyzed'},
+               'fname'         :{'type':'string','index' : 'not_analyzed'},
                'ls'            :{'type':'integer'},
                'processed'     :{'type':'integer'},
                'accepted'      :{'type':'integer'},
                'errorEvents'   :{'type':'integer'},
-               'size'          :{'type':'integer'},
+               'size'          :{'type':'long'},
+               'eolField1'     :{'type':'integer'},
+               'eolField2'     :{'type':'integer'},
+               'adler32'       :{'type':'long'}
             }
          },
          'macromerge' : {
-            '_id'        :{'path':'id'},
-            '_parent'    :{'type':'run'},
             'properties' : {
+               '_all'          :{'enabled': 'false'},
+               '_timestamp'    :{'enabled': 'true'},
                'fm_date'       :{'type':'date'},
-               'id'            :{'type':'string'}, #run+appliance+stream+ls
-               'appliance'     :{'type':'string'},
+               'id'            :{'type':'string','index' : 'not_analyzed'}, #run+appliance+stream+ls
+               'appliance'     :{'type':'string','index' : 'not_analyzed'},
+               'host'          :{'type':'string','index' : 'not_analyzed'},
                'stream'        :{'type':'string','index' : 'not_analyzed'},
+               'fname'         :{'type':'string','index' : 'not_analyzed'},
                'ls'            :{'type':'integer'},
                'processed'     :{'type':'integer'},
                'accepted'      :{'type':'integer'},
                'errorEvents'   :{'type':'integer'},
-               'size'          :{'type':'integer'},
+               'size'          :{'type':'long'},
+               'eolField1'     :{'type':'integer'},
+               'eolField2'     :{'type':'integer'},
             }
          }
       }
@@ -214,7 +163,7 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
       except requests.exceptions.ConnectionError as e:
          log.error('esMonitorMapping: Could not connect to ElasticSearch database!')
 
-def mergeFiles(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, filesDyn, checkSum, fileSize, filesJSONDyn, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug):
+def mergeFiles(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, filesDyn, checkSum, fileSize, filesJSONDyn, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug):
 
    # making them local
    files     = [word_in_list for word_in_list in filesDyn]
@@ -225,19 +174,19 @@ def mergeFiles(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFol
 
    if ((optionMerging == "optionA") or ("DQM" in fileNameString[2]) or ("streamError" in fileNameString[2]) or ("streamHLTRates" in fileNameString[2]) or ("streamL1Rates" in fileNameString[2]) or (infoEoLS[0] == 0)):
       try:
-         cmsActualMergingFiles.mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder,                       outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
+         cmsActualMergingFiles.mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder,                       outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
       except Exception, e:
          log.error("cmsActualMergingFilesA crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    elif (optionMerging == "optionB"):
       try:
-         cmsActualMergingFiles.mergeFilesB(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder,                        outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
+         cmsActualMergingFiles.mergeFilesB(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder,                        doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
       except Exception, e:
          log.error("cmsActualMergingFilesB crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
    elif (optionMerging == "optionC"):
       try:
-         cmsActualMergingFiles.mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder,                        outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
+         cmsActualMergingFiles.mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder,                        doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
       except Exception, e:
          log.error("cmsActualMergingFilesC crashed: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
 
@@ -274,13 +223,15 @@ def moveFiles(debug, theInputDataFolder, theOutputDataFolder, jsonName, theSetti
       inpMergedFileFullPath = os.path.join(theInputDataFolder, fileName)
       inpMergedJSONFullPath = os.path.join(theInputDataFolder, jsonName)
 
-      theOutputDataFolderFullPath      = os.path.join(theOutputDataFolder,outSubFolder)
-      theOutputDataFolderFullPathOpen  = os.path.join(theOutputDataFolder,outSubFolder,"open")
+      theOutputDataFolderFullPath      = os.path.join(theOutputDataFolder,outSubFolder, "data")
+      theOutputDataFolderFullPathOpen  = os.path.join(theOutputDataFolder,outSubFolder, "data", "open")
+      theOutputJSONFolderFullPath      = os.path.join(theOutputDataFolder,outSubFolder, "jsns")
+      theOutputJSONFolderFullPathOpen  = os.path.join(theOutputDataFolder,outSubFolder, "jsns", "open")
 
       outMergedFileFullPath       = theOutputDataFolderFullPathOpen + "/" + fileName
-      outMergedJSONFullPath       = theOutputDataFolderFullPathOpen + "/" + jsonName
+      outMergedJSONFullPath       = theOutputJSONFolderFullPathOpen + "/" + jsonName
       outMergedFileFullPathStable = theOutputDataFolderFullPath     + "/" + fileName
-      outMergedJSONFullPathStable = theOutputDataFolderFullPath     + "/" + jsonName.replace("_TEMP.jsn",".jsn")
+      outMergedJSONFullPathStable = theOutputJSONFolderFullPath     + "/" + jsonName.replace("_TEMP.jsn",".jsn")
 
       if not os.path.exists(theOutputDataFolderFullPathOpen):
          log.warning("Moving operation, folder did not exist, {0}, creating it".format(theOutputDataFolderFullPathOpen))
@@ -288,6 +239,15 @@ def moveFiles(debug, theInputDataFolder, theOutputDataFolder, jsonName, theSetti
    	    os.makedirs(theOutputDataFolderFullPathOpen)
          except Exception, e:
    	    log.warning("Looks like the directory {0} has just been created by someone else...".format(theOutputDataFolderFullPathOpen))
+
+      if not os.path.exists(theOutputJSONFolderFullPathOpen):
+         log.warning("Moving operation, folder did not exist, {0}, creating it".format(theOutputJSONFolderFullPathOpen))
+         try:
+   	    os.makedirs(theOutputJSONFolderFullPathOpen)
+            msg = "sudo lfs setstripe -c 1 -S 1m {0}".format(theOutputJsonFolderFullPath)
+            os.system(msg)
+         except Exception, e:
+   	    log.warning("Looks like the directory {0} has just been created by someone else...".format(theOutputJSONFolderFullPathOpen))
 
       if(float(debug) >= 10): log.info("moving info: {0} {1} {2} {3} {2} {3}".format(inpMergedFileFullPath, outMergedFileFullPath, outMergedFileFullPathStable, 
                                                                                      inpMergedJSONFullPath, outMergedJSONFullPath, outMergedJSONFullPathStable))
@@ -404,20 +364,16 @@ def doTheRecovering(paths_to_watch, streamType, mergeType, debug):
       inputDataFolder = inputDataFolders[nf]	   
 
       after = dict()
-      try:
-         after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
-         after.update(after_temp)
-         after_temp = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.ini'))])
-         after.update(after_temp)
-      except Exception, e:
-         log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
-
       listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
       for nStr in range(0, len(listFolders)):
          try:
             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
             after.update(after_temp)
             after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
+            after.update(after_temp)
+            after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], 'jsns', '*.jsn'))])
+            after.update(after_temp)
+            after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], 'data', '*.ini'))])
             after.update(after_temp)
          except Exception, e:
             log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
@@ -496,7 +452,7 @@ def readJsonFile(inputJsonFile, debug):
 """
 Do loops
 """
-def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, completeMergingThreshold, esServerUrl, esIndexName):
+def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, completeMergingThreshold, esServerUrl, esIndexName):
    filesDict      = dict()
    jsonsDict      = dict()    
    eventsIDict    = dict()
@@ -547,7 +503,6 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	    outputMergedFolder    = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-2])
 	    outputSMMergedFolder  = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-2])
 	    outputDQMMergedFolder = os.path.join(outputDQMMerge, inputDataFolderString[len(inputDataFolderString)-2])
-	    outputECALMergedFolder= os.path.join(outputECALMerge,inputDataFolderString[len(inputDataFolderString)-2])
 	    theRunNumber          = inputDataFolderString[len(inputDataFolderString)-2]
 	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-2])
 	    outputSMBadFolder     = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-2])
@@ -556,7 +511,6 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	    outputMergedFolder    = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1])
 	    outputSMMergedFolder  = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1])
 	    outputDQMMergedFolder = os.path.join(outputDQMMerge, inputDataFolderString[len(inputDataFolderString)-1])
-	    outputECALMergedFolder= os.path.join(outputECALMerge,inputDataFolderString[len(inputDataFolderString)-1])
 	    theRunNumber          = inputDataFolderString[len(inputDataFolderString)-1] 
 	    outputBadFolder       = os.path.join(outputMerge,    inputDataFolderString[len(inputDataFolderString)-1])
 	    outputSMBadFolder     = os.path.join(outputSMMerge,  inputDataFolderString[len(inputDataFolderString)-1])
@@ -573,7 +527,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           except Exception, e:
              log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
 
-          afterStringNoSortedEOR = [f for f in after_eor if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR"     in f)) ]
+          afterStringNoSortedEOR = [f for f in after_eor if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR" in f)) ]
           afterStringEOR =sorted(afterStringNoSortedEOR, reverse=False)
 
           listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
@@ -585,6 +539,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
                after.update(after_temp)
                after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.ini'))])
+               after.update(after_temp)
+               after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], 'jsns', '*.jsn'))])
+               after.update(after_temp)
+               after_temp = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], 'data', '*.ini'))])
                after.update(after_temp)
             except Exception, e:
                log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
@@ -613,10 +571,12 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                 outSubFolder = fileIniString[2]
 
                 if (float(debug) >= 1): log.info("creating subdirs under: {0}/{1}".format(outputMergedFolder, outSubFolder))
-                cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,     outSubFolder, "open"), 
-		                                     os.path.join(outputSMMergedFolder,   outSubFolder, "open"), 
-						     os.path.join(outputDQMMergedFolder,  outSubFolder, "open"), 
-						     os.path.join(outputECALMergedFolder, outSubFolder), 
+                cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,     outSubFolder, "jsns", "open"), 
+		                                     os.path.join(outputSMMergedFolder,   outSubFolder, "jsns", "open"), 
+						     os.path.join(outputDQMMergedFolder,  outSubFolder, "jsns", "open"), 
+						     os.path.join(outputMergedFolder,     outSubFolder, "data", "open"), 
+		                                     os.path.join(outputSMMergedFolder,   outSubFolder, "data", "open"), 
+						     os.path.join(outputDQMMergedFolder,  outSubFolder, "data", "open"), 
 						     os.path.join(outputBadFolder,        outSubFolder, "bad"),
 						     os.path.join(outputSMBadFolder,      outSubFolder, "bad"),
 						     os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
@@ -632,10 +592,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 	     	   # init name: runxxx_ls0000_streamY_HOST.ini
 	     	   inputNameString = baseName.split('_')
           	   # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
-	     	   outputIniNameTEMP          = theIniOutputFolder + "/" + outSubFolder + "/open/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini_TMP1"
-	     	   outputIniName              = theIniOutputFolder + "/" + outSubFolder +      "/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini"
-          	   outputIniNameToCompareTEMP = theIniOutputFolder + "/" + outSubFolder + "/open/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini_TMP2"
-          	   outputIniNameToCompare     = theIniOutputFolder + "/" + outSubFolder + "/open/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + "StorageManager" + ".ini"
+	     	   outputIniNameTEMP          = theIniOutputFolder + "/" + outSubFolder + "/data/open/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini_TMP1"
+	     	   outputIniName              = theIniOutputFolder + "/" + outSubFolder +      "/data/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini"
+          	   outputIniNameToCompareTEMP = theIniOutputFolder + "/" + outSubFolder + "/data/open/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" +    outputEndName + ".ini_TMP2"
+          	   outputIniNameToCompare     = theIniOutputFolder + "/" + outSubFolder + "/data/open/" + inputNameString[0] + "_ls0000_" + inputNameString[2] + "_" + "StorageManager" + ".ini"
 	     	   inputNameRename  = inputName.replace(".ini","_TEMP.ini")
           	   os.rename(inputName,inputNameRename)
           	   if(float(debug) >= 10): log.info("iniFile: {0}".format(baseName))
@@ -692,13 +652,13 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    # only for streamHLTRates and streamL1Rates, need another file
                    if(("streamHLTRates" in fileIniString[2]) or ("streamL1Rates" in fileIniString[2])):
 	     	      inputJsdNameString = baseName.split('_')
-		      inputJsdName  = inputDataFolder + "/"  + inpSubFolder + "/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + ".jsd"
+		      inputJsdName  = inputDataFolder + "/"  + inpSubFolder + "/data/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + ".jsd"
 		      if(os.path.exists(inputJsdName)):
           		 # outputIniName will be modified in the next merging step immediately, while outputIniNameToCompare will stay forever
-	     		 outputIniNameTEMP          = outputMergedFolder + "/" + outSubFolder + "/open/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + "_" +    outputEndName  + ".jsd_TMP1"
-	     		 outputIniName              = outputMergedFolder + "/" + outSubFolder +      "/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2]                           + ".jsd"
-          		 outputIniNameToCompareTEMP = outputMergedFolder + "/" + outSubFolder + "/open/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + "_" +    outputEndName  + ".jsd_TMP2"
-          		 outputIniNameToCompare     = outputMergedFolder + "/" + outSubFolder + "/open/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2]                           + ".jsd"
+	     		 outputIniNameTEMP          = outputMergedFolder + "/" + outSubFolder + "/data/open/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + "_" +    outputEndName  + ".jsd_TMP1"
+	     		 outputIniName              = outputMergedFolder + "/" + outSubFolder +      "/data/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2]			     + ".jsd"
+          		 outputIniNameToCompareTEMP = outputMergedFolder + "/" + outSubFolder + "/data/open/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2] + "_" +    outputEndName  + ".jsd_TMP2"
+          		 outputIniNameToCompare     = outputMergedFolder + "/" + outSubFolder + "/data/open/" + inputJsdNameString[0] + "_ls0000_" + inputJsdNameString[2]			     + ".jsd"
           		 if(float(debug) >= 10): log.info("iniFile: {0}".format(baseName))
 	  		 # getting the ini file, just once per stream
 	     		 if (not os.path.exists(outputIniNameToCompare) or (os.path.exists(outputIniNameToCompare) and os.path.getsize(outputIniNameToCompare) == 0)):
@@ -767,11 +727,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
              elif(streamType == "noDQMRatesnoStreamEP" and (isOnlyDQMRates == True or isStreamEP == True)): continue
 
 	     if(float(debug) >= 50): log.info("FILE: {0}".format(baseName))
-	     inputJsonFile = os.path.join(inputDataFolder, baseName)
              inpSubFolder = fileNameString[2]
              outSubFolder = fileNameString[2]
 
-             inputJsonFile = os.path.join(inputDataFolder, inpSubFolder, baseName)
+             inputJsonFile = afterStringJSN[i]
 	     if(float(debug) >= 50): log.info("inputJsonFile: {0}".format(inputJsonFile))
              
              iniReadingJsonTime = time.time()
@@ -847,6 +806,10 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		NLostEvents      = int(settings['data'][8])
                 if(len(settings['data']) >= 10):
                    transferDest  = str(settings['data'][9])
+
+		if fileNameString[2] == "streamError":
+		   file            = str(settings['data'][3])
+		   fileErrorString = file.split(',')
 
              key = (fileNameString[0],fileNameString[1],fileNameString[2])
              # procedure to remove DQM left-behind files
@@ -969,19 +932,21 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		      varDictAux.append(variablesDict[key][6])
 
                       if(float(debug) > 1): log.info("Try to create dirs under {0}/{1}".format(outputMergedFolder, outSubFolder))
-                      cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,                  outSubFolder, "open"), 
-                                                                        os.path.join(outputSMMergedFolder,   outSubFolder, "open"), 
-                                                                        os.path.join(outputDQMMergedFolder,  outSubFolder, "open"), 
-                                                                        os.path.join(outputECALMergedFolder, outSubFolder), 
-                                                                        os.path.join(outputBadFolder,        outSubFolder, "bad"),
-                                                                        os.path.join(outputSMBadFolder,      outSubFolder, "bad"),
-                                                                        os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
+                      cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,     outSubFolder, "jsns", "open"), 
+                                                           os.path.join(outputSMMergedFolder,	outSubFolder, "jsns", "open"), 
+                                                           os.path.join(outputDQMMergedFolder,  outSubFolder, "jsns", "open"), 
+                                                           os.path.join(outputMergedFolder,	outSubFolder, "data", "open"), 
+                                                           os.path.join(outputSMMergedFolder,	outSubFolder, "data", "open"), 
+                                                           os.path.join(outputDQMMergedFolder,  outSubFolder, "data", "open"), 
+                                                           os.path.join(outputBadFolder,	outSubFolder, "bad"),
+                                                           os.path.join(outputSMBadFolder,	outSubFolder, "bad"),
+                                                           os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
 
                       if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                       if("DQM" in fileNameString[2] or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
-                         process = thePoolDQM.apply_async(mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                         process = thePoolDQM.apply_async(mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
 		      else:
-                         process = thePool.apply_async(   mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                         process = thePool.apply_async(   mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolderModified, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
 
                       # delete dictionaries to avoid too large memory use
                       try:
@@ -1034,19 +999,21 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 		   varDictAux.append(variablesDict[key][6])
 
                    if(float(debug) > 1): log.info("Try to create dirs under {0}/{1}".format(outputMergedFolder, outSubFolder))
-                   cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,		  outSubFolder, "open"), 
-                   						     os.path.join(outputSMMergedFolder,   outSubFolder, "open"), 
-                   						     os.path.join(outputDQMMergedFolder,  outSubFolder, "open"), 
-                   						     os.path.join(outputECALMergedFolder, outSubFolder), 
-                   						     os.path.join(outputBadFolder,	  outSubFolder, "bad"),
-                   						     os.path.join(outputSMBadFolder,	  outSubFolder, "bad"),
-                   						     os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
+                   cmsDataFlowMakeFolders.doMakeFolders(os.path.join(outputMergedFolder,     outSubFolder, "jsns", "open"), 
+                   					os.path.join(outputSMMergedFolder,   outSubFolder, "jsns", "open"), 
+                   					os.path.join(outputDQMMergedFolder,  outSubFolder, "jsns", "open"), 
+                   					os.path.join(outputMergedFolder,     outSubFolder, "data", "open"), 
+                   					os.path.join(outputSMMergedFolder,   outSubFolder, "data", "open"), 
+                   					os.path.join(outputDQMMergedFolder,  outSubFolder, "data", "open"), 
+                   					os.path.join(outputBadFolder,	     outSubFolder, "bad"),
+                   					os.path.join(outputSMBadFolder,      outSubFolder, "bad"),
+                   					os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
 
                    if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
                    if("DQM" in fileNameString[2] or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
-                      process = thePoolDQM.apply_async(mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                      process = thePoolDQM.apply_async(mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                    else:
-                      process = thePool.apply_async(   mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, outputECALMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                      process = thePool.apply_async(   mergeFiles, [inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
 
                    # delete dictionaries to avoid too large memory use
                    try:
@@ -1104,7 +1071,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
       thePoolDQM.close()
       thePoolDQM.join()
 
-def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
+def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
     triggerMergingThreshold = [0.5001, 0.8000] # DQMEventDisplay and DQM
     completeMergingThreshold = 1.0
@@ -1145,14 +1112,8 @@ def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, 
        except Exception, e:
           log.warning("Looks like the directory {0} has just been created by someone else...".format(outputDQMMerge))
     
-    if not os.path.exists(outputECALMerge):
-       try:
-          os.makedirs(outputECALMerge)
-       except Exception, e:
-          log.warning("Looks like the directory {0} has just been created by someone else...".format(outputECALMerge))
-
     if not (esServerUrl == '' or esIndexName==''):
         esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,debug)
 
     doTheRecovering(paths_to_watch, streamType, mergeType, debug)
-    doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, outputECALMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, completeMergingThreshold, esServerUrl, esIndexName)
+    doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputMerge, outputSMMerge, outputDQMMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, triggerMergingThreshold, completeMergingThreshold, esServerUrl, esIndexName)

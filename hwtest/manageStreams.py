@@ -209,13 +209,13 @@ def create_ini_files(options, params):
     ## loop over streams
     for i in range(filesNb):
         streamName =  params['Streams']['name' + str(i)]
-	myDir = "%sunmergedDATA/run%d/%s" % (path_to_make,RUNNumber,streamName)
+	myDir = "%sunmergedDATA/run%d/%s/data" % (path_to_make,RUNNumber,streamName)
         if not os.path.exists(myDir):
            try:
                os.makedirs(myDir)
            except OSError, e:
               print "Looks like the creation of " + myDir + " has failed"
-        fileIntNameFullPath = "%sunmergedDATA/run%d/%s/run%d_ls0000_%s_BU%s.ini" % (path_to_make,RUNNumber,streamName,RUNNumber,streamName,theBUNumber)
+        fileIntNameFullPath = "%sunmergedDATA/run%d/%s/data/run%d_ls0000_%s_BU%s.ini" % (path_to_make,RUNNumber,streamName,RUNNumber,streamName,theBUNumber)
         with open(fileIntNameFullPath, 'w') as thefile:
            thefile.write('0' * 10)
            thefile.write("\n")

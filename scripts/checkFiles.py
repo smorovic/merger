@@ -12,15 +12,16 @@ import subprocess
 import sys
 
 buDir="/fff/BU0"
-#topDir="/beast_storage/mergeMacro"
-topDir="/store/lustre/transfer"
+topDir="/store/lustre/mergeMacro_TEST"
+#topDir="/store/lustre/transfer"
 isBU=False
 stream="*"
 lsPattern="*"
 
 def createJsnDict(pattern):
     rundir = pattern.split('_',3)[0]
-    jsnPattern = topDir+"/"+rundir+"/"+pattern+".jsn"
+    streamdir = pattern.split('_',3)[2]
+    jsnPattern = topDir+"/"+rundir+"/"+streamdir+"/jsns/"+pattern+".jsn"
     jsnFiles = glob.glob(jsnPattern)
     print("Considering "+str(len(jsnFiles))+" JSON files "+jsnPattern)
     jsnDict = {}
@@ -103,6 +104,7 @@ for stream in jsnDict.keys():
             #print(stat['data'])
             stem=os.path.splitext(jsn)[0]
             datFile = stem.replace("_TEMP","")+".dat"
+	    datFile = datFile.replace("/jsns","/data")
             if isBU:
                 jsnDatFile = stat['data'][4]
             else:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys,json
+import sys,json,os
 import zlib
 
 def main():
@@ -18,6 +18,8 @@ def main():
             checkSumFile = checkSumFile & 0xffffffff
 
     	    jsonName = fname.replace(".dat",".jsn")
+	    if(not os.path.exists(jsonName)):
+               jsonName = jsonName.replace("data","jsns")
     	    settings_textI = open(jsonName, "r").read()
     	    settings       = json.loads(settings_textI)
     	    checkSumJson   = int(settings['data'][5])

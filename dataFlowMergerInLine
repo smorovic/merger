@@ -35,7 +35,6 @@ def get_params():
         stream_type = params['Misc']['streamType']
 	sm_path = params['Output']['smPath']
         dqm_path = params['Output']['dqmPath']
-	ecal_path = params['Output']['ecalPath']
 	doCheckSum_option = params['Output']['doCheckSum']
         merge_option = params['Misc']['mergeOption']
         es_server_url = params['Misc']['esServerUrl']
@@ -65,18 +64,18 @@ def get_params():
     if (merge_option != "optionA"):
         delete_files = "True"
 
-    return in_path, eol_path, out_path, sm_path, dqm_path, ecal_path, doCheckSum_option, additional_label, merge_type, stream_type, delete_files, merge_option, debug_level
+    return in_path, eol_path, out_path, sm_path, dqm_path, doCheckSum_option, additional_label, merge_type, stream_type, delete_files, merge_option, debug_level
 
 
 
 def DataFlowMerger():
 
 
-  [inPath, eolPath, outPath, smPath, dqmPath, ecalPath, doCheckSumOption, adLabel, mType, sType, delOrigFiles, mergeOption, debugLevel] = get_params()
+  [inPath, eolPath, outPath, smPath, dqmPath, doCheckSumOption, adLabel, mType, sType, delOrigFiles, mergeOption, debugLevel] = get_params()
 
   log.info("delFiles: {0}".format(delOrigFiles))
 
-  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, sType, outPath, smPath, dqmPath, ecalPath, doCheckSumOption, adLabel, delOrigFiles, mergeOption, debugLevel)
+  cmsDataFlowMerger.start_merging(inPath, eolPath, mType, sType, outPath, smPath, dqmPath, doCheckSumOption, adLabel, delOrigFiles, mergeOption, debugLevel)
 
 if __name__ == "__main__":
 
