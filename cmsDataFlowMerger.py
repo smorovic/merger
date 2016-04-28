@@ -520,16 +520,6 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
           if(float(debug) >= 50): time.sleep (1)
           if(float(debug) >= 20): log.info("Begin folder iteration")
 
-          after_eor = dict()
-          try:
-             after_temp_eor = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
-             after_eor.update(after_temp_eor)
-          except Exception, e:
-             log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
-
-          afterStringNoSortedEOR = [f for f in after_eor if ( (f.endswith(".jsn")) and ("TEMP" not in f) and ("EoR" in f)) ]
-          afterStringEOR =sorted(afterStringNoSortedEOR, reverse=False)
-
           listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
           tlock  = threading.Lock()
 
@@ -818,13 +808,15 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    key in eventsIDict.keys() and eventsIDict[key][0] < 0):
                    settings = "bad"
                    os.remove(inputJsonRenameFile)
-                   inputDataFile = os.path.join(inputDataFolder, inpSubFolder, file)
+                   inputDataFile = os.path.join(inputDataFolder, inpSubFolder, "data", file)
                    if(os.path.isfile(inputDataFile)):
                       os.remove(inputDataFile)
                    BoLSFileName = fileNameString[0] + "_" + fileNameString[1] + "_" + fileNameString[2] + "_BoLS.jsn"
-                   BoLSFileNameFullPath = os.path.join(inputDataFolder, inpSubFolder, BoLSFileName)
+                   BoLSFileNameFullPath = os.path.join(inputDataFolder, inpSubFolder, "jsns", BoLSFileName)
                    if os.path.exists(BoLSFileNameFullPath):
                       os.remove(BoLSFileNameFullPath)
+                   else:
+                      log.warning("BoLS File not found: {0}".format(BoLSFileNameFullPath))
              except Exception, e:
                 log.error("Deleting file failed {0} {1}".format(inputJsonRenameFile,e))
              if("bad" in settings): continue
@@ -1057,6 +1049,22 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       except Exception, e:
                          log.error("CleanUp-creadir dir folder error: {0}".format(e))
 
+                   listFolders = sorted(glob.glob(os.path.join(inputDataFolder, 'stream*')));
+                   after_eor = dict()
+                   try:
+                      after_temp_eor = dict ([(f, None) for f in glob.glob(os.path.join(inputDataFolder, '*.jsn'))])
+                      after_eor.update(after_temp_eor)
+                      for nStr in range(0, len(listFolders)):
+                         after_temp_eor = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], '*.jsn'))])
+                         after_eor.update(after_temp_eor)
+                         after_temp_eor = dict ([(f, None) for f in glob.glob(os.path.join(listFolders[nStr], 'jsns', '*.jsn'))])
+                         after_eor.update(after_temp_eor)
+                   except Exception, e:
+                      log.error("glob.glob operation failed: {0} - {1}".format(inputDataFolder,e))
+
+                   afterStringNoSortedEOR = [f for f in after_eor if ( (f.endswith(".jsn")) and ("TEMP" not in f) and (("EoR" in f) or ("BoLS" in f))) ]
+                   afterStringEOR =sorted(afterStringNoSortedEOR, reverse=False)
+
                    isRunComplete = cmsDataFlowCleanUp.cleanUpRun(debug, EoRFileName, inputDataFolder, afterStringEOR, path_eol, theRunNumber, outputSMMergedFolder, outputEndName, completeMergingThreshold)
                    if(float(debug) >= 3): log.info("isRunComplete({0}): {1}".format(theRunNumber,isRunComplete))
                    if(isRunComplete == True):
@@ -1074,6 +1082,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
     triggerMergingThreshold = [0.5001, 0.8000] # DQMEventDisplay and DQM
+    #triggerMergingThreshold = [1.0, 1.0] # DQMEventDisplay and DQM
     completeMergingThreshold = 1.0
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
@@ -1090,6 +1099,8 @@ def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, 
     if mergeType == "mini":
        triggerMergingThreshold[0] = 0.80
        triggerMergingThreshold[1] = 0.90
+       #triggerMergingThreshold[0] = 1.00
+       #triggerMergingThreshold[1] = 1.00
        if not os.path.exists(path_eol):
           msg = "End of Lumi folder Not Found: %s" % path_eol
           raise RuntimeError, msg

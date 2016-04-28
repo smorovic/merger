@@ -23,6 +23,7 @@ def cleanUpRun(debug, EoRFileName, inputDataFolder, afterString, path_eol,
 
    eventsInputFU = 0
    for nb in range(0, len(afterString)):
+      if "EoR" not in afterString[nb]: continue
       inputEoRFUJsonFile = afterString[nb]
       settingsLS = cmsDataFlowMerger.readJsonFile(inputEoRFUJsonFile, debug)
 

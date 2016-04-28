@@ -171,9 +171,10 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
          if (mergeType == "mini"):
              filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
          filenamesOut = [os.path.join(outputMergedFolder, outSubFolder, "data") + "/" + word_in_list for word_in_list in files]
+         outMergedFile = ""
          for nfile in range(0, len(filenames)):
-	    outMergedFile = files[nfile] + "," + outMergedFile
             if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
+               outMergedFile = files[nfile] + "," + outMergedFile
                shutil.move(filenames[nfile],filenamesOut[nfile])
 
       else:
@@ -659,6 +660,9 @@ def append_files(ifnames, ofile, debug, theTimeReadWrite):
                 #shutil.copyfileobj(ifile, ofile)
                 copyfileobj(ifile, ofile, debug, theTimeReadWrite)
             ifile.close()
+        elif ((not os.path.isdir(ifname))):
+	    msg = "filename {0} does not exist".format(ifname)
+	    raise RuntimeError, msg
 # append_files
 
 #______________________________________________________________________________
