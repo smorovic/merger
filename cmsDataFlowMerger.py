@@ -815,8 +815,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    BoLSFileNameFullPath = os.path.join(inputDataFolder, inpSubFolder, "jsns", BoLSFileName)
                    if os.path.exists(BoLSFileNameFullPath):
                       os.remove(BoLSFileNameFullPath)
-                   else:
-                      log.warning("BoLS File not found: {0}".format(BoLSFileNameFullPath))
+                   #else:
+                   #   log.warning("BoLS File not found: {0}".format(BoLSFileNameFullPath))
              except Exception, e:
                 log.error("Deleting file failed {0} {1}".format(inputJsonRenameFile,e))
              if("bad" in settings): continue
