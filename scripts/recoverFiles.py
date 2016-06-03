@@ -99,9 +99,9 @@ for i in range(0, len(afterString)):
 
    for ls in range(lsmin,lslimit):
       if(type == "cdaq"):
-         res = requests.post('http://es-cdaq:9200/runindex_cdaq/minimerge/_search?pretty&size=1000','{"query":{ "bool":{"must":{"term":{"_parent":'+str(run)+'}},"must":{"term":{"ls":'+str(ls)+'}},"must":{"term":{"stream":"'+stream+'"}} }}}')
+         res = requests.post('http://es-cdaq.cms:9200/runindex_cdaq_read/minimerge/_search?pretty&size=1000','{"query":{ "bool":{"must":{"prefix":{"_id":"run'+str(run)+'"}},"must":{"term":{"ls":'+str(ls)+'}},"must":{"term":{"stream":"'+stream+'"}} }}}')
       else:
-         res = requests.post('http://es-cdaq:9200/runindex_minidaq/minimerge/_search?pretty&size=1000','{"query":{ "bool":{"must":{"term":{"_parent":'+str(run)+'}},"must":{"term":{"ls":'+str(ls)+'}},"must":{"term":{"stream":"'+stream+'"}} }}}')
+         res = requests.post('http://es-cdaq.cms:9200/runindex_minidaq_read/minimerge/_search?pretty&size=1000','{"query":{ "bool":{"must":{"prefix":{"_id":"run'+str(run)+'"}},"must":{"term":{"ls":'+str(ls)+'}},"must":{"term":{"stream":"'+stream+'"}} }}}')
       js = json.loads(res.content)
 
       hitlist = js['hits']['hits']#['_source']['in']
