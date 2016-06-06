@@ -126,5 +126,5 @@ for i in range(0, len(afterString)):
       eventsOutput = eventsOutput + totacc
 
    theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (eventsInput, eventsOutput, 0, os.path.basename(outMergedFileFullPath), totalSize, checkSumFile, 0, eventsInput, 0, "Tier0")}))
+   theMergedJSONfile.write(json.dumps({'data': (eventsInput, eventsOutput, 0, os.path.basename(outMergedFileFullPath), totalSize, checkSumFile, 0, tot, 0, "Tier0")}))
    theMergedJSONfile.close()
