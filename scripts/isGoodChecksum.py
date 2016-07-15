@@ -20,7 +20,9 @@ def main():
     	    jsonName = fname.replace(".dat",".jsn")
 	    if(not os.path.exists(jsonName)):
                jsonName = jsonName.replace("data","jsns")
-    	    settings_textI = open(jsonName, "r").read()
+    	    if(not os.path.exists(jsonName)):
+	       jsonName = jsonName.replace(".jsn","_TEMP.jsn")
+	    settings_textI = open(jsonName, "r").read()
     	    settings       = json.loads(settings_textI)
     	    checkSumJson   = int(settings['data'][5])
     	    if(checkSumFile != checkSumJson):

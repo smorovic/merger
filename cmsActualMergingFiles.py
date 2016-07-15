@@ -20,7 +20,7 @@ log = getLogger()
 max_size = 30 * 1024 * 1024 * 1024
 host = os.uname()[1]
 max_retries = 10
-max_size_checksum = 2.5 * 1024 * 1024 * 1024
+max_size_checksum = 2.7 * 1024 * 1024 * 1024
 
 def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexName, maxConnectionAttempts, debug):
    # here the merge action is monitored by inserting a record into Elastic Search database
@@ -58,22 +58,19 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
 """
 merging option A: merging unmerged files to different files for different BUs
 """
-def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
+def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSumFix, fileSizeFix, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug):
  try:
-   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode))
+   if(float(debug) >= 10): log.info("mergeFiles: {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}".format(outputMergedFolder, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSumFix, fileSizeFix, filesJSON, errorCode))
    
    outMergedFileFullPath = os.path.join(outputMergedFolder, outSubFolder, "data", "open", outMergedFile)
    outMergedJSONFullPath = os.path.join(outputMergedFolder, outSubFolder, "jsns", "open", outMergedJSON)
    if(float(debug) >= 10): log.info('outMergedFileFullPath: {0}'.format(outMergedFileFullPath))
+   outMergedFileFullPathStable = ""
+   outMergedJSONFullPathStable = ""
 
    timeReadWrite = [0, 0]
    initMergingTime = time.time()
    if(float(debug) > 0): log.info("Start merge of {0}".format(outMergedJSONFullPath))
-
-   if os.path.exists(outMergedFileFullPath):
-      os.remove(outMergedFileFullPath)
-   if os.path.exists(outMergedJSONFullPath):
-      os.remove(outMergedJSONFullPath)
 
    inputJsonFolder = os.path.dirname(filesJSON[0])
    fileNameString = filesJSON[0].replace(inputJsonFolder,"").replace("/","").split('_')
@@ -82,130 +79,182 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
    if(fileNameString[2] == "streamDQMHistograms" or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates" or fileNameString[2] == "streamError"):
       specialStreams = True
 
-   if (mergeType == "macro" and specialStreams == False and infoEoLS[0] != 0):
-      iniName = fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + "StorageManager" + ".ini"
-      iniNameFullPath = os.path.join(outputMergedFolder, outSubFolder, "data", "open", iniName)
-      if os.path.exists(iniNameFullPath):
+   checksum_status = False
+   number_full_tries = 0
+   while(checksum_status == False and number_full_tries < 3):
+      checksum_status = True
+      number_full_tries = number_full_tries + 1
+      if os.path.exists(outMergedFileFullPath):
+	 os.remove(outMergedFileFullPath)
+      if os.path.exists(outMergedJSONFullPath):
+	 os.remove(outMergedJSONFullPath)
 
-         checkSumIni=1
-	 n_retries=0
-	 while n_retries < max_retries:
-            try:
-               checkSumIni=1
-               with open(iniNameFullPath, 'r') as fsrc:
-        	  length=16*1024
-      		  while 1:
-   		     buf = fsrc.read(length)
-   		     if not buf:
-   	    		break
-   		     checkSumIni=zlib.adler32(buf,checkSumIni)
+      if (mergeType == "macro" and specialStreams == False and infoEoLS[0] != 0):
+	 iniName = fileNameString[0] + "_ls0000_" + fileNameString[2] + "_" + "StorageManager" + ".ini"
+	 iniNameFullPath = os.path.join(outputMergedFolder, outSubFolder, "data", "open", iniName)
+	 if os.path.exists(iniNameFullPath):
 
-               checkSumIni = checkSumIni & 0xffffffff
-               checkSum = zlibextras.adler32_combine(checkSumIni,checkSum,fileSize)
-               checkSum = checkSum & 0xffffffff
+            checkSumIni=1
+	    n_retries=0
+	    while n_retries < max_retries:
+               try:
+        	  checkSumIni=1
+        	  with open(iniNameFullPath, 'r') as fsrc:
+        	     length=16*1024
+      		     while 1:
+   			buf = fsrc.read(length)
+   			if not buf:
+   	    		   break
+   			checkSumIni=zlib.adler32(buf,checkSumIni)
+                  fsrc.close()
 
-               fileSize = os.path.getsize(iniNameFullPath) + fileSize
-               filenames = [iniNameFullPath]
+        	  checkSumIni = checkSumIni & 0xffffffff
+        	  checkSum = zlibextras.adler32_combine(checkSumIni,checkSumFix,fileSizeFix)
+        	  checkSum = checkSum & 0xffffffff
 
-               with open(outMergedFileFullPath, 'w') as fout:
-                  append_files(filenames, fout, debug, timeReadWrite)
-               fout.close()
-	       break
-            except Exception, e:
-               log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
-               n_retries+=1
-               time.sleep(30)
+        	  fileSize = os.path.getsize(iniNameFullPath) + fileSizeFix
+        	  filenames = [iniNameFullPath]
 
-         if(n_retries == max_retries):
-            log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
-            msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
-            raise RuntimeError, msg
+        	  with open(outMergedFileFullPath, 'w') as fout:
+                     append_files(filenames, fout, debug, timeReadWrite)
+        	  fout.close()
+		  break
+               except Exception, e:
+        	  log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
+        	  n_retries+=1
+        	  time.sleep(30)
 
-      else:
-         log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
-	 msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
-	 raise RuntimeError, msg
+            if(n_retries == max_retries):
+               log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
+               msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
+               raise RuntimeError, msg
 
-   filenames = [inputDataFolder + "/" + inpSubFolder + "/data/" + word_in_list for word_in_list in files]
+	 else:
+            log.error("BIG PROBLEM, ini file not found!: {0}".format(iniNameFullPath))
+	    msg = "BIG PROBLEM, ini file not found!: %s" % (iniNameFullPath)
+	    raise RuntimeError, msg
 
-   if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
+      filenames = [inputDataFolder + "/" + inpSubFolder + "/data/" + word_in_list for word_in_list in files]
 
-   if(infoEoLS[0] != 0):
-      if (specialStreams == False and mergeType == "macro"):
-         with open(outMergedFileFullPath, 'a') as fout:
-            append_files(filenames, fout, debug, timeReadWrite)
-         fout.close()
-   
-      elif (specialStreams == False):
-	 n_retries=0
-	 while n_retries < max_retries:
-            try:
-               with open(outMergedFileFullPath, 'w') as fout:
-                  append_files(filenames, fout, debug, timeReadWrite)
-               fout.close()
-	       break
-            except Exception, e:
-               log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
-               n_retries+=1
-               time.sleep(30)
+      if(float(debug) > 5): log.info("Will merge: {0}".format(filenames))
 
-         if(n_retries == max_retries):
-            log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
-            msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
-            raise RuntimeError, msg
-   
-      elif (fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
-         msg = "jsonMerger %s " % (outMergedFileFullPath)
-         goodFiles = 0
-         for nfile in range(0, len(filenames)):
-            if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
-               msg = msg + filenames[nfile] + " "
-               goodFiles = goodFiles + 1
-         if(float(debug) > 20): log.info("running {0}".format(msg))
-         if(goodFiles > 0):
-            os.system(msg)
-         else:
-            open(outMergedFileFullPath, 'w').close()
+      if(infoEoLS[0] != 0):
+	 if (specialStreams == False and mergeType == "macro"):
+            with open(outMergedFileFullPath, 'a') as fout:
+               append_files(filenames, fout, debug, timeReadWrite)
+            fout.close()
 
-      elif (fileNameString[2] == "streamError"):
-         if (mergeType == "mini"):
-             filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
-         filenamesOut = [os.path.join(outputMergedFolder, outSubFolder, "data") + "/" + word_in_list for word_in_list in files]
-         outMergedFile = ""
-         for nfile in range(0, len(filenames)):
-            if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
-               outMergedFile = files[nfile] + "," + outMergedFile
-               shutil.move(filenames[nfile],filenamesOut[nfile])
+	 elif (specialStreams == False):
+	    n_retries=0
+	    while n_retries < max_retries:
+               try:
+        	  with open(outMergedFileFullPath, 'w') as fout:
+                     append_files(filenames, fout, debug, timeReadWrite)
+        	  fout.close()
+		  break
+               except Exception, e:
+        	  log.warning("Error writing file {0}: {1}, waiting for 30secs".format(outMergedFileFullPath,e))
+        	  n_retries+=1
+        	  time.sleep(30)
 
-      else:
-         if (mergeType == "macro"):
-            msg = "fastHadd add -j 7 -o %s " % (outMergedFileFullPath)
-         else:
-            msg = "fastHadd add -o %s " % (outMergedFileFullPath)
-         goodFiles = 0
-         for nfile in range(0, len(filenames)):
-            if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
-               msg = msg + filenames[nfile] + " "
-               goodFiles = goodFiles + 1
-         if(float(debug) > 20): log.info("running {0}".format(msg))
-         if(goodFiles > 0):
-            os.system(msg)
-            try:
-               fileSize = os.path.getsize(outMergedFileFullPath)
-            except Exception, e:
-               log.warning("Error computing histogram filesize {0}: {1}".format(outMergedFileFullPath,e))
-         else:
-            open(outMergedFileFullPath, 'w').close()
+            if(n_retries == max_retries):
+               log.error("Could not write file {0}!: {0}".format(outMergedFileFullPath))
+               msg = "Could not write file {0}!: %s" % (outMergedFileFullPath)
+               raise RuntimeError, msg
 
-   # input events in that file, all input events, file name, output events in that files, number of merged files
-   # only the first three are important
-   theMergedJSONfile = open(outMergedJSONFullPath, 'w')
-   theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2], infoEoLS[3], transferDest)}))
-   theMergedJSONfile.close()
-   #os.chmod(outMergedJSONFullPath, 0666)
+	 elif (fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
+            msg = "jsonMerger %s " % (outMergedFileFullPath)
+            goodFiles = 0
+            for nfile in range(0, len(filenames)):
+               if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
+        	  msg = msg + filenames[nfile] + " "
+        	  goodFiles = goodFiles + 1
+            if(float(debug) > 20): log.info("running {0}".format(msg))
+            if(goodFiles > 0):
+               os.system(msg)
+            else:
+               open(outMergedFileFullPath, 'w').close()
+
+	 elif (fileNameString[2] == "streamError"):
+            if (mergeType == "mini"):
+        	filenames = [inputDataFolder + "/" + word_in_list for word_in_list in files]
+            filenamesOut = [os.path.join(outputMergedFolder, outSubFolder, "data") + "/" + word_in_list for word_in_list in files]
+            outMergedFile = ""
+            for nfile in range(0, len(filenames)):
+               if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
+        	  outMergedFile = files[nfile] + "," + outMergedFile
+        	  shutil.move(filenames[nfile],filenamesOut[nfile])
+
+	 else:
+            if (mergeType == "macro"):
+               msg = "fastHadd add -j 7 -o %s " % (outMergedFileFullPath)
+            else:
+               msg = "fastHadd add -o %s " % (outMergedFileFullPath)
+            goodFiles = 0
+            for nfile in range(0, len(filenames)):
+               if (os.path.exists(filenames[nfile]) and (not os.path.isdir(filenames[nfile])) and os.path.getsize(filenames[nfile]) > 0):
+        	  msg = msg + filenames[nfile] + " "
+        	  goodFiles = goodFiles + 1
+            if(float(debug) > 20): log.info("running {0}".format(msg))
+            if(goodFiles > 0):
+               os.system(msg)
+               try:
+        	  fileSize = os.path.getsize(outMergedFileFullPath)
+               except Exception, e:
+        	  log.warning("Error computing histogram filesize {0}: {1}".format(outMergedFileFullPath,e))
+            else:
+               open(outMergedFileFullPath, 'w').close()
+
+      # input events in that file, all input events, file name, output events in that files, number of merged files
+      # only the first three are important
+      theMergedJSONfile = open(outMergedJSONFullPath, 'w')
+      theMergedJSONfile.write(json.dumps({'data': (infoEoLS[0], eventsO, errorCode, outMergedFile, fileSize, checkSum, infoEoLS[1], infoEoLS[2], infoEoLS[3], transferDest)}))
+      theMergedJSONfile.close()
+      #os.chmod(outMergedJSONFullPath, 0666)
+
+      # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/stream/open/../."
+      if (fileNameString[2] != "streamError"):
+	 outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "data", outMergedFile)
+      outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "jsns", outMergedJSON)
+
+      if (mergeType == "macro" and ("DQM" in fileNameString[2])):
+	 outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "data", "open", outMergedFile)
+	 outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "jsns", "open", outMergedJSON)
+
+      # checkSum checking
+      if(doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False and infoEoLS[0] != 0 and fileSize < max_size_checksum):
+	 adler32c=1
+	 with open(outMergedFileFullPath, 'r') as fsrc:
+            length=16*1024
+            while 1:
+               buf = fsrc.read(length)
+               if not buf:
+        	  break
+               adler32c=zlib.adler32(buf,adler32c)
+         fsrc.close()
+
+	 adler32c = adler32c & 0xffffffff
+	 if(adler32c != checkSum):
+            log.error("BIG PROBLEM, checkSum failed != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,adler32c,checkSum))
+            outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedFile)
+            outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedJSON)
+            checksum_status = False
+
+      if(checksum_status == True and infoEoLS[0] != 0 and fileNameString[2] != "streamError"):
+	 if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPath)):
+            log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,os.path.getsize(outMergedFileFullPath)))
+            outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedFile)
+            outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedJSON)
+            checksum_status = False
+
+	 elif(mergeType == "macro" and fileSize > max_size):
+            log.error("BIG PROBLEM, fileSize is too large!: {0} --> {1}".format(outMergedFileFullPath,fileSize))
+            outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "recovery", outMergedFile)
+            outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "recovery", outMergedJSON)
+            checksum_status = False
 
    # remove already merged files, if wished
-   if(doRemoveFiles == "True"):
+   if(doRemoveFiles == "True" and checksum_status == True):
       for nfile in range(0, len(files)):
          if(float(debug) >= 10): log.info("removing file: {0}".format(files[nfile]))
          inputFileToRemove = os.path.join(inputDataFolder, inpSubFolder, "data", files[nfile])
@@ -225,47 +274,6 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
 	       os.remove(BoLSFileNameFullPath)
          except Exception, e:
             log.warning("Error deleting BoLS file {0}: {1}".format(BoLSFileNameFullPath,e))
-
-   # Last thing to do is to move the data and json files to its final location "merged/runXXXXXX/stream/open/../."
-   if (fileNameString[2] != "streamError"):
-      outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "data", outMergedFile)
-   outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "jsns", outMergedJSON)
-
-   if (mergeType == "macro" and ("DQM" in fileNameString[2])):
-      outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "data", "open", outMergedFile)
-      outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "jsns", "open", outMergedJSON)
-
-   checksum_status = True
-   # checkSum checking
-   if(doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False and infoEoLS[0] != 0 and fileSize < max_size_checksum):
-      adler32c=1
-      with open(outMergedFileFullPath, 'r') as fsrc:
-         length=16*1024
-         while 1:
-            buf = fsrc.read(length)
-            if not buf:
-               break
-            adler32c=zlib.adler32(buf,adler32c)
-
-      adler32c = adler32c & 0xffffffff
-      if(adler32c != checkSum):
-         log.error("BIG PROBLEM, checkSum failed != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,adler32c,checkSum))
-         outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedFile)
-         outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedJSON)
-         checksum_status = False
-
-   if(checksum_status == True and infoEoLS[0] != 0 and fileNameString[2] != "streamError"):
-      if(fileNameString[2] != "streamError" and specialStreams == False and fileSize != os.path.getsize(outMergedFileFullPath)):
-         log.error("BIG PROBLEM, fileSize != outMergedFileFullPath: {0} --> {1}/{2}".format(outMergedFileFullPath,fileSize,os.path.getsize(outMergedFileFullPath)))
-         outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedFile)
-         outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "bad", outMergedJSON)
-         checksum_status = False
-
-      elif(mergeType == "macro" and fileSize > max_size):
-         log.error("BIG PROBLEM, fileSize is too large!: {0} --> {1}".format(outMergedFileFullPath,fileSize))
-         outMergedFileFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "recovery", outMergedFile)
-         outMergedJSONFullPathStable = os.path.join(outputMergedFolder, outSubFolder, "recovery", outMergedJSON)
-         checksum_status = False
 
    if(infoEoLS[0] != 0 and fileNameString[2] != "streamError"):
       shutil.move(outMergedFileFullPath,outMergedFileFullPathStable)
@@ -362,6 +370,7 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
                   	if not buf:
             	           break
             	        checkSumIni=zlib.adler32(buf,checkSumIni)
+                  fsrc.close()
 
 	          checkSumIni = checkSumIni & 0xffffffff
 
@@ -563,6 +572,7 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
 	    # expected checksum
             with open(lockNameFullPath, 'r+w') as filelock:
                lockFullString = filelock.readline().split(',')
+	    filelock.close()
 	    checkSum = int(lockFullString[0].split(':')[1])
 	    for nf in range(1, len(lockFullString)):
                fileSizeAux = int(lockFullString[nf].split(':')[0].split('=')[1])-int(lockFullString[nf-1].split(':')[0].split('=')[1])
@@ -580,6 +590,7 @@ def mergeFilesC(inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFo
                   if not buf:
                      break
                   adler32c=zlib.adler32(buf,adler32c)
+            fsrc.close()
 
 	    adler32c = adler32c & 0xffffffff
 

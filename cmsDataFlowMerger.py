@@ -21,7 +21,7 @@ import threading
 from Logging import getLogger
 log = getLogger()
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-merging_threshold_size = 2.5 * 1024 * 1024 * 1024
+merging_threshold_size = 1.5 * 1024 * 1024 * 1024
 
 # program to merge (cat) files given a list
 
@@ -180,7 +180,6 @@ def mergeFiles(triggerMergingThreshold, inpSubFolder, outSubFolder, outputMerged
    if(fileNameString[2] == "streamDQMEventDisplay"):
       theMergingThreshold = triggerMergingThreshold[0]
 
-   #if ((optionMerging == "optionA") or ("DQM" in fileNameString[2]) or ("streamError" in fileNameString[2]) or ("streamHLTRates" in fileNameString[2]) or ("streamL1Rates" in fileNameString[2]) or (infoEoLS[0] == 0)):
    if ((optionMerging == "optionA") or ("DQM" in fileNameString[2] and specialStreams == False and theMergingThreshold < 1) or (specialStreams == True) or (infoEoLS[0] == 0)):
       try:
          cmsActualMergingFiles.mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder,                       outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, infoEoLS, eventsO, files, checkSum, fileSize, filesJSON, errorCode, transferDest, mergeType, doRemoveFiles, outputEndName, esServerUrl, esIndexName, debug)
@@ -462,16 +461,18 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
    variablesDict  = dict()
    eventsEoLSDict = dict()
    # Maximum time to analyze json file to be considered standard
-   tooSlowTime = 200
+   tooSlowTime = 1000
    if(float(debug) >= 10): log.info("I will watch: {0}".format(paths_to_watch))
    # < 0 == will always use ThreadPool option
    nWithPollMax = 1
    # Maximum number of threads to be allowed with the pool option
-   nThreadsMax    = 20
-   nThreadsMaxDQM = 10
+   nThreadsMax     = 20
+   nThreadsMaxDQM  = 10
+   nThreadsMaxDQMH = 0 # not used for mini-merger now
    if mergeType == "macro":
-      nThreadsMax    = 25
-      nThreadsMaxDQM = 25
+      nThreadsMax     = 25
+      nThreadsMaxDQM  = 25
+      nThreadsMaxDQMH = 5
    # Number of loops
    nLoops = 0
 
@@ -481,12 +482,14 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
       # agressive call
       multiprocessing.log_to_stderr()
       multiprocessing.get_logger().setLevel(logging.ERROR)
-      thePool    = LoggingPool(processes=nThreadsMax)
-      thePoolDQM = LoggingPool(processes=nThreadsMaxDQM)
+      thePool     = LoggingPool(processes=nThreadsMax)
+      thePoolDQM  = LoggingPool(processes=nThreadsMaxDQM)
+      thePoolDQMH = LoggingPool(processes=nThreadsMaxDQMH)
 
    else:
-      thePool    = multiprocessing.Pool(nThreadsMax)
-      thePoolDQM = multiprocessing.Pool(nThreadsMaxDQM)
+      thePool     = multiprocessing.Pool(nThreadsMax)
+      thePoolDQM  = multiprocessing.Pool(nThreadsMaxDQM)
+      thePoolDQMH = multiprocessing.Pool(nThreadsMaxDQMH)
 
 
    while 1:
@@ -867,8 +870,16 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
 
                 variablesDict.update({key:[errorCode,eventsOutput,checkSum,fileSize,nFilesBU,NLostEvents,transferDest]})
 
+             specialStreams = False
+             if(fileNameString[2] == "streamDQMHistograms" or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates" or fileNameString[2] == "streamError"):
+                specialStreams = True
+
+             theMergingThreshold = triggerMergingThreshold[1]
+             if(fileNameString[2] == "streamDQMEventDisplay"):
+                theMergingThreshold = triggerMergingThreshold[0]
+
              theOutputEndName = outputEndName
-	     if (optionMerging != "optionA" and ("DQM" not in fileNameString[2]) and ("streamError" not in fileNameString[2]) and ("streamHLTRates" not in fileNameString[2]) and ("streamL1Rates" not in fileNameString[2]) and eventsIDict[key][0] != 0):
+	     if (optionMerging != "optionA" and ("DQM" not in fileNameString[2] or theMergingThreshold == 1) and (specialStreams == False) and eventsIDict[key][0] != 0):
                 theOutputEndName = "StorageManager"
 
              extensionName = ".dat"
@@ -951,7 +962,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                          del eventsEoLSDict[keyEoLS]
                          if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1 and mergeType != "mini"):
                             del eventsIDict[key]
-			 if(float(debug) >= 1): log.info("Dict size/length({0}): files = {1}/{2}, jsons = {3}/{4}, variables = {5}/{6}, eventsEoLS = {7}/{8}, eventsI = {9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),len(filesDict),sys.getsizeof(jsonsDict),len(jsonsDict),sys.getsizeof(variablesDict),len(variablesDict),sys.getsizeof(eventsEoLSDict),len(eventsEoLSDict),sys.getsizeof(eventsIDict),len(eventsIDict)))
+			 if(float(debug) >= 3): log.info("Dict size/length({0}): files = {1}/{2}, jsons = {3}/{4}, variables = {5}/{6}, eventsEoLS = {7}/{8}, eventsI = {9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),len(filesDict),sys.getsizeof(jsonsDict),len(jsonsDict),sys.getsizeof(variablesDict),len(variablesDict),sys.getsizeof(eventsEoLSDict),len(eventsEoLSDict),sys.getsizeof(eventsIDict),len(eventsIDict)))
                       except Exception, e:
                          log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
                    else:
@@ -1005,10 +1016,12 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                    					os.path.join(outputSMRecoveryFolder, outSubFolder, "recovery"))
 
                    if(float(debug) > 0): log.info("Spawning merging of {0}".format(outMergedJSON))
-                   if("DQM" in fileNameString[2] or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
-                      process = thePoolDQM.apply_async(mergeFiles, [triggerMergingThreshold, inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                   if("DQMHistograms" in fileNameString[2]):
+                      process = thePoolDQMH.apply_async(mergeFiles, [triggerMergingThreshold, inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                   elif("DQM" in fileNameString[2] or fileNameString[2] == "streamHLTRates" or fileNameString[2] == "streamL1Rates"):
+                      process = thePoolDQM.apply_async(mergeFiles,  [triggerMergingThreshold, inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
                    else:
-                      process = thePool.apply_async(   mergeFiles, [triggerMergingThreshold, inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
+                      process = thePool.apply_async(   mergeFiles,  [triggerMergingThreshold, inpSubFolder, outSubFolder, outputMergedFolder, outputSMMergedFolder, outputDQMMergedFolder, doCheckSum, outMergedFile, outMergedJSON, inputDataFolder, eventsInputReal, varDictAux[0], filesDATA, varDictAux[1], varDictAux[2], filesJSON, varDictAux[3], varDictAux[4], mergeType, doRemoveFiles, outputEndName, optionMerging, esServerUrl, esIndexName, debug])
 
                    # delete dictionaries to avoid too large memory use
                    try:
@@ -1018,7 +1031,7 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
                       del eventsEoLSDict[keyEoLS]
                       if("DQM" not in fileNameString[2] and eventsIDict[key][0] != -1 and mergeType != "mini"):
                          del eventsIDict[key]
-                      if(float(debug) >= 1): log.info("Dict size/length({0}): files = {1}/{2}, jsons = {3}/{4}, variables = {5}/{6}, eventsEoLS = {7}/{8}, eventsI = {9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),len(filesDict),sys.getsizeof(jsonsDict),len(jsonsDict),sys.getsizeof(variablesDict),len(variablesDict),sys.getsizeof(eventsEoLSDict),len(eventsEoLSDict),sys.getsizeof(eventsIDict),len(eventsIDict)))
+                      if(float(debug) >= 3): log.info("Dict size/length({0}): files = {1}/{2}, jsons = {3}/{4}, variables = {5}/{6}, eventsEoLS = {7}/{8}, eventsI = {9}/{10}".format(outMergedJSON,sys.getsizeof(filesDict),len(filesDict),sys.getsizeof(jsonsDict),len(jsonsDict),sys.getsizeof(variablesDict),len(variablesDict),sys.getsizeof(eventsEoLSDict),len(eventsEoLSDict),sys.getsizeof(eventsIDict),len(eventsIDict)))
                    except Exception, e:
                       log.warning("cannot delete dictionary {0} - {1}".format(outMergedJSON,e))
                 else:
@@ -1081,12 +1094,17 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
       thePool.join()
       thePoolDQM.close()
       thePoolDQM.join()
+      thePoolDQMH.close()
+      thePoolDQMH.join()
 
 def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, outputSMMerge, outputDQMMerge, doCheckSum, outputEndName, doRemoveFiles, optionMerging, esServerUrl, esIndexName, numberOfShards, numberOfReplicas, debug):
 
     triggerMergingThreshold = [0.5001, 0.8000] # DQMEventDisplay and DQM
     #triggerMergingThreshold = [1.0, 1.0] # DQMEventDisplay and DQM
     completeMergingThreshold = 1.0
+
+    if(triggerMergingThreshold[0] == 1 or triggerMergingThreshold[1] == 1):
+       merging_threshold_size = 5000 * 1024 * 1024 * 1024 # just an unreasonable large value
 
     if mergeType != "mini" and mergeType != "macro" and mergeType != "auto":
        msg = "Wrong type of merging: %s" % mergeType
@@ -1104,6 +1122,8 @@ def start_merging(paths_to_watch, path_eol, mergeType, streamType, outputMerge, 
        triggerMergingThreshold[1] = 0.90
        #triggerMergingThreshold[0] = 1.00
        #triggerMergingThreshold[1] = 1.00
+       if(triggerMergingThreshold[0] == 1 or triggerMergingThreshold[1] == 1):
+          merging_threshold_size = 5000 * 1024 * 1024 * 1024 # just an unreasonable large value
        if not os.path.exists(path_eol):
           msg = "End of Lumi folder Not Found: %s" % path_eol
           raise RuntimeError, msg
