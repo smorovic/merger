@@ -119,6 +119,7 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
             'number_of_replicas' : numberOfReplicas
          },
       }
+
       mapping = {
          'minimerge' : {
             'properties' : {
