@@ -230,8 +230,8 @@ def mergeFilesA(inpSubFolder, outSubFolder, outputMergedFolder, outputDQMMergedF
 	 outMergedFileFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "data", "open", outMergedFile)
 	 outMergedJSONFullPathStable = os.path.join(outputDQMMergedFolder, outSubFolder, "jsns", "open", outMergedJSON)
 
-      # checkSum checking
-      if(paramTimeOut[0] == False and doCheckSum == "True" and fileNameString[2] != "streamError" and specialStreams == False and infoEoLS[0] != 0 and fileSizeExpected < max_size_checksum):
+      # checkSum checking, doCheckSum is ignored for DQM streams
+      if(paramTimeOut[0] == False and (doCheckSum == "True" or "DQM" in fileNameString[2]) and fileNameString[2] != "streamError" and specialStreams == False and infoEoLS[0] != 0 and fileSizeExpected < max_size_checksum):
 	 adler32c=1
 	 with open(outMergedFileFullPath, 'r') as fsrc:
             length=16*1024

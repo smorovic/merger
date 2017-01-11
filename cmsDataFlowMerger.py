@@ -472,8 +472,8 @@ def doTheMerging(paths_to_watch, path_eol, mergeType, streamType, debug, outputM
    # Maximum number of threads to be allowed with the pool option
    nThreadsMax     = 20
    nThreadsMaxDQM  = 10
-   nThreadsMaxDQMH = 0 # not used for mini-merger now
-   nThreadsMaxRates = 0 # not used for mini-merger now
+   nThreadsMaxDQMH = 1 # not used for mini-merger now
+   nThreadsMaxRates = 1 # not used for mini-merger now
    maxParallelLSs = 1
    if mergeType == "macro":
       nThreadsMax     = 25
