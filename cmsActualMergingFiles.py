@@ -33,6 +33,7 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
    #mergeMonitorDict['fm_date']=float(mergeMonitorDict['fm_date'])
    documentId = mergeMonitorData[-1]
    mergeMonitorDict["host"]=host
+   mergeMonitorDict["runNumber"]=int(runnumber)
    while True:
       try:
   #requests.post(esServerUrl+'/_bulk','{"_type": "macromerge", "_index": "'+esIndexName+'"}}\n'+json.dumps(mergeMonitorDict)+'\n')
