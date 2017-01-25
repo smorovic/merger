@@ -30,12 +30,11 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
    keys = ["processed","accepted","errorEvents","fname","size","eolField1","eolField2","fm_date","ls","stream"]
    values = [int(f) if str(f).isdigit() else str(f) for f in mergeMonitorData]
    mergeMonitorDict=dict(zip(keys,values))
-   #mergeMonitorDict['fm_date']=float(mergeMonitorDict['fm_date'])
    documentId = mergeMonitorData[-1]
    mergeMonitorDict["host"]=host
+   mergeMonitorDict["runNumber"]=int(runnumber)
    while True:
       try:
-  #requests.post(esServerUrl+'/_bulk','{"_type": "macromerge", "_index": "'+esIndexName+'"}}\n'+json.dumps(mergeMonitorDict)+'\n')
          documentType=mergeType+'merge'
          if(float(debug) >= 10):
             log.info("About to try to insert into ES with the following info:")
@@ -44,6 +43,8 @@ def elasticMonitor(mergeMonitorData, runnumber, mergeType, esServerUrl, esIndexN
          #attempt to record the merge, 1s timeout!
          monitorResponse=requests.post(esServerUrl+'/'+esIndexName+'/'+documentType+'/'+documentId,data=json.dumps(mergeMonitorDict),timeout=1)
          if(float(debug) >= 10): log.info("Merger monitor produced response: {0}".format(monitorResponse.text))
+         if monitorResponse.status_code!=200:
+             log.error("elasticsearch replied with error code {0} and response: {1}".format(monitorResponse.status_code,monitorResponse.text))
          break
       except (requests.exceptions.ConnectionError,requests.exceptions.Timeout) as e:
          log.error('elasticMonitor threw connection error: HTTP ' + monitorResponse.status_code)

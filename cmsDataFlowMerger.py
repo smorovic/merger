@@ -51,7 +51,6 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
       minimerge_mapping = {
          'minimerge' : {
 	    '_all'       : {'enabled' : 'false'},
-            '_timestamp' : {'enabled' : 'true'},
             'properties' : {
                'fm_date'       :{'type':'date'},
                'id'            :{'type':'string','index' : 'not_analyzed'}, #run+appliance+stream+ls
@@ -66,14 +65,14 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
                'size'          :{'type':'long'},
                'eolField1'     :{'type':'integer'},
                'eolField2'     :{'type':'integer'},
-               'adler32'       :{'type':'long'}
+               'adler32'       :{'type':'long'},
+               'runNumber'     :{'type':'integer'}
             }
          }
       }
       macromerge_mapping = {
          'macromerge' : {
 	    '_all'       : {'enabled' : 'false'},
-            '_timestamp' : {'enabled' : 'true'},
             'properties' : {
                'fm_date'       :{'type':'date'},
                'id'            :{'type':'string','index' : 'not_analyzed'}, #run+appliance+stream+ls
@@ -87,7 +86,8 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
                'errorEvents'   :{'type':'integer'},
                'size'          :{'type':'long'},
                'eolField1'     :{'type':'integer'},
-               'eolField2'     :{'type':'integer'}
+               'eolField2'     :{'type':'integer'},
+               'runNumber'     :{'type':'integer'}
             }
          }
       }
@@ -116,7 +116,9 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
          },
          "index":{
             'number_of_shards' : numberOfShards,
-            'number_of_replicas' : numberOfReplicas
+            'number_of_replicas' : numberOfReplicas,
+            'translog':{'durability':'async'},
+            'mapper':{'dynamic':'false'}
          },
       }
 
@@ -138,7 +140,8 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
                'size'          :{'type':'long'},
                'eolField1'     :{'type':'integer'},
                'eolField2'     :{'type':'integer'},
-               'adler32'       :{'type':'long'}
+               'adler32'       :{'type':'long'},
+               'runNumber'     :{'type':'integer'}
             }
          },
          'macromerge' : {
@@ -158,6 +161,7 @@ def esMonitorMapping(esServerUrl,esIndexName,numberOfShards,numberOfReplicas,deb
                'size'          :{'type':'long'},
                'eolField1'     :{'type':'integer'},
                'eolField2'     :{'type':'integer'},
+               'runNumber'     :{'type':'integer'}
             }
          }
       }
